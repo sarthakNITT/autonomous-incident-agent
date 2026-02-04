@@ -5,6 +5,20 @@ services:
       dockerfile: apps/sample-app/Dockerfile
     ports:
       - "3000:3000"
-    environment:
-      - PORT=3000
-    restart: unless-stopped
+    volumes:
+      - shared_logs:/logs
+    command: /bin/sh -c "bun run src/index.ts | tee /logs/app.log"
+
+  agent:
+    build:
+      context: .
+      dockerfile: apps/agent/Dockerfile
+    volumes:
+      - shared_logs:/logs
+      - ./events:/events
+    depends_on:
+      - sample-app
+
+volumes:
+  shared_logs:
+

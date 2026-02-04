@@ -1,52 +1,44 @@
-# Autonomous Incident Agent - Phase 1
+# Autonomous Incident Agent (AIA)
 
-This repository contains the initial scaffold for the Autonomous Incident Agent demo. It currently features a `sample-app` built with Bun and TypeScript, managed via Turborepo.
-
-## Prerequisites
-
-- [Bun](https://bun.sh/) (latest)
-- [Docker](https://www.docker.com/) & Docker Compose
-
-## Installation
-
-1. Install dependencies using Bun:
-   ```bash
-   bun install
-   ```
-
-## Running the Sample Application
-
-1. Start the service using Docker Compose:
-   ```bash
-   docker-compose up --build
-   ```
-   This will start the `sample-app` service on port 3000.
-
-## Verifying the Seeded Bug
-
-The `sample-app` contains a deterministic bug that can be triggered via a specific payload.
-
-1. Ensure the app is running (see above).
-2. Run the following command to trigger the bug:
-   ```bash
-   curl -X POST http://localhost:3000/trigger \
-        -H "Content-Type: application/json" \
-        -d @test/bug-scenarios/scenario-1.json
-   ```
-3. Observe the logs in your docker-compose terminal. You should see a stack trace starting with:
-   `Error: SeededDemoFailure: deterministic bug for AIA demo`
+This repository contains a demonstration of an Autonomous Incident Agent (AIA) capable of detecting and reporting failure scenarios.
 
 ## Repository Structure
 
-- `apps/sample-app`: The main service exposing the HTTP endpoint.
-- `packages/types`: Shared TypeScript types.
-- `test/bug-scenarios`: JSON payloads for testing specific scenarios.
-- `turbo.json`: Turborepo configuration.
-- `bunfig.toml`: Bun configuration.
+- `apps/sample-app`: A lightweight Bun service that can be triggered to fail.
+- `apps/agent`: A monitoring service that detects failures and emits incident reports.
+- `packages/types`: Shared TypeScript definitions.
+- `events/`: Directory where incident reports are output.
 
-## Design Decisions
+## Getting Started
 
-- **Bun**: Used for both package management and runtime to ensure speed and simplicity.
-- **Turborepo**: Manages the monorepo structure, allowing for efficient builds and task execution across workspaces.
-- **Docker**: Ensures consistent execution environment for the demo.
-- **Deterministic Bug**: The "bug" is explicitly coded to throw when a specific payload is received, ensuring reliable demonstration of incident handling capabilities.
+### Prerequisites
+
+- [Bun](https://bun.sh) (v1.0+)
+- Docker & Docker Compose
+
+### 1. Verification (Phase 2)
+
+To verify the agent monitoring and incident generation:
+
+**1. Start the services:**
+```bash
+docker-compose up --build
+```
+
+**2. Trigger the failure:**
+Open a new terminal and run:
+```bash
+curl -X POST http://localhost:3000/trigger \
+     -H "Content-Type: application/json" \
+     -d @test/bug-scenarios/scenario-1.json
+```
+
+**3. Verify Agent Response:**
+Check the agent logs in the docker terminal. You should see "FAILURE DETECTED!".
+
+**4. Check Generated Event:**
+Verify that `events/incident-1.json` has been created and contains the failure details.
+
+```bash
+cat events/incident-1.json
+```

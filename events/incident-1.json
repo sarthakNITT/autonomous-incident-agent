@@ -1,0 +1,88 @@
+{
+  "id": "eb663480-eaee-405a-8fa0-8bdba5e29145",
+  "timestamp": "2026-02-04T18:47:17.358Z",
+  "severity": "critical",
+  "service_name": "sample-app",
+  "error_details": {
+    "message": "SeededDemoFailure: deterministic bug for AIA demo",
+    "stacktrace": "  expected_error_pattern: \"SeededDemoFailure\","
+  },
+  "log_snapshot": [
+    {
+      "timestamp": "2026-02-04T18:47:17.364Z",
+      "level": "info",
+      "message": "Starting sample-app on port 3000..."
+    },
+    {
+      "timestamp": "2026-02-04T18:47:17.364Z",
+      "level": "info",
+      "message": "Server listening on http://localhost:3000"
+    },
+    {
+      "timestamp": "2026-02-04T18:47:17.364Z",
+      "level": "info",
+      "message": "Received trigger request: {"
+    },
+    {
+      "timestamp": "2026-02-04T18:47:17.364Z",
+      "level": "info",
+      "message": "  request_id: \"demo-req-1\","
+    },
+    {
+      "timestamp": "2026-02-04T18:47:17.364Z",
+      "level": "info",
+      "message": "  payload: {"
+    },
+    {
+      "timestamp": "2026-02-04T18:47:17.364Z",
+      "level": "info",
+      "message": "    action: \"cause_error\","
+    },
+    {
+      "timestamp": "2026-02-04T18:47:17.364Z",
+      "level": "info",
+      "message": "  },"
+    },
+    {
+      "timestamp": "2026-02-04T18:47:17.364Z",
+      "level": "info",
+      "message": "  expected_error_pattern: \"SeededDemoFailure\","
+    },
+    {
+      "timestamp": "2026-02-04T18:47:17.364Z",
+      "level": "info",
+      "message": "}"
+    },
+    {
+      "timestamp": "2026-02-04T18:47:17.364Z",
+      "level": "info",
+      "message": "Received trigger request: {"
+    },
+    {
+      "timestamp": "2026-02-04T18:47:17.364Z",
+      "level": "info",
+      "message": "  request_id: \"demo-req-1\","
+    },
+    {
+      "timestamp": "2026-02-04T18:47:17.364Z",
+      "level": "info",
+      "message": "  payload: {"
+    },
+    {
+      "timestamp": "2026-02-04T18:47:17.364Z",
+      "level": "info",
+      "message": "    action: \"cause_error\","
+    },
+    {
+      "timestamp": "2026-02-04T18:47:17.364Z",
+      "level": "info",
+      "message": "  },"
+    },
+    {
+      "timestamp": "2026-02-04T18:47:17.364Z",
+      "level": "info",
+      "message": "  expected_error_pattern: \"SeededDemoFailure\","
+    }
+  ],
+  "request_id": "demo-req-1"
+}

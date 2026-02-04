@@ -1,0 +1,69 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "timestamp": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "severity": {
+            "type": "string",
+            "enum": [
+                "critical",
+                "warning",
+                "info"
+            ]
+        },
+        "service_name": {
+            "type": "string"
+        },
+        "error_details": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "stacktrace": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "message"
+            ]
+        },
+        "log_snapshot": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "timestamp": {
+                        "type": "string"
+                    },
+                    "level": {
+                        "type": "string"
+                    },
+                    "message": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "message"
+                ]
+            }
+        },
+        "request_id": {
+            "type": "string"
+        }
+    },
+    "required": [
+        "id",
+        "timestamp",
+        "severity",
+        "service_name",
+        "error_details",
+        "log_snapshot"
+    ]
+}
