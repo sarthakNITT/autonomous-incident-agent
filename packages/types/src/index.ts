@@ -13,4 +13,6 @@ export interface TriggerResponse {
 }
 
 export * from "./agent";
+export * from "./agent";
 export * from "./router";
+export * from "./autopsy";

@@ -59,3 +59,21 @@ Should return: `{"snapshot_id":"..."}`
 
 **3. Verify Storage:**
 Check that a snapshot file exists in `router/storage/`.
+
+### 3. Verification (Phase 4: Autopsy)
+
+To verify the autopsy engine analysis:
+
+**1. Call the analysis endpoint:**
+Replace `<SNAPSHOT_ID>` with the ID returned from the router.
+```bash
+curl -X POST http://localhost:5001/analyze \
+     -H "Content-Type: application/json" \
+     -d '{ "snapshot_id": "<SNAPSHOT_ID>", "repo_path": "/repo" }'
+```
+
+**2. Verify Response:**
+Should return a JSON object with `root_cause_text` and `suggested_patch`.
+
+**3. Check Output File:**
+Verify `autopsy/sample_output/incident-1-autopsy.json` exists.
