@@ -1,0 +1,16 @@
+bun test v1.3.8 (b64edcb4)
+Trigger status: 500
+Bug reproduced: 500 Internal Server Error
+time="2026-02-05T01:09:59+05:30" level=warning msg="/Users/sarthakkarode/autonomus-incident-agent/repro/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+time="2026-02-05T01:09:59+05:30" level=warning msg="No services to build"
+ Container repro-sample-app-1 Running 
+time="2026-02-05T01:09:59+05:30" level=warning msg="No services to build"
+ Container repro-test-runner-run-a77b6cf0594a Creating 
+ Container repro-test-runner-run-a77b6cf0594a Created 
+
+app/test/generated/repro.test.ts:
+(pass) reproduce seeded failure [17.00ms]
+
+ 1 pass
+ 0 fail
+Ran 1 test across 1 file. [64.00ms]

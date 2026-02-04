@@ -1,0 +1,17 @@
+version: "3"
+services:
+  sample-app:
+    build:
+      context: ..
+      dockerfile: apps/sample-app/Dockerfile
+    environment:
+      - PORT=3000
+
+  test-runner:
+    build:
+      context: ..
+      dockerfile: repro/Dockerfile
+    network_mode: "service:sample-app"
+    depends_on:
+      - sample-app
+    command: ["bun", "test", "app/test/generated/repro.test.ts"]

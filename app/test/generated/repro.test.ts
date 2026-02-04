@@ -12,13 +12,6 @@ test("reproduce seeded failure", async () => {
 
     console.log(`Trigger status: ${response.status}`);
     
-    // If bug is present, this returns 500
-    // If bug is fixed, this might return 200 (or whatever default behavior is)
-    
-    // For a reproduction test, we typically want to assert that it FAILS (to prove the bug)
-    // or we can write a test that passes if the fix works.
-    // Given the prompt asks for "reproduction proof", capturing the 500 is the key.
-    
     if (response.status === 500) {
         console.log("Bug reproduced: 500 Internal Server Error");
     } else {

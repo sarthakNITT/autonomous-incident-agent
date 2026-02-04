@@ -104,6 +104,17 @@ bun run apps/autopsy/pr_generator.ts
 
 **2. Verify Outputs:**
 Check for created files:
-- `autopsy/patches/patch-1.diff`
-- `autopsy/pr_description/incident-1-pr.md`
 - `app/test/generated/repro.test.ts`
+
+### 5. Verification (Phase 6: Reproduction Harness)
+
+To verify the patch effectiveness using the containerized harness:
+
+**1. Run the harness:**
+```bash
+bun run repro/run_repro.ts
+```
+
+**2. Verify Logs:**
+- `repro/logs/pre.txt`: Should show the test failing (HTTP 500).
+- `repro/logs/post.txt`: Should show the test passing (HTTP 200).

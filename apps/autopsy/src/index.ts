@@ -50,7 +50,7 @@ const server = Bun.serve({
                 const lines = sourceContent.split("\n");
 
                 const startLine = Math.max(0, lineNumber - 3);
-                const endLine = lineNumber + 2;
+                const endLine = lineNumber + 3;
 
                 const originalChunk = lines.slice(startLine, endLine).map(l => `-${l}`).join("\n");
                 const patch = `--- ${relPath}\n+++ ${relPath}\n@@ -${startLine + 1},${endLine - startLine} +${startLine + 1},0 @@\n${originalChunk}`;
