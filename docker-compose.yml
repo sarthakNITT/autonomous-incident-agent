@@ -19,6 +19,17 @@ services:
     depends_on:
       - sample-app
 
+  router:
+    build:
+      context: .
+      dockerfile: apps/router/Dockerfile
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./router/storage:/storage
+    environment:
+      - PORT=4000
+
 volumes:
   shared_logs:
 

@@ -42,3 +42,20 @@ Verify that `events/incident-1.json` has been created and contains the failure d
 ```bash
 cat events/incident-1.json
 ```
+
+### 2. Verification (Phase 3: Router)
+
+To verify the event router ingestion:
+
+**1. Send the incident to the router:**
+```bash
+curl -X POST http://localhost:4000/ingest \
+     -H "Content-Type: application/json" \
+     -d @events/incident-1.json
+```
+
+**2. Verify Response:**
+Should return: `{"snapshot_id":"..."}`
+
+**3. Verify Storage:**
+Check that a snapshot file exists in `router/storage/`.
