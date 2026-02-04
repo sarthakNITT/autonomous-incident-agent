@@ -1,0 +1,7 @@
+{
+    "request_id": "demo-req-1",
+    "payload": {
+        "action": "cause_error"
+    },
+    "expected_error_pattern": "SeededDemoFailure"
+}

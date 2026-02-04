@@ -1,0 +1,3 @@
+[install]
+# configures the lockfile format to be "bun.lock" (binary)
+lockfile = "bun.lock"
