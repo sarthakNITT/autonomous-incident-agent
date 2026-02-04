@@ -77,3 +77,33 @@ Should return a JSON object with `root_cause_text` and `suggested_patch`.
 
 **3. Check Output File:**
 Verify `autopsy/sample_output/incident-1-autopsy.json` exists.
+
+### 4. Verification (Phase 5: PR Generator)
+
+To generate PR artifacts from the autopsy result:
+
+**1. Run the generator:**
+```bash
+bun run apps/autopsy/pr_generator.ts
+```
+
+**2. Verify Outputs:**
+Check for created files:
+- `autopsy/patches/patch-1.diff`
+- `autopsy/pr_description/incident-1-pr.md`
+- `app/test/generated/repro.test.ts`
+
+### 4. Verification (Phase 5: PR Generator)
+
+To generate PR artifacts from the autopsy result:
+
+**1. Run the generator:**
+```bash
+bun run apps/autopsy/pr_generator.ts
+```
+
+**2. Verify Outputs:**
+Check for created files:
+- `autopsy/patches/patch-1.diff`
+- `autopsy/pr_description/incident-1-pr.md`
+- `app/test/generated/repro.test.ts`
