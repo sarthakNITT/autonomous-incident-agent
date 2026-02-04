@@ -7,7 +7,7 @@ services:
       - "3000:3000"
     volumes:
       - shared_logs:/logs
-    command: /bin/sh -c "bun run src/index.ts | tee /logs/app.log"
+    command: /bin/sh -c "bun run src/index.ts 2>&1 | tee /logs/app.log"
 
   agent:
     build:

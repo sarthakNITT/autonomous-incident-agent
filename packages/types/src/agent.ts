@@ -11,8 +11,12 @@ export interface IncidentEvent {
     service_name: string;
     error_details: {
         message: string;
-        stacktrace?: string;
     };
-    log_snapshot: LogSnapshot[];
-    request_id?: string;
+    stacktrace: string;
+    last_logs: LogSnapshot[];
+    request_id: string;
+    environment: {
+        env: string;
+        version: string;
+    };
 }

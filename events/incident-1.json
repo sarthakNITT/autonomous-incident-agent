@@ -1,88 +1,117 @@
 {
-  "id": "eb663480-eaee-405a-8fa0-8bdba5e29145",
-  "timestamp": "2026-02-04T18:47:17.358Z",
+  "id": "48d9061b-3c58-4940-8400-e226177ecf40",
+  "timestamp": "2026-02-04T18:56:33.088Z",
   "severity": "critical",
   "service_name": "sample-app",
   "error_details": {
-    "message": "SeededDemoFailure: deterministic bug for AIA demo",
-    "stacktrace": "  expected_error_pattern: \"SeededDemoFailure\","
+    "message": "SeededDemoFailure: deterministic bug for AIA demo"
   },
-  "log_snapshot": [
+  "stacktrace": "Error: SeededDemoFailure: deterministic bug for AIA demo\n    at fetch (/app/apps/sample-app/src/index.ts:26:39)\n26 |                     const error = new Error(\"SeededDemoFailure: deterministic bug for AIA demo\");\nerror: SeededDemoFailure: deterministic bug for AIA demo\n      at fetch (/app/apps/sample-app/src/index.ts:26:39)",
+  "last_logs": [
     {
-      "timestamp": "2026-02-04T18:47:17.364Z",
-      "level": "info",
-      "message": "Starting sample-app on port 3000..."
-    },
-    {
-      "timestamp": "2026-02-04T18:47:17.364Z",
-      "level": "info",
-      "message": "Server listening on http://localhost:3000"
-    },
-    {
-      "timestamp": "2026-02-04T18:47:17.364Z",
+      "timestamp": "2026-02-04T18:56:33.090Z",
       "level": "info",
       "message": "Received trigger request: {"
     },
     {
-      "timestamp": "2026-02-04T18:47:17.364Z",
+      "timestamp": "2026-02-04T18:56:33.090Z",
       "level": "info",
       "message": "  request_id: \"demo-req-1\","
     },
     {
-      "timestamp": "2026-02-04T18:47:17.364Z",
+      "timestamp": "2026-02-04T18:56:33.090Z",
       "level": "info",
       "message": "  payload: {"
     },
     {
-      "timestamp": "2026-02-04T18:47:17.364Z",
+      "timestamp": "2026-02-04T18:56:33.090Z",
       "level": "info",
       "message": "    action: \"cause_error\","
     },
     {
-      "timestamp": "2026-02-04T18:47:17.364Z",
+      "timestamp": "2026-02-04T18:56:33.090Z",
       "level": "info",
       "message": "  },"
     },
     {
-      "timestamp": "2026-02-04T18:47:17.364Z",
+      "timestamp": "2026-02-04T18:56:33.090Z",
       "level": "info",
       "message": "  expected_error_pattern: \"SeededDemoFailure\","
     },
     {
-      "timestamp": "2026-02-04T18:47:17.364Z",
+      "timestamp": "2026-02-04T18:56:33.090Z",
       "level": "info",
       "message": "}"
     },
     {
-      "timestamp": "2026-02-04T18:47:17.364Z",
+      "timestamp": "2026-02-04T18:56:33.090Z",
       "level": "info",
-      "message": "Received trigger request: {"
+      "message": "Triggering intentional failure scenario..."
     },
     {
-      "timestamp": "2026-02-04T18:47:17.364Z",
+      "timestamp": "2026-02-04T18:56:33.090Z",
       "level": "info",
-      "message": "  request_id: \"demo-req-1\","
+      "message": "Error: SeededDemoFailure: deterministic bug for AIA demo"
     },
     {
-      "timestamp": "2026-02-04T18:47:17.364Z",
+      "timestamp": "2026-02-04T18:56:33.090Z",
       "level": "info",
-      "message": "  payload: {"
+      "message": "    at fetch (/app/apps/sample-app/src/index.ts:26:39)"
     },
     {
-      "timestamp": "2026-02-04T18:47:17.364Z",
+      "timestamp": "2026-02-04T18:56:33.090Z",
       "level": "info",
-      "message": "    action: \"cause_error\","
+      "message": "Unhandled error processing request:"
     },
     {
-      "timestamp": "2026-02-04T18:47:17.364Z",
+      "timestamp": "2026-02-04T18:56:33.090Z",
       "level": "info",
-      "message": "  },"
+      "message": "21 | "
     },
     {
-      "timestamp": "2026-02-04T18:47:17.364Z",
+      "timestamp": "2026-02-04T18:56:33.090Z",
       "level": "info",
-      "message": "  expected_error_pattern: \"SeededDemoFailure\","
+      "message": "22 |                 console.log(\"Received trigger request:\", body);"
+    },
+    {
+      "timestamp": "2026-02-04T18:56:33.090Z",
+      "level": "info",
+      "message": "23 | "
+    },
+    {
+      "timestamp": "2026-02-04T18:56:33.090Z",
+      "level": "info",
+      "message": "24 |                 if (body.payload?.action === \"cause_error\") {"
+    },
+    {
+      "timestamp": "2026-02-04T18:56:33.090Z",
+      "level": "info",
+      "message": "25 |                     console.error(\"Triggering intentional failure scenario...\");"
+    },
+    {
+      "timestamp": "2026-02-04T18:56:33.090Z",
+      "level": "info",
+      "message": "26 |                     const error = new Error(\"SeededDemoFailure: deterministic bug for AIA demo\");"
+    },
+    {
+      "timestamp": "2026-02-04T18:56:33.090Z",
+      "level": "info",
+      "message": "                                           ^"
+    },
+    {
+      "timestamp": "2026-02-04T18:56:33.090Z",
+      "level": "info",
+      "message": "error: SeededDemoFailure: deterministic bug for AIA demo"
+    },
+    {
+      "timestamp": "2026-02-04T18:56:33.090Z",
+      "level": "info",
+      "message": "      at fetch (/app/apps/sample-app/src/index.ts:26:39)"
     }
   ],
-  "request_id": "demo-req-1"
+  "request_id": "demo-req-1",
+  "environment": {
+    "env": "local",
+    "version": "demo"
+  }
 }

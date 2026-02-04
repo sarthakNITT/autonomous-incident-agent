@@ -24,10 +24,7 @@
             "type": "object",
             "properties": {
                 "message": {
-                    "type": "string"
-                },
-                "stacktrace": {
-                    "type": "string"
+                    "type": "string""type": "string"
                 }
             },
             "required": [

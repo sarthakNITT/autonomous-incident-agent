@@ -9,7 +9,7 @@ console.log("Starting AIA Agent...");
 console.log(`Monitoring ${LOG_FILE_PATH} for failure patterns...`);
 
 const logBuffer: string[] = [];
-const BUFFER_SIZE = 50;
+const BUFFER_SIZE = 50; // Keep enough to find request_id and give 20 lines context
 
 async function tailFile(filePath: string) {
     const file = Bun.file(filePath);
@@ -50,25 +50,23 @@ async function tailFile(filePath: string) {
 function processLine(line: string) {
     if (!line.trim()) return;
 
-    // Add to buffer
     logBuffer.push(line);
     if (logBuffer.length > BUFFER_SIZE) {
         logBuffer.shift();
     }
 
-    // Check for trigger
-    if (line.includes("SeededDemoFailure")) {
+    if (line.includes("SeededDemoFailure") && !line.includes("expected_error_pattern")) {
         console.log("FAILURE DETECTED! Generating incident report...");
-        generateIncident(line);
+        // Wait briefly to allow stacktrace lines to accumulate
+        setTimeout(() => generateIncident(line), 500);
     }
 }
 
 async function generateIncident(triggerLine: string) {
     const timestamp = new Date().toISOString();
 
-    // Attempt to extract request_id if present in recent logs
-    // Looking for pattern: "request_id": "..."
     let requestId = "unknown";
+    // Search buffer for request_id
     const reversedBuffer = [...logBuffer].reverse();
     for (const log of reversedBuffer) {
         const match = log.match(/(?:["']?request_id["']?)\s*[:=]\s*["']([^"']+)["']/);
@@ -78,9 +76,21 @@ async function generateIncident(triggerLine: string) {
         }
     }
 
-    const logSnapshots: LogSnapshot[] = logBuffer.map(msg => ({
-        timestamp: new Date().toISOString(), // In a real app we'd parse the log timestamp
-        level: "info", // inferred
+    // Extract stacktrace: lines starting with "at " or "Error:" in the buffer
+    // Filter lines that look like stack traces or the error message
+    const stacktraceLines = logBuffer.filter(l =>
+        (l.trim().startsWith("at ") ||
+            l.includes("SeededDemoFailure") ||
+            l.match(/^\s*Error:/)) &&
+        !l.includes("expected_error_pattern")
+    );
+    const stacktrace = stacktraceLines.join("\n");
+
+    // Get last 20 logs
+    const lastLogsRaw = logBuffer.slice(Math.max(0, logBuffer.length - 20));
+    const lastLogs: LogSnapshot[] = lastLogsRaw.map(msg => ({
+        timestamp: new Date().toISOString(), // In real app, parse log timestamp
+        level: "info",
         message: msg
     }));
 
@@ -91,10 +101,14 @@ async function generateIncident(triggerLine: string) {
         service_name: "sample-app",
         error_details: {
             message: "SeededDemoFailure: deterministic bug for AIA demo",
-            stacktrace: triggerLine // Simplified for demo
         },
-        log_snapshot: logSnapshots,
-        request_id: requestId
+        stacktrace: stacktrace || triggerLine, // Fallback to trigger line
+        last_logs: lastLogs,
+        request_id: requestId,
+        environment: {
+            env: "local",
+            version: "demo"
+        }
     };
 
     const outputPath = join(EVENTS_DIR, INCIDENT_FILE);
