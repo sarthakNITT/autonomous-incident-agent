@@ -1,6 +1,4 @@
-// Shared type for the bug scenario payload
-// Shared type for the bug scenario payload
-export interface BugPayload {
+export interface ScenarioPayload {
     request_id: string;
     payload: {
         action: "cause_error" | "safe";
@@ -9,7 +7,7 @@ export interface BugPayload {
     expected_error_pattern?: string;
 }
 
-export interface ApiResponse {
+export interface TriggerResponse {
     status: "ok" | "error";
     message?: string;
 }
