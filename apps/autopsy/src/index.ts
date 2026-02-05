@@ -1,7 +1,7 @@
 import type { AutopsyResult, RouterSnapshot, PatchSuggestion } from "@repo/types";
 import { join } from "path";
 
-const PORT = 5000;
+const PORT = 5001;
 const STORAGE_DIR = "/storage";
 const REPO_DIR = "/repo";
 const OUTPUT_DIR = "/output";

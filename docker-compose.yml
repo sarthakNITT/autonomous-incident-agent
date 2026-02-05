@@ -35,7 +35,7 @@ services:
       context: .
       dockerfile: apps/autopsy/Dockerfile
     ports:
-      - "5001:5000"
+      - "5001:5001"
     volumes:
       - ./router/storage:/storage
       - ./:/repo
