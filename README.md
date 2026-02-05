@@ -134,3 +134,26 @@ Open [http://localhost:3002/incident-1](http://localhost:3002/incident-1) in you
 bun run apps/dashboard/src/export.ts
 ```
 Verify `dashboard/reports/incident-1.pdf` is created.
+
+### 7. End-to-End Demo (Phase 8)
+
+Run the entire pipeline (Trigger -> Agent -> Router -> Autopsy -> Patch -> Verify -> Report) in one command:
+
+```bash
+bun run demo/run_demo.ts
+```
+
+This will:
+1. Reset the environment.
+2. Spin up the entire stack.
+3. Simulate an incident.
+4. Auto-generate a fix and verify it.
+5. Export all artifacts to `demo/output`:
+   - `incident-1.json`
+   - `snapshot-1.json`
+   - `incident-1-autopsy.json`
+   - `patch-1.diff`
+   - `pre.txt` & `post.txt`
+   - `incident-1.pdf`
+
+**Expected Runtime:** ~2 minutes.

@@ -1,0 +1,12 @@
+{
+  "root_cause_text": "The application explicitly throws a 'SeededDemoFailure' when the action 'cause_error' is received. This appears to be a test artifact left in production code.",
+  "commit_hash": "demo-seeded",
+  "file_path": "apps/sample-app/src/index.ts",
+  "line_range": "24-29",
+  "suggested_patch": {
+    "file_path": "apps/sample-app/src/index.ts",
+    "language": "typescript",
+    "patch_diff": "--- apps/sample-app/src/index.ts\n+++ apps/sample-app/src/index.ts\n@@ -24,6 +24,0 @@\n-                if (body.payload?.action === \"cause_error\") {\n-                    console.error(\"Triggering intentional failure scenario...\");\n-                    const error = new Error(\"SeededDemoFailure: deterministic bug for AIA demo\");\n-                    console.error(error.stack);\n-                    throw error;\n-                }"
+  },
+  "confidence": 0.95
+}
