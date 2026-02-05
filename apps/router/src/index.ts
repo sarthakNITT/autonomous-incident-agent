@@ -2,7 +2,8 @@ import type { IncidentEvent, RouterSnapshot, EnvMetadata, RepoRef } from "@repo/
 import { join } from "path";
 
 const PORT = process.env.PORT || 4000;
-const STORAGE_DIR = "/storage";
+// Use absolute path in Docker, relative in local dev
+const STORAGE_DIR = process.env.BUN_ENV === "docker" ? "/storage" : join(process.cwd(), "../../router/storage");
 
 const server = Bun.serve({
     port: PORT,

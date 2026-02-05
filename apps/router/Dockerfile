@@ -10,4 +10,6 @@ RUN bun install
 
 WORKDIR /app/apps/router
 
+ENV BUN_ENV=docker
+
 CMD ["bun", "run", "src/index.ts"]
