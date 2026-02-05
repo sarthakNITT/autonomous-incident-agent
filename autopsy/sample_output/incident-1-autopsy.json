@@ -6,7 +6,7 @@
   "suggested_patch": {
     "file_path": "apps/sample-app/src/index.ts",
     "language": "typescript",
-    "patch_diff": "--- apps/sample-app/src/index.ts\n+++ apps/sample-app/src/index.ts\n@@ -33,6 +33,0 @@\n-                    const config: any = null;\n-                    console.log(\"ReferenceError: config is not defined\");\n-                    throw new ReferenceError(\"config is not defined\");\n-                }\n-\n-                if (body.payload?.action === \"cause_cpu\") {"
+    "patch_diff": "--- apps/sample-app/src/index.ts\n+++ apps/sample-app/src/index.ts\n@@ -33,6 +33,0 @@\n-                    console.log(\"Triggering CPU timeout...\");\n-                    console.log(\"Error: Request Timeout - CPU Limit Exceeded\");\n-                    throw new Error(\"Request Timeout - CPU Limit Exceeded\");\n-                }\n-\n-                const response: TriggerResponse = { status: \"ok\" };"
   },
   "confidence": 0.95
 }

@@ -2,7 +2,7 @@ import { renderIncidentView } from "./views/incident";
 import type { AutopsyResult } from "@repo/types";
 import { join } from "path";
 
-const PORT = 3000;
+const PORT = 3002;
 
 console.log(`Starting Dashboard Server on port ${PORT}...`);
 
@@ -20,12 +20,25 @@ const server = Bun.serve({
                 const postLogPath = "/app/repro/logs/post.txt";
 
                 // Fallback for local run
-                const prefix = (await Bun.file(autopsyPath).exists()) ? "" : "../../";
+                // Check if running in Docker by checking if absolute path exists
+                const isDocker = await Bun.file(autopsyPath).exists();
 
-                const autopsyFile = Bun.file(join(prefix, autopsyPath.startsWith("/") ? autopsyPath.slice(1) : autopsyPath));
-                const prFile = Bun.file(join(prefix, prDescPath.startsWith("/") ? prDescPath.slice(1) : prDescPath));
-                const preFile = Bun.file(join(prefix, preLogPath.startsWith("/") ? preLogPath.slice(1) : preLogPath));
-                const postFile = Bun.file(join(prefix, postLogPath.startsWith("/") ? postLogPath.slice(1) : postLogPath));
+                // Helper to resolve path
+                const resolvePath = (path: string) => {
+                    if (isDocker) return path;
+                    // Strip /app prefix for local relative path
+                    const relative = path.replace(/^\/app\//, "");
+                    return join("../../", relative);
+                };
+
+                const autopsyFile = Bun.file(resolvePath(autopsyPath));
+                const prFile = Bun.file(resolvePath(prDescPath));
+                const preFile = Bun.file(resolvePath(preLogPath));
+                const postFile = Bun.file(resolvePath(postLogPath));
+
+                console.log(`[DEBUG] Dashboard resolving paths (Docker=${isDocker}):`);
+                console.log(`[DEBUG] Autopsy: ${autopsyFile.name}`);
+                console.log(`[DEBUG] PreLog: ${preFile.name}`);
 
                 // Read all data
                 const autopsy = await autopsyFile.json() as AutopsyResult;

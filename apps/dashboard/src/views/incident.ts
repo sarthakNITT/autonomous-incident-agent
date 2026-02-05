@@ -88,6 +88,39 @@ export function renderIncidentView(
     </div>
 
     <div class="section">
+        <h2>🤖 AI Fix Prompt</h2>
+        <p>Copy and paste this prompt into ChatGPT, Claude, or your IDE AI to fix the bug:</p>
+        <div style="position: relative;">
+            <textarea id="ai-prompt" style="width: 100%; height: 120px; padding: 10px; background: #f4f4f4; border: 1px solid #ccc; border-radius: 4px; font-family: monospace;" readonly>
+Fix the bug in file ${autopsy.file_path} at lines ${autopsy.line_range}.
+Error Context: ${autopsy.root_cause_text}
+
+Here is the suggested patch to apply:
+${autopsy.suggested_patch.patch_diff}
+
+Please verify the fix ensures the error is resolved and follows project standards.
+            </textarea>
+            <button onclick="navigator.clipboard.writeText(document.getElementById('ai-prompt').value); this.innerText='Copied!';" style="margin-top: 10px; padding: 5px 15px; cursor: pointer; background: #333; color: white; border: none; border-radius: 4px;">Copy Prompt</button>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>🛠 Manual Restoration Steps</h2>
+        <ol style="line-height: 1.8;">
+            <li>Open the file <code>${autopsy.file_path}</code> in your editor.</li>
+            <li>Navigate to line range <strong>${autopsy.line_range}</strong>.</li>
+            <li>Locate the code causing the error:
+                <pre style="background: #eee; padding: 5px; border-radius: 3px; font-size: 0.9em;">${autopsy.root_cause_text}</pre>
+            </li>
+            <li>Apply the changes shown in the <strong>Generated Patch</strong> section above.</li>
+            <li>Run the local test harness to verify:
+                <code>npm run test</code> or <code>bun run test</code>
+            </li>
+            <li>Commit the fix and push to the repository.</li>
+        </ol>
+    </div>
+
+    <div class="section">
         <h2>Automated Verification</h2>
         <div style="display: flex; gap: 20px;">
             <div style="flex: 1;">

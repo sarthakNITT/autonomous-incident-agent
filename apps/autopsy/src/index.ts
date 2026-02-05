@@ -2,9 +2,11 @@ import type { AutopsyResult, RouterSnapshot, PatchSuggestion } from "@repo/types
 import { join } from "path";
 
 const PORT = 5001;
-const STORAGE_DIR = "/storage";
-const REPO_DIR = "/repo";
-const OUTPUT_DIR = "/output";
+// Use absolute paths in Docker, relative in local dev
+const isDocker = process.env.BUN_ENV === "docker";
+const STORAGE_DIR = isDocker ? "/storage" : join(process.cwd(), "../../router/storage");
+const REPO_DIR = isDocker ? "/repo" : join(process.cwd(), "../../");
+const OUTPUT_DIR = isDocker ? "/output" : join(process.cwd(), "../../autopsy/sample_output");
 const OUTPUT_FILE = "incident-1-autopsy.json";
 
 const server = Bun.serve({
@@ -14,6 +16,11 @@ const server = Bun.serve({
 
         if (req.method === "POST" && url.pathname === "/analyze") {
             try {
+                console.log(`[DEBUG] Current CWD: ${process.cwd()}`);
+                console.log(`[DEBUG] REPO_DIR: ${REPO_DIR}`);
+                console.log(`[DEBUG] STORAGE_DIR: ${STORAGE_DIR}`);
+                console.log(`[DEBUG] OUTPUT_DIR: ${OUTPUT_DIR}`);
+
                 const body = await req.json() as { snapshot_id: string; repo_path: string };
                 const snapshotId = body.snapshot_id;
 
@@ -22,27 +29,37 @@ const server = Bun.serve({
                 }
 
                 const snapshotPath = join(STORAGE_DIR, `snapshot-${snapshotId}.json`);
+                console.log(`[DEBUG] Reading snapshot from: ${snapshotPath}`);
+
                 const snapshotFile = Bun.file(snapshotPath);
 
                 if (!(await snapshotFile.exists())) {
+                    console.log(`[DEBUG] Snapshot file not found at ${snapshotPath}`);
                     return new Response(`Snapshot ${snapshotId} not found`, { status: 404 });
                 }
 
                 const snapshot = await snapshotFile.json() as RouterSnapshot;
+                console.log(`[DEBUG] Snapshot loaded.`);
+
                 const stacktrace = snapshot.event.stacktrace;
+                console.log(`[DEBUG] Stacktrace sample: ${stacktrace.substring(0, 100)}...`);
 
                 const match = stacktrace.match(/\/apps\/sample-app\/src\/([^:]+):(\d+):(\d+)/);
 
                 if (!match) {
+                    console.log(`[DEBUG] Regex failed to match stacktrace`);
                     return new Response("Could not locate source file in stacktrace", { status: 422 });
                 }
 
                 const relPath = `apps/sample-app/src/${match[1]}`;
                 const fileInRepo = join(REPO_DIR, relPath);
+                console.log(`[DEBUG] Resolved source file path: ${fileInRepo}`);
+
                 const lineNumber = parseInt(match[2], 10);
 
                 const sourceFile = Bun.file(fileInRepo);
                 if (!(await sourceFile.exists())) {
+                    console.log(`[DEBUG] Source file does not exist at ${fileInRepo}`);
                     return new Response(`Source file ${relPath} not found in mapped repo`, { status: 422 });
                 }
 
@@ -72,6 +89,7 @@ const server = Bun.serve({
 
                 // Save output
                 const outputPath = join(OUTPUT_DIR, OUTPUT_FILE);
+                console.log(`[DEBUG] Writing output to: ${outputPath}`);
                 await Bun.write(outputPath, JSON.stringify(result, null, 2));
 
                 return new Response(JSON.stringify(result), {
@@ -80,7 +98,7 @@ const server = Bun.serve({
 
             } catch (error) {
                 console.error("Autopsy failed:", error);
-                return new Response(JSON.stringify({ error: "Internal Analysis Error" }), {
+                return new Response(JSON.stringify({ error: "Internal Analysis Error", details: String(error) }), {
                     status: 500,
                     headers: { "Content-Type": "application/json" }
                 });
