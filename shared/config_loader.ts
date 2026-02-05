@@ -94,6 +94,17 @@ export function loadConfig(): Config {
         config.services.repro = { port: 3005, base_url: "http://localhost:3005" };
     }
 
+    if (!config.services.state) {
+        config.services.state = { port: 3006, base_url: "http://localhost:3006" };
+    }
+
+    if (!config.database) {
+        config.database = {
+            provider: "sqlite",
+            path: join(process.cwd(), "aira.db")
+        };
+    }
+
     cachedConfig = config;
     return config;
 }

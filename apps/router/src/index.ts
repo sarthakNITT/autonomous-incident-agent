@@ -32,8 +32,10 @@ const server = Bun.serve({
                     branch: "main"
                 };
 
+                const snapshot_id = crypto.randomUUID();
+
                 const snapshot: RouterSnapshot = {
-                    snapshot_id: crypto.randomUUID(),
+                    snapshot_id: snapshot_id,
                     event: event,
                     env_metadata: meta,
                     repo_git_ref: repoRef

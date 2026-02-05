@@ -24,6 +24,7 @@ export interface Config {
         sample_app: { port: number; base_url: string; };
         git: { port: number; base_url: string; };
         repro: { port: number; base_url: string; };
+        state: { port: number; base_url: string; };
     };
     storage: {
         provider: "r2" | "mock";
@@ -32,6 +33,11 @@ export interface Config {
         secret_key: string;
         region: string;
         endpoint: string;
+    };
+    database: {
+        provider: "sqlite" | "postgres";
+        path: string; // for sqlite
+        url?: string; // for postgres
     };
     ai: {
         provider: "you.com" | "mock";

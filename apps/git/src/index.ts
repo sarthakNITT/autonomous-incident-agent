@@ -53,6 +53,15 @@ const server = Bun.serve({
                     config.github.base_branch
                 );
 
+                // Update State: VALIDATING
+                fetch(`${config.services.state.base_url}/incidents/${body.incident_id}/update`, {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        status: "validating",
+                        pr_url: pr.url
+                    })
+                }).catch(e => console.error("Failed to update state", e));
+
                 console.log(`[Git] PR Created: ${pr.url}`);
 
                 return new Response(JSON.stringify(pr), { headers: { "Content-Type": "application/json" } });

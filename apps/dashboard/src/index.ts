@@ -65,43 +65,14 @@ const server = Bun.serve({
 
         if (req.method === "GET" && url.pathname === "/api/incidents") {
             try {
-                const keys = await storage.listKeys("incidents/");
-
-                const incidentsMap = new Map();
-                for (const key of keys) {
-                    const id = key.split("/")[1];
-                    if (!incidentsMap.has(id)) incidentsMap.set(id, { id });
-                }
-
-                const incidents = [];
-                for (const id of incidentsMap.keys()) {
-                    let status = "Analyzing";
-                    let autopsyJson = null;
-                    let patchDiff = null;
-
-                    try {
-                        autopsyJson = await storage.downloadJSON(`incidents/${id}/autopsy.json`);
-                        status = "Resolved";
-                    } catch (e) { }
-
-                    try {
-                        patchDiff = await storage.downloadText(`incidents/${id}/patch.diff`);
-                    } catch (e) { }
-
-                    incidents.push({
-                        id,
-                        service_name: config.project_name,
-                        status,
-                        severity: "critical",
-                        autopsy: autopsyJson,
-                        patch_diff: patchDiff
-                    });
-                }
-
-                return new Response(JSON.stringify({ incidents }), { headers: { "Content-Type": "application/json" } });
+                const res = await fetch(`${config.services.state.base_url}/incidents`);
+                const incidents = await res.json();
+                return new Response(JSON.stringify(incidents), {
+                    headers: { "Content-Type": "application/json" }
+                });
             } catch (e) {
-                console.error("Dashboard API error", e);
-                return new Response("Error fetching incidents", { status: 500 });
+                console.error("Dashboard failed to fetch incidents", e);
+                return new Response(JSON.stringify([]), { headers: { "Content-Type": "application/json" } });
             }
         }
 
@@ -120,7 +91,7 @@ const server = Bun.serve({
                     try { preLog = await storage.downloadText(`incidents/${incidentId}/logs/pre.txt`); } catch (e) { }
 
                     const pdfPath = await generatePdfReport(incidentId, {
-                        autopsy: autopsyJson,
+                        autopsy: autopsyJson as AutopsyResult,
                         patch: patchDiff,
                         logs: preLog
                     });

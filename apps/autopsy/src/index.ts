@@ -22,16 +22,24 @@ const server = Bun.serve({
         if (req.method === "POST" && url.pathname === "/analyze") {
             try {
                 const body = await req.json() as any;
-                const snapshotKey = body.snapshot_key;
+                const snapshotId = body.snapshot_id; // Changed from snapshot_key to snapshot_id
 
-                if (!snapshotKey) {
-                    return new Response("Missing snapshot_key", { status: 400 });
+                if (!snapshotId) {
+                    return new Response("Missing snapshot_id", { status: 400 });
                 }
 
-                console.log(`[Autopsy] Analysis Request: ${snapshotKey}`);
+                const incidentId = snapshotId.replace("snap-", "");
 
-                const snapshot = await storage.downloadJSON<RouterSnapshot>(snapshotKey);
-                const incidentId = snapshot.event.id;
+                // Update State: ANALYZING
+                fetch(`${config.services.state.base_url}/incidents/${incidentId}/update`, {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ status: "analyzing" })
+                }).catch(() => { });
+
+                console.log(`[Autopsy] Analyzing snapshot: ${snapshotId}`);
+
+                const snapshot = await storage.downloadJSON<RouterSnapshot>(snapshotId); // Using snapshotId
+                // const incidentId = snapshot.event.id; // This line is now redundant as incidentId is derived from snapshotId
                 const stacktrace = snapshot.event.stacktrace || "";
 
                 console.log(`[Autopsy] Snapshot Loaded. Incident: ${incidentId}`);
@@ -78,6 +86,18 @@ const server = Bun.serve({
 
                 await storage.uploadJSON(resultKey, result);
                 await storage.uploadText(patchKey, result.suggested_patch.patch_diff);
+
+                // Update State: PATCHING
+                fetch(`${config.services.state.base_url}/incidents/${incidentId}/update`, {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        status: "patching",
+                        root_cause: result.root_cause_text,
+                        patch_diff_key: patchKey,
+                        file_path: result.file_path,
+                        snapshot_id: snapshotId
+                    })
+                }).catch(() => { });
 
                 console.log(`[Autopsy] Completed. Result: ${resultKey}`);
 

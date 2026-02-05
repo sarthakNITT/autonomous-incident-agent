@@ -61,6 +61,12 @@ To enable automated PR creation:
      email: "bot@aia.local"
    ```
    
+### Database (State Layer)
+The `apps/state` service uses SQLite by default to track incident lifecycle.
+- **Location**: `aira.db` in the project root.
+- **Schema**: Automatically created on startup (`db.ts`).
+- **Inspection**: Use `bun:sqlite` or any SQLite viewer to inspect `incidents` table.
+
 ### Automated Validation
 The system includes a CI/CD pipeline for automated remediation validation:
 1. **Trigger**: Phase 14 creates a PR with branch `aia/incident-{id}`.

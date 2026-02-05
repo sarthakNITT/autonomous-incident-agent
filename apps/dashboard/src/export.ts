@@ -6,62 +6,63 @@ import { loadConfig } from "../../../shared/config_loader";
 
 const config = loadConfig();
 
-const OUTPUT_DIR = config.paths.reports;
-const OUTPUT_FILE = join(OUTPUT_DIR, "incident-1.pdf");
+interface ReportData {
+    autopsy: AutopsyResult | null;
+    patch: string;
+    logs: string;
+}
 
-const AUTOPSY_PATH = join(config.paths.autopsy_output, "incident-1-autopsy.json");
-const PR_PATH = join(config.paths.pr_description, "incident-1-pr.md");
-const PRE_LOG_PATH = join(config.paths.repro_logs, "pre.txt");
-const POST_LOG_PATH = join(config.paths.repro_logs, "post.txt");
+export async function generatePdfReport(incidentId: string, data: ReportData): Promise<string> {
+    console.log(`Generating Incident PDF Report for ${incidentId}...`);
 
-async function generatePDF() {
-    console.log("Generating Incident PDF Report...");
+    const OUTPUT_DIR = config.paths.reports;
+    // content of the file
+    const OUTPUT_FILE = join(OUTPUT_DIR, `${incidentId}.pdf`);
 
     if (!fs.existsSync(OUTPUT_DIR)) {
         fs.mkdirSync(OUTPUT_DIR, { recursive: true });
     }
 
-    const autopsy = await Bun.file(AUTOPSY_PATH).json() as AutopsyResult;
-    const prDesc = await Bun.file(PR_PATH).text();
-    const preLogs = await Bun.file(PRE_LOG_PATH).text();
-    const postLogs = await Bun.file(POST_LOG_PATH).text();
+    return new Promise((resolve, reject) => {
+        const doc = new PDFDocument();
+        const stream = fs.createWriteStream(OUTPUT_FILE);
 
-    const doc = new PDFDocument();
-    const stream = fs.createWriteStream(OUTPUT_FILE);
+        doc.pipe(stream);
 
-    doc.pipe(stream);
+        doc.fontSize(24).text("Autonomous Incident Report", { align: "center" });
+        doc.fontSize(12).text(`Generated: ${new Date().toISOString()}`, { align: "center" });
+        doc.fontSize(12).text(`Incident ID: ${incidentId}`, { align: "center" });
+        doc.moveDown(2);
 
-    doc.fontSize(24).text("Autonomous Incident Report", { align: "center" });
-    doc.fontSize(12).text(`Generated: ${new Date().toISOString()}`, { align: "center" });
-    doc.moveDown(2);
+        if (data.autopsy) {
+            doc.fontSize(16).text("Root Cause Analysis");
+            doc.fontSize(12).text(`Diagnosis: ${data.autopsy.root_cause_text}`);
+            doc.text(`Confidence: ${(data.autopsy.confidence * 100).toFixed(0)}%`);
+            doc.text(`File: ${data.autopsy.file_path}:${data.autopsy.line_range}`);
+            doc.moveDown();
+        }
 
-    doc.fontSize(16).text("Root Cause Analysis");
-    doc.fontSize(12).text(`Diagnosis: ${autopsy.root_cause_text}`);
-    doc.text(`Confidence: ${(autopsy.confidence * 100).toFixed(0)}%`);
-    doc.text(`File: ${autopsy.file_path}:${autopsy.line_range}`);
-    doc.moveDown();
+        if (data.patch) {
+            doc.fontSize(16).text("Generated Patch");
+            doc.fontSize(10).font("Courier").text(data.patch);
+            doc.font("Helvetica").moveDown();
+        }
 
-    doc.fontSize(16).text("Generated Patch");
-    doc.fontSize(10).font("Courier").text(autopsy.suggested_patch.patch_diff);
-    doc.font("Helvetica").moveDown();
+        if (data.logs) {
+            doc.addPage();
+            doc.fontSize(16).text("Verification Logs");
+            doc.fontSize(8).font("Courier").text(data.logs.slice(0, 4000));
+        }
 
-    doc.fontSize(16).text("Pull Request Details");
-    doc.fontSize(12).text(prDesc);
-    doc.moveDown();
+        doc.end();
 
-    doc.addPage();
-    doc.fontSize(16).text("Verification Logs");
+        stream.on("finish", () => {
+            console.log(`PDF Report generated at: ${OUTPUT_FILE}`);
+            resolve(OUTPUT_FILE);
+        });
 
-    doc.fontSize(14).text("Pre-Patch (Failure)", { underline: true });
-    doc.fontSize(8).font("Courier").text(preLogs.slice(0, 2000));
-    doc.moveDown();
-
-    doc.fontSize(14).font("Helvetica").text("Post-Patch (Success)", { underline: true });
-    doc.fontSize(8).font("Courier").text(postLogs.slice(0, 2000));
-
-    doc.end();
-
-    console.log(`PDF Report generated at: ${OUTPUT_FILE}`);
+        stream.on("error", (err) => {
+            reject(err);
+        });
+    });
 }
-
-generatePDF();

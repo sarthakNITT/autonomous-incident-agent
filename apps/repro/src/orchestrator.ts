@@ -78,6 +78,16 @@ async function main() {
             await storage.uploadJSON(`incidents/${INCIDENT_ID}/repro/result.json`, result);
             await storage.uploadText(`incidents/${INCIDENT_ID}/repro/post.txt`, testRes.output);
 
+            // Update State: RESOLVED or FAILED
+            const status = result.passed ? "resolved" : "failed";
+            await fetch(`${config.services.state.base_url}/incidents/${INCIDENT_ID}/update`, {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    status,
+                    validation_status: result.passed
+                })
+            });
+
             console.log(`[Repro] Validation Complete. Passed: ${result.passed}`);
 
             // Post comment to PR
