@@ -1,13 +1,12 @@
 export type OtelTraceId = string;
 export type OtelSpanId = string;
 
-// Minimal OTLP JSON-like structures
 export interface OtelSpan {
     traceId: OtelTraceId;
     spanId: OtelSpanId;
     parentSpanId?: OtelSpanId;
     name: string;
-    kind: number; // 1: Internal, 2: Server, 3: Client, etc.
+    kind: number;
     startTimeUnixNano: string;
     endTimeUnixNano: string;
     attributes: Array<{
@@ -15,7 +14,7 @@ export interface OtelSpan {
         value: { stringValue?: string; intValue?: string; boolValue?: boolean; };
     }>;
     status: {
-        code: number; // 1: OK, 2: Error
+        code: number;
         message?: string;
     };
     events?: Array<{
@@ -23,7 +22,6 @@ export interface OtelSpan {
         name: string;
         attributes: Array<{ key: string; value: { stringValue?: string; }; }>;
     }>;
-    // ... other fields omitted for MVP
 }
 
 export interface OtelLog {

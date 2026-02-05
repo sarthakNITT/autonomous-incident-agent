@@ -81,6 +81,25 @@ const server = Bun.serve({
 
                 console.log(`[Autopsy] Completed. Result: ${resultKey}`);
 
+                const gitServiceUrl = `${config.services.git.base_url}/pr`;
+                try {
+                    const prReq = {
+                        incident_id: incidentId,
+                        title: `Fix: ${result.root_cause_text.substring(0, 50)}`,
+                        body: `## Root Cause\n${result.root_cause_text}\n\n## Fix\nApplied patch automatically.`,
+                        patches: [{ path: "patch.diff", content: result.suggested_patch.patch_diff }],
+                        files: []
+                    };
+
+                    fetch(gitServiceUrl, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(prReq)
+                    }).catch(err => console.error("Failed to trigger Git service async", err));
+                } catch (e) {
+                    console.error("Failed to prepare PR request", e);
+                }
+
                 return new Response(JSON.stringify({
                     status: "analyzed",
                     result_key: resultKey,

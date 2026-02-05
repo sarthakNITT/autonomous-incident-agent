@@ -46,6 +46,24 @@ The Autopsy engine uses You.com API for reasoning.
      model: "you-chat-gpt-4"
    ```
 
+### GitHub Integration
+To enable automated PR creation:
+1. Generate a [GitHub Personal Access Token](https://github.com/settings/tokens) with `repo` scope.
+2. Update `config/aia.config.yaml`:
+   ```yaml
+   github:
+     provider: "github"
+     token: "ghp_YOUR_TOKEN"
+     org: "your-org"
+     repo: "your-repo"
+     base_branch: "main"
+     username: "aia-bot"
+     email: "bot@aia.local"
+   ```
+   
+> [!IMPORTANT]
+> Ensure the token has permissions to create branches and open pull requests.
+
 ### Critical Settings
 - **Ports**: Change `services.<name>.port` to resolve conflicts.
 - **Paths**: `paths.repo_root` defines the target repository to analyze.

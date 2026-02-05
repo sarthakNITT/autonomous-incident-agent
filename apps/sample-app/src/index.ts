@@ -18,24 +18,18 @@ const server = Bun.serve({
         }
 
         if (req.method === "POST" && url.pathname === "/trigger") {
-            // Actually, let's read the scenario payload
             return req.json().then((payload: any) => {
                 if (payload.action === "cause_crash") {
-                    // ReferenceError: config is not defined (Simulated)
-                    // We do this by accessing a non-existent variable
-                    // @ts-ignore
                     console.log(config_is_undefined);
                     return new Response("Crashed", { status: 500 });
                 }
 
                 if (payload.action === "cause_cpu") {
-                    // Simulate CPU timeout
                     const start = Date.now();
-                    while (Date.now() - start < 3000) { } // 3s block
+                    while (Date.now() - start < 3000) { }
                     throw new Error("Request Timeout - CPU Limit Exceeded");
                 }
 
-                // Original logic for other actions
                 if (payload?.action === "cause_error") {
                     console.log("Triggering intentional failure scenario...");
                     const error = new Error("SeededDemoFailure: deterministic bug for AIA demo");
@@ -56,7 +50,6 @@ const server = Bun.serve({
                         headers: { "Content-Type": "application/json" }
                     });
                 }
-                // Match unexpected errors
                 return new Response(JSON.stringify({ status: "error", message: "Internal Server Error" }), {
                     status: 500,
                     headers: { "Content-Type": "application/json" }

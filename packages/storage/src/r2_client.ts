@@ -37,7 +37,7 @@ export class R2Client implements StorageClient {
             Bucket: this.bucket,
             Key: key,
             Body: data,
-            ContentType: "text/plain" // Or auto-detect
+            ContentType: "text/plain"
         });
         await this.client.send(command);
     }

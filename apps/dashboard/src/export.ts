@@ -53,7 +53,7 @@ async function generatePDF() {
     doc.fontSize(16).text("Verification Logs");
 
     doc.fontSize(14).text("Pre-Patch (Failure)", { underline: true });
-    doc.fontSize(8).font("Courier").text(preLogs.slice(0, 2000)); // Truncate if too long
+    doc.fontSize(8).font("Courier").text(preLogs.slice(0, 2000));
     doc.moveDown();
 
     doc.fontSize(14).font("Helvetica").text("Post-Patch (Success)", { underline: true });

@@ -20,3 +20,4 @@ export * from "./storage";
 export * from "./observability";
 export * from "./ai";
 export * from "./config";
+export * from "./git";
