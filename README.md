@@ -1,3 +1,4 @@
+IT IS MVP MODEL. NO REAL DATA OR CONFIG LOGS ARE HANDLED IN THIS BRANCH.
 # Autonomous Incident Agent (AIA)
 
 This repository contains a demonstration of an Autonomous Incident Agent (AIA) capable of detecting and reporting failure scenarios.
