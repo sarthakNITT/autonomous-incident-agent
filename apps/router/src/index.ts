@@ -1,10 +1,15 @@
 import type { IncidentEvent, RouterSnapshot, EnvMetadata, RepoRef } from "@repo/types";
 import { join } from "path";
 import { loadConfig } from "../../../shared/config_loader";
+import { R2Client } from "@repo/storage";
 
 const config = loadConfig();
 const PORT = config.services.router.port;
-const STORAGE_DIR = config.paths.storage;
+// Storage dir usage removed in favor of R2, but keeping for legacy or backup if needed? 
+// Requirements say "replace local file exchange". So we remove it.
+// const STORAGE_DIR = config.paths.storage; 
+
+const storage = new R2Client(config.storage);
 
 const server = Bun.serve({
     port: PORT,
@@ -13,16 +18,15 @@ const server = Bun.serve({
 
         if (req.method === "POST" && url.pathname === "/ingest") {
             try {
-                const event: IncidentEvent = await req.json();
+                const event = await req.json() as IncidentEvent;
+                console.log(`[Router] Received incident: ${event.id}`);
 
-                const snapshotId = crypto.randomUUID();
-                const receivedAt = new Date().toISOString();
-
-                const envMetadata: EnvMetadata = {
+                // Enrich with Metadata
+                const meta: EnvMetadata = {
                     service_name: event.service_name || "unknown",
                     env: event.environment?.env || "unknown",
                     version: event.environment?.version || "unknown",
-                    received_at: receivedAt
+                    received_at: new Date().toISOString()
                 };
 
                 const repoRef: RepoRef = {
@@ -32,39 +36,34 @@ const server = Bun.serve({
                 };
 
                 const snapshot: RouterSnapshot = {
-                    snapshot_id: snapshotId,
+                    snapshot_id: crypto.randomUUID(),
                     event: event,
-                    env_metadata: envMetadata,
+                    env_metadata: meta,
                     repo_git_ref: repoRef
                 };
 
-                const filename = `snapshot-${snapshotId}.json`;
-                const filePath = join(STORAGE_DIR, filename);
+                // Upload to R2
+                // Structure: incidents/{id}/snapshot.json
+                const key = `incidents/${event.id}/snapshot.json`;
+                // Also upload event? Requirement says "writes event and snapshot to R2"
+                const eventKey = `incidents/${event.id}/event.json`;
 
-                await Bun.write(filePath, JSON.stringify(snapshot, null, 2));
-                console.log(`Snapshot saved to ${filePath}`);
+                await storage.uploadJSON(eventKey, event);
+                await storage.uploadJSON(key, snapshot);
 
-                return new Response(JSON.stringify({ snapshot_id: snapshotId }), {
+                console.log(`[Router] Snapshot uploaded to R2: ${key}`);
+
+                return new Response(JSON.stringify({ status: "ingested", snapshot_id: snapshot.snapshot_id, key: key }), {
                     headers: { "Content-Type": "application/json" }
                 });
-
-            } catch (error) {
-                console.error("Error processing ingest:", error);
-                return new Response(JSON.stringify({ error: "Failed to process request" }), {
-                    status: 500,
-                    headers: { "Content-Type": "application/json" }
-                });
+            } catch (e) {
+                console.error("Ingest failed", e);
+                return new Response("Internal Server Error", { status: 500 });
             }
         }
 
-        if (url.pathname === "/health") {
-            return new Response(JSON.stringify({ status: "ok" }), {
-                headers: { "Content-Type": "application/json" }
-            });
-        }
-
         return new Response("Not Found", { status: 404 });
-    }
+    },
 });
 
-console.log(`Router service listening on port ${PORT}`);
+console.log(`Router listening on http://localhost:${PORT}`);

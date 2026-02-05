@@ -1,71 +1,103 @@
-import { renderIncidentView } from "./views/incident";
 import type { AutopsyResult } from "@repo/types";
-import { join } from "path";
 import { loadConfig } from "../../../shared/config_loader";
+import { R2Client } from "@repo/storage";
 
 const config = loadConfig();
 const PORT = config.services.dashboard.port;
 
-console.log(`Starting Dashboard Server on port ${PORT}...`);
+const storage = new R2Client(config.storage);
 
 const server = Bun.serve({
     port: PORT,
     async fetch(req) {
         const url = new URL(req.url);
 
-        // Dynamic route matching /incident-XYZ
-        // We assume the URL *is* the ID or contains it. 
-        // e.g. /incident-1 -> ID=1? Or ID=incident-1?
-        // Existing logic used "incident-1" as part of filename "incident-1-autopsy.json".
-        // Let's treat the pathname segment as the slug.
-
-        const pathParts = url.pathname.split("/");
-        // pathParts[0] is "", [1] is "incident-1"
-        const potentialId = pathParts[1];
-
-        if (potentialId && potentialId.startsWith("incident-")) {
-            const incidentId = potentialId; // e.g. "incident-1"
-
+        // List Incidents
+        if (url.pathname === "/" || url.pathname === "/index.html") {
             try {
-                // Config handles Docker/Local path resolution
-                const autopsyPath = join(config.paths.autopsy_output, `${incidentId}-autopsy.json`);
-                const prDescPath = join(config.paths.pr_description, `${incidentId}-pr.md`);
-                const preLogPath = join(config.paths.repro_logs, "pre.txt"); // These seem singular in repro harness?
-                const postLogPath = join(config.paths.repro_logs, "post.txt");
-
-                console.log(`[DEBUG] Dashboard resolving paths for ${incidentId}:`);
-                const autopsyFile = Bun.file(autopsyPath);
-                const prFile = Bun.file(prDescPath);
-                const preFile = Bun.file(preLogPath);
-                const postFile = Bun.file(postLogPath);
-
-                console.log(`[DEBUG] Autopsy: ${autopsyFile.name}`);
-
-                // Read all data
-                if (!(await autopsyFile.exists())) {
-                    return new Response("Incident Not Found (Autopsy artifact missing)", { status: 404 });
-                }
-
-                const autopsy = await autopsyFile.json() as AutopsyResult;
-                const prDesc = await prFile.exists() ? await prFile.text() : "PR Description not found.";
-                const preLogs = await preFile.exists() ? await preFile.text() : "Pre-patch logs not found.";
-                const postLogs = await postFile.exists() ? await postFile.text() : "Post-patch logs not found.";
-
-                const html = renderIncidentView(autopsy, prDesc, preLogs, postLogs);
-
-                return new Response(html, {
-                    headers: { "Content-Type": "text/html" }
+                // List all keys
+                // We expect incidents/{id}/...
+                // R2 listKeys returns flat list. We need to group.
+                // Assuming < 1000 keys for demo.
+                const keys = await storage.listKeys("incidents/");
+                // Extract IDs
+                const incidentIds = new Set<string>();
+                keys.forEach(k => {
+                    const parts = k.split("/");
+                    // incidents / {id} / {file}
+                    if (parts.length >= 2) {
+                        incidentIds.add(parts[1]);
+                    }
                 });
 
-            } catch (error) {
-                console.error("Error serving dashboard:", error);
-                return new Response("<h1>500 Internal Error</h1><p>Ensure all artifacts (autopsy, logs) are generated.</p>", {
-                    status: 500,
-                    headers: { "Content-Type": "text/html" }
-                });
+                const listHtml = Array.from(incidentIds).map(id =>
+                    `<li><a href="/incident/${id}">${id}</a></li>`
+                ).join("");
+
+                return new Response(`
+                    <h1>Incident Dashboard</h1>
+                    <h2>Detected Incidents (R2)</h2>
+                    <ul>${listHtml || "<li>No incidents found</li>"}</ul>
+                `, { headers: { "Content-Type": "text/html" } });
+
+            } catch (e) {
+                return new Response(`Error listing incidents: ${e}`, { status: 500 });
             }
         }
 
-        return new Response("Not Found. Try /incident-1", { status: 404 });
-    }
+        // View Incident
+        // /incident/:id
+        const pathParts = url.pathname.split("/");
+        if (pathParts[1] === "incident" && pathParts[2]) {
+            const incidentId = pathParts[2];
+            try {
+                // Fetch artifacts
+                let autopsyJson = null;
+                try {
+                    autopsyJson = await storage.downloadJSON(`incidents/${incidentId}/autopsy.json`);
+                } catch (e) { }
+
+                let patchDiff = "";
+                try {
+                    patchDiff = await storage.downloadText(`incidents/${incidentId}/patch.diff`);
+                } catch (e) { }
+
+                // Logs (Optional)
+                let preLog = "";
+                try {
+                    preLog = await storage.downloadText(`incidents/${incidentId}/logs/pre.txt`);
+                } catch (e) { }
+
+                const autopsyHtml = autopsyJson ? `
+                    <h3>Root Cause</h3>
+                    <pre>${JSON.stringify(autopsyJson, null, 2)}</pre>
+                ` : "<p>Analysis pending or failed</p>";
+
+                const patchHtml = patchDiff ? `
+                    <h3>Suggested Patch</h3>
+                    <pre>${patchDiff}</pre>
+                ` : "";
+
+                const logsHtml = preLog ? `
+                    <h3>Repro Logs (Pre-Fix)</h3>
+                    <pre>${preLog}</pre>
+                ` : "";
+
+                return new Response(`
+                    <h1>Incident: ${incidentId}</h1>
+                    <a href="/">Back to List</a>
+                    ${autopsyHtml}
+                    ${patchHtml}
+                    ${logsHtml}
+                `, { headers: { "Content-Type": "text/html" } });
+
+            } catch (e) {
+                return new Response(`Error loading incident ${incidentId}: ${e}`, { status: 500 });
+            }
+        }
+
+        return new Response("Not Found", { status: 404 });
+    },
 });
+
+console.log(`Dashboard listening on http://localhost:${PORT}`);

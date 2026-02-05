@@ -4,7 +4,22 @@ This repository contains a demonstration of an Autonomous Incident Agent (AIA) c
 
 ## Configuration
 
-The platform is configured via `config/aia.config.yaml`. This file controls ports, paths, environment tags, and service behavior.
+The platform is configured via `config/aia.config.yaml`. This file controls ports, paths, environment tags, service behavior, and storage.
+
+### Storage (R2)
+The platform uses Cloudflare R2 for data exchange. You must provide valid credentials.
+1. Create an R2 bucket named `aia-incidents`.
+2. Generate Access Key and Secret Key.
+3. Update `config/aia.config.yaml`:
+   ```yaml
+   storage:
+     provider: "r2"
+     bucket: "aia-incidents"
+     region: "auto"
+     endpoint: "https://<ACCOUNT_ID>.r2.cloudflarestorage.com"
+     access_key: "YOUR_ACCESS_KEY"
+     secret_key: "YOUR_SECRET_KEY"
+   ```
 
 ### Critical Settings
 - **Ports**: Change `services.<name>.port` to resolve conflicts.

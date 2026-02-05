@@ -1,6 +1,15 @@
 environment: "local"
 project_name: "autonomous-incident-agent"
 
+storage:
+  provider: "r2"
+  bucket: "aia-incidents"
+  region: "auto"
+  endpoint: "https://<ACCOUNT_ID>.r2.cloudflarestorage.com"
+  access_key: "PLACEHOLDER"
+  secret_key: "PLACEHOLDER"
+  public_url: "https://pub-<ID>.r2.dev"
+
 paths:
   repo_root: "./"
   logs: "./logs/app.log"

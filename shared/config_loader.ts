@@ -56,6 +56,11 @@ export function loadConfig(): Config {
         config.paths.pr_description = join(rootDir, config.paths.pr_description);
         config.paths.repro_logs = join(rootDir, config.paths.repro_logs);
         config.paths.reports = join(rootDir, config.paths.reports);
+
+        // Ensure storage defaults if missing (optional safety)
+        if (!config.storage) {
+            throw new Error("Storage configuration missing in aia.config.yaml");
+        }
     } else {
         // In Docker, we rely on the paths being absolute or relative to WORKDIR /app
         // The default config has valid relative paths for /app, or we can force absolute

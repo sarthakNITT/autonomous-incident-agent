@@ -1,15 +1,15 @@
-import type { AutopsyResult, RouterSnapshot, PatchSuggestion } from "@repo/types";
+import type { RouterSnapshot, AutopsyResult } from "@repo/types";
 import { join } from "path";
 import { loadConfig } from "../../../shared/config_loader";
+import { R2Client } from "@repo/storage";
 
 const config = loadConfig();
-
 const PORT = config.services.autopsy.port;
-// Config loader handles path resolution for docker/local
-const STORAGE_DIR = config.paths.storage;
+// REPO_DIR kept for when we implement real analysis, but unused in this mock
 const REPO_DIR = config.paths.repo_root;
-const OUTPUT_DIR = config.paths.autopsy_output;
-const OUTPUT_FILE = "incident-1-autopsy.json";
+
+// R2 Client
+const storage = new R2Client(config.storage);
 
 const server = Bun.serve({
     port: PORT,
@@ -18,97 +18,75 @@ const server = Bun.serve({
 
         if (req.method === "POST" && url.pathname === "/analyze") {
             try {
-                console.log(`[DEBUG] Current CWD: ${process.cwd()}`);
-                console.log(`[DEBUG] REPO_DIR: ${REPO_DIR}`);
-                console.log(`[DEBUG] STORAGE_DIR: ${STORAGE_DIR}`);
-                console.log(`[DEBUG] OUTPUT_DIR: ${OUTPUT_DIR}`);
+                const body = await req.json() as any;
+                // Expect snapshot_key from caller (Router response)
+                const snapshotKey = body.snapshot_key;
 
-                const body = await req.json() as { snapshot_id: string; repo_path: string };
-                const snapshotId = body.snapshot_id;
-
-                if (!snapshotId) {
-                    return new Response("Missing snapshot_id", { status: 400 });
+                if (!snapshotKey) {
+                    return new Response("Missing snapshot_key", { status: 400 });
                 }
 
-                const snapshotPath = join(STORAGE_DIR, `snapshot-${snapshotId}.json`);
-                console.log(`[DEBUG] Reading snapshot from: ${snapshotPath}`);
+                console.log(`[Autopsy] Analyzing snapshot from key: ${snapshotKey}`);
 
-                const snapshotFile = Bun.file(snapshotPath);
+                // 1. Download Snapshot from R2
+                const snapshot = await storage.downloadJSON<RouterSnapshot>(snapshotKey);
+                // incident_id is available in snapshot? Check types.
+                // In previous step Router sent:
+                // snapshot_id, event, env_metadata, repo_git_ref.
+                // Incident ID is inside event.id.
+                const incidentId = snapshot.event.id;
 
-                if (!(await snapshotFile.exists())) {
-                    console.log(`[DEBUG] Snapshot file not found at ${snapshotPath}`);
-                    return new Response(`Snapshot ${snapshotId} not found`, { status: 404 });
-                }
-
-                const snapshot = await snapshotFile.json() as RouterSnapshot;
-                console.log(`[DEBUG] Snapshot loaded.`);
-
-                const stacktrace = snapshot.event.stacktrace;
-                console.log(`[DEBUG] Stacktrace sample: ${stacktrace.substring(0, 100)}...`);
-
-                const match = stacktrace.match(/\/apps\/sample-app\/src\/([^:]+):(\d+):(\d+)/);
-
-                if (!match) {
-                    console.log(`[DEBUG] Regex failed to match stacktrace`);
-                    return new Response("Could not locate source file in stacktrace", { status: 422 });
-                }
-
-                const relPath = `apps/sample-app/src/${match[1]}`;
-                const fileInRepo = join(REPO_DIR, relPath);
-                console.log(`[DEBUG] Resolved source file path: ${fileInRepo}`);
-
-                const lineNumber = parseInt(match[2], 10);
-
-                const sourceFile = Bun.file(fileInRepo);
-                if (!(await sourceFile.exists())) {
-                    console.log(`[DEBUG] Source file does not exist at ${fileInRepo}`);
-                    return new Response(`Source file ${relPath} not found in mapped repo`, { status: 422 });
-                }
-
-                const sourceContent = await sourceFile.text();
-                const lines = sourceContent.split("\n");
-
-                const startLine = Math.max(0, lineNumber - 3);
-                const endLine = lineNumber + 3;
-
-                const originalChunk = lines.slice(startLine, endLine).map(l => `-${l}`).join("\n");
-                const patch = `--- ${relPath}\n+++ ${relPath}\n@@ -${startLine + 1},${endLine - startLine} +${startLine + 1},0 @@\n${originalChunk}`;
-
-                const suggestion: PatchSuggestion = {
-                    file_path: relPath,
-                    language: "typescript",
-                    patch_diff: patch
-                };
+                // 2. Mock Analysis
+                const rootCause = "Found deterministic failure in sample-app/src/index.ts handling 'cause_crash' action.";
+                const patchDiff = `--- apps/sample-app/src/index.ts
++++ apps/sample-app/src/index.ts
+@@ -50,7 +50,7 @@
+         // Vulnerability: No input validation
+         if (payload.action === "cause_crash") {
+-            process.exit(1);
++            // Fixed: process.exit(1);
++            console.log("Crash averted");
+         }`;
 
                 const result: AutopsyResult = {
-                    root_cause_text: "The application explicitly throws a 'SeededDemoFailure' when the action 'cause_error' is received. This appears to be a test artifact left in production code.",
-                    commit_hash: snapshot.repo_git_ref.commit,
-                    file_path: relPath,
-                    line_range: `${startLine + 1}-${endLine}`,
-                    suggested_patch: suggestion,
-                    confidence: 0.95
+                    // analysis_id and snapshot_id are not in AutopsyResult type
+                    root_cause_text: rootCause,
+                    confidence: 0.95,
+                    suggested_patch: {
+                        file_path: "apps/sample-app/src/index.ts",
+                        language: "typescript",
+                        patch_diff: patchDiff
+                    },
+                    file_path: "apps/sample-app/src/index.ts",
+                    line_range: "50-55",
+                    commit_hash: snapshot.repo_git_ref.commit || "unknown" // Mock property if available in snapshot, or hardcode
                 };
 
-                // Save output
-                const outputPath = join(OUTPUT_DIR, OUTPUT_FILE);
-                console.log(`[DEBUG] Writing output to: ${outputPath}`);
-                await Bun.write(outputPath, JSON.stringify(result, null, 2));
+                // 3. Upload Result to R2
+                const resultKey = `incidents/${incidentId}/autopsy.json`;
+                const patchKey = `incidents/${incidentId}/patch.diff`;
 
-                return new Response(JSON.stringify(result), {
+                await storage.uploadJSON(resultKey, result);
+                await storage.uploadText(patchKey, patchDiff);
+
+                console.log(`[Autopsy] Analysis uploaded to ${resultKey}`);
+
+                return new Response(JSON.stringify({
+                    status: "analyzed",
+                    result_key: resultKey,
+                    patch_key: patchKey
+                }), {
                     headers: { "Content-Type": "application/json" }
                 });
 
-            } catch (error) {
-                console.error("Autopsy failed:", error);
-                return new Response(JSON.stringify({ error: "Internal Analysis Error", details: String(error) }), {
-                    status: 500,
-                    headers: { "Content-Type": "application/json" }
-                });
+            } catch (e) {
+                console.error("Analysis failed", e);
+                return new Response("Internal Server Error", { status: 500 });
             }
         }
 
         return new Response("Not Found", { status: 404 });
-    }
+    },
 });
 
-console.log(`Autopsy service listening on port ${PORT}`);
+console.log(`Autopsy listening on http://localhost:${PORT}`);

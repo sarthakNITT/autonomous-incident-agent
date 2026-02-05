@@ -1,6 +1,9 @@
+import type { StorageConfig } from "./storage";
+
 export interface Config {
     environment: string;
     project_name: string;
+    storage: StorageConfig;
     paths: {
         repo_root: string;
         logs: string;
