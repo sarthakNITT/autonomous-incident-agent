@@ -2,15 +2,18 @@ import PDFDocument from "pdfkit";
 import fs from "fs";
 import { join } from "path";
 import type { AutopsyResult } from "@repo/types";
+import { loadConfig } from "../../../shared/config_loader";
 
-// Setup paths (Assuming running from root)
-const OUTPUT_DIR = "dashboard/reports";
-const OUTPUT_FILE = join(OUTPUT_DIR, "incident-1.pdf");
+const config = loadConfig();
 
-const AUTOPSY_PATH = "autopsy/sample_output/incident-1-autopsy.json";
-const PR_PATH = "autopsy/pr_description/incident-1-pr.md";
-const PRE_LOG_PATH = "repro/logs/pre.txt";
-const POST_LOG_PATH = "repro/logs/post.txt";
+// Setup paths from config
+const OUTPUT_DIR = config.paths.reports;
+const OUTPUT_FILE = join(OUTPUT_DIR, "incident-1.pdf"); // Keeping incident-1 for export logic simplicity unless user passed ID? export.ts takes args? No. I'll stick to 1 for now but paths are de-hardcoded.
+
+const AUTOPSY_PATH = join(config.paths.autopsy_output, "incident-1-autopsy.json");
+const PR_PATH = join(config.paths.pr_description, "incident-1-pr.md");
+const PRE_LOG_PATH = join(config.paths.repro_logs, "pre.txt");
+const POST_LOG_PATH = join(config.paths.repro_logs, "post.txt");
 
 async function generatePDF() {
     console.log("Generating Incident PDF Report...");

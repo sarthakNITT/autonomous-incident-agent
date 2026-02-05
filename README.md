@@ -2,6 +2,33 @@
 
 This repository contains a demonstration of an Autonomous Incident Agent (AIA) capable of detecting and reporting failure scenarios.
 
+## Configuration
+
+The platform is configured via `config/aia.config.yaml`. This file controls ports, paths, environment tags, and service behavior.
+
+### Critical Settings
+- **Ports**: Change `services.<name>.port` to resolve conflicts.
+- **Paths**: `paths.repo_root` defines the target repository to analyze.
+- **AI Provider**: (Placeholder) Add `ai` section to config in future phases.
+
+### Directory Mapping
+When running in Docker, the `config/` directory is mounted to `/app/config`.
+- **Local Dev**: Edit `config/aia.config.yaml` and restart services.
+- **Docker**: Rebuild using `docker-compose up --build` if changing paths structure, otherwise restart is sufficient.
+
+## Run Demo
+```bash
+bun run demo/run_demo.ts --scenario 1
+```
+
+## Manual Setup
+See `docs/` for detailed architecture.
+
+## Migration Guide (Phase 10)
+We have migrated from hardcoded constants to `aia.config.yaml`.
+- Old `apps/dashboard/src/index.ts` hardcoded ports -> Now uses `config.services.dashboard.port`.
+- Old file paths -> Now use `config.paths.*`.
+
 ## Repository Structure
 
 - `apps/sample-app`: A lightweight Bun service that can be triggered to fail.

@@ -1,12 +1,14 @@
 import type { AutopsyResult, RouterSnapshot, PatchSuggestion } from "@repo/types";
 import { join } from "path";
+import { loadConfig } from "../../../shared/config_loader";
 
-const PORT = 5001;
-// Use absolute paths in Docker, relative in local dev
-const isDocker = process.env.BUN_ENV === "docker";
-const STORAGE_DIR = isDocker ? "/storage" : join(process.cwd(), "../../router/storage");
-const REPO_DIR = isDocker ? "/repo" : join(process.cwd(), "../../");
-const OUTPUT_DIR = isDocker ? "/output" : join(process.cwd(), "../../autopsy/sample_output");
+const config = loadConfig();
+
+const PORT = config.services.autopsy.port;
+// Config loader handles path resolution for docker/local
+const STORAGE_DIR = config.paths.storage;
+const REPO_DIR = config.paths.repo_root;
+const OUTPUT_DIR = config.paths.autopsy_output;
 const OUTPUT_FILE = "incident-1-autopsy.json";
 
 const server = Bun.serve({

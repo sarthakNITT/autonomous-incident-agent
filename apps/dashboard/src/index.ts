@@ -1,8 +1,10 @@
 import { renderIncidentView } from "./views/incident";
 import type { AutopsyResult } from "@repo/types";
 import { join } from "path";
+import { loadConfig } from "../../../shared/config_loader";
 
-const PORT = 3002;
+const config = loadConfig();
+const PORT = config.services.dashboard.port;
 
 console.log(`Starting Dashboard Server on port ${PORT}...`);
 
@@ -11,40 +13,43 @@ const server = Bun.serve({
     async fetch(req) {
         const url = new URL(req.url);
 
-        if (url.pathname === "/incident-1") {
+        // Dynamic route matching /incident-XYZ
+        // We assume the URL *is* the ID or contains it. 
+        // e.g. /incident-1 -> ID=1? Or ID=incident-1?
+        // Existing logic used "incident-1" as part of filename "incident-1-autopsy.json".
+        // Let's treat the pathname segment as the slug.
+
+        const pathParts = url.pathname.split("/");
+        // pathParts[0] is "", [1] is "incident-1"
+        const potentialId = pathParts[1];
+
+        if (potentialId && potentialId.startsWith("incident-")) {
+            const incidentId = potentialId; // e.g. "incident-1"
+
             try {
-                // Paths adjusted for Docker volume mounts or local relative paths
-                const autopsyPath = "/app/autopsy/sample_output/incident-1-autopsy.json";
-                const prDescPath = "/app/autopsy/pr_description/incident-1-pr.md";
-                const preLogPath = "/app/repro/logs/pre.txt";
-                const postLogPath = "/app/repro/logs/post.txt";
+                // Config handles Docker/Local path resolution
+                const autopsyPath = join(config.paths.autopsy_output, `${incidentId}-autopsy.json`);
+                const prDescPath = join(config.paths.pr_description, `${incidentId}-pr.md`);
+                const preLogPath = join(config.paths.repro_logs, "pre.txt"); // These seem singular in repro harness?
+                const postLogPath = join(config.paths.repro_logs, "post.txt");
 
-                // Fallback for local run
-                // Check if running in Docker by checking if absolute path exists
-                const isDocker = await Bun.file(autopsyPath).exists();
+                console.log(`[DEBUG] Dashboard resolving paths for ${incidentId}:`);
+                const autopsyFile = Bun.file(autopsyPath);
+                const prFile = Bun.file(prDescPath);
+                const preFile = Bun.file(preLogPath);
+                const postFile = Bun.file(postLogPath);
 
-                // Helper to resolve path
-                const resolvePath = (path: string) => {
-                    if (isDocker) return path;
-                    // Strip /app prefix for local relative path
-                    const relative = path.replace(/^\/app\//, "");
-                    return join("../../", relative);
-                };
-
-                const autopsyFile = Bun.file(resolvePath(autopsyPath));
-                const prFile = Bun.file(resolvePath(prDescPath));
-                const preFile = Bun.file(resolvePath(preLogPath));
-                const postFile = Bun.file(resolvePath(postLogPath));
-
-                console.log(`[DEBUG] Dashboard resolving paths (Docker=${isDocker}):`);
                 console.log(`[DEBUG] Autopsy: ${autopsyFile.name}`);
-                console.log(`[DEBUG] PreLog: ${preFile.name}`);
 
                 // Read all data
+                if (!(await autopsyFile.exists())) {
+                    return new Response("Incident Not Found (Autopsy artifact missing)", { status: 404 });
+                }
+
                 const autopsy = await autopsyFile.json() as AutopsyResult;
-                const prDesc = await prFile.text();
-                const preLogs = await preFile.text();
-                const postLogs = await postFile.text();
+                const prDesc = await prFile.exists() ? await prFile.text() : "PR Description not found.";
+                const preLogs = await preFile.exists() ? await preFile.text() : "Pre-patch logs not found.";
+                const postLogs = await postFile.exists() ? await postFile.text() : "Post-patch logs not found.";
 
                 const html = renderIncidentView(autopsy, prDesc, preLogs, postLogs);
 

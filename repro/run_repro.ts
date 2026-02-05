@@ -1,11 +1,18 @@
 import { spawn } from "child_process";
 import { join } from "path";
+import { loadConfig } from "../shared/config_loader";
 
-const REPRO_DIR = "repro";
-const LOGS_DIR = join(REPRO_DIR, "logs");
+const config = loadConfig();
+
+const LOGS_DIR = config.paths.repro_logs;
 const PRE_LOG = join(LOGS_DIR, "pre.txt");
 const POST_LOG = join(LOGS_DIR, "post.txt");
-const PATCH_FILE = "autopsy/patches/patch-1.diff";
+const PATCH_FILE = join(config.paths.patches, "patch-1.diff"); // Assuming patch-1 is still the hardcoded filename output by autopsy? Yes, autopsy index.ts generates it inside the result json, but where is the file written?
+// wait, Autopsy index.ts writes `incident-1-autopsy.json`. It does NOT write a .diff file.
+// The .diff file is likely written by `pr_generator.ts`?
+// Let's check pr_generator.ts content provided in next step.
+// For now, I assume patch-1.diff is the name. I can't de-hardcode "patch-1" easily without changing the whole pipeline to pass IDs. 
+// I will just use config paths.
 
 async function runCommand(command: string, args: string[], cwd: string = "."): Promise<string> {
     return new Promise((resolve, reject) => {

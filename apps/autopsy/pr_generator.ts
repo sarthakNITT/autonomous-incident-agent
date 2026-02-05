@@ -1,10 +1,14 @@
 import type { AutopsyResult } from "@repo/types";
 import { join } from "path";
+import { loadConfig } from "../../../shared/config_loader";
 
-const AUTOPSY_OUTPUT_PATH = "autopsy/sample_output/incident-1-autopsy.json";
-const PATCH_OUTPUT_DIR = "autopsy/patches";
-const PR_DESC_OUTPUT_DIR = "autopsy/pr_description";
-const TEST_OUTPUT_DIR = "app/test/generated";
+const config = loadConfig();
+
+const AUTOPSY_OUTPUT_PATH = join(config.paths.autopsy_output, "incident-1-autopsy.json");
+const PATCH_OUTPUT_DIR = config.paths.patches;
+const PR_DESC_OUTPUT_DIR = config.paths.pr_description;
+const TEST_OUTPUT_DIR = join(config.paths.repo_root, "app/test/generated");
+
 
 async function generateArtifacts() {
     console.log("Starting PR & Patch Generation...");

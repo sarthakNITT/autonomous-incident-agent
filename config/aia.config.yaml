@@ -1,0 +1,33 @@
+environment: "local"
+project_name: "autonomous-incident-agent"
+
+paths:
+  repo_root: "./"
+  logs: "./logs/app.log"
+  events: "./events"
+  storage: "./router/storage"
+  output: "./demo/output"
+  autopsy_output: "./autopsy/sample_output"
+  patches: "./autopsy/patches"
+  pr_description: "./autopsy/pr_description"
+  repro_logs: "./repro/logs"
+  reports: "./dashboard/reports"
+
+services:
+  sample_app:
+    port: 3000
+    base_url: "http://localhost:3000"
+  agent:
+    log_pattern: "SeededDemoFailure|ReferenceError|Request Timeout - CPU Limit Exceeded"
+  router:
+    port: 4000
+    base_url: "http://localhost:4000"
+  autopsy:
+    port: 5001
+    base_url: "http://localhost:5001"
+  dashboard:
+    port: 3002
+    base_url: "http://localhost:3002"
+
+demo:
+  scenario_file_pattern: "test/bug-scenarios/scenario-*.json"
