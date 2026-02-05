@@ -22,10 +22,17 @@ const server = Bun.serve({
                 console.log("Received trigger request:", body);
 
                 if (body.payload?.action === "cause_error") {
-                    console.error("Triggering intentional failure scenario...");
+                    console.log("Triggering intentional failure scenario...");
                     const error = new Error("SeededDemoFailure: deterministic bug for AIA demo");
-                    console.error(error.stack);
+                    console.log(error.stack);
                     throw error;
+                }
+
+                if (body.payload?.action === "cause_crash") {
+                    console.log("Triggering null pointer exception...");
+                    console.log("Triggering CPU timeout...");
+                    console.log("Error: Request Timeout - CPU Limit Exceeded");
+                    throw new Error("Request Timeout - CPU Limit Exceeded");
                 }
 
                 const response: TriggerResponse = { status: "ok" };
@@ -34,8 +41,8 @@ const server = Bun.serve({
                 });
 
             } catch (err) {
-                console.error("Unhandled error processing request:");
-                console.error(err);
+                console.log("Unhandled error processing request:");
+                console.log(err);
                 if ((err as Error).message === "SeededDemoFailure: deterministic bug for AIA demo") {
                     return new Response(JSON.stringify({ status: "error", message: "Internal Server Error" }), {
                         status: 500,

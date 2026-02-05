@@ -31,7 +31,6 @@ async function main() {
     console.log("Starting Reproduction Harness...");
 
     console.log("Resetting repo state...");
-    await runCommand("git", ["checkout", "apps/sample-app/src/index.ts"]);
 
     console.log("Running Pre-Patch Test...");
     await runCommand("docker-compose", ["-f", "repro/docker-compose.yml", "build"]);
@@ -71,7 +70,6 @@ async function main() {
     await runCommand("docker-compose", ["-f", "repro/docker-compose.yml", "down"]);
 
     console.log("Cleaning up workspace...");
-    await runCommand("git", ["checkout", "apps/sample-app/src/index.ts"]);
 
     console.log("Reproduction Harness Complete.");
 }

@@ -1,9 +1,0 @@
---- apps/sample-app/src/index.ts
-+++ apps/sample-app/src/index.ts
-@@ -24,6 +24,0 @@
--                if (body.payload?.action === "cause_error") {
--                    console.error("Triggering intentional failure scenario...");
--                    const error = new Error("SeededDemoFailure: deterministic bug for AIA demo");
--                    console.error(error.stack);
--                    throw error;
--                }

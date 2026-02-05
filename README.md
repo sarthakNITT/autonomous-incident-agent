@@ -135,25 +135,36 @@ bun run apps/dashboard/src/export.ts
 ```
 Verify `dashboard/reports/incident-1.pdf` is created.
 
-### 7. End-to-End Demo (Phase 8)
+### 7. End-to-End Demo (Phase 8 & 9)
 
 Run the entire pipeline (Trigger -> Agent -> Router -> Autopsy -> Patch -> Verify -> Report) in one command:
 
 ```bash
+# Default: Scenario 1 (Deterministic Error)
 bun run demo/run_demo.ts
+
+# Scenario 2 (Null Pointer / Crash)
+bun run demo/run_demo.ts --scenario 2
+
+# Scenario 3 (CPU Timeout)
+bun run demo/run_demo.ts --scenario 3
 ```
 
 This will:
 1. Reset the environment.
 2. Spin up the entire stack.
-3. Simulate an incident.
+3. Simulate the chosen incident.
 4. Auto-generate a fix and verify it.
-5. Export all artifacts to `demo/output`:
-   - `incident-1.json`
-   - `snapshot-1.json`
-   - `incident-1-autopsy.json`
-   - `patch-1.diff`
-   - `pre.txt` & `post.txt`
-   - `incident-1.pdf`
+5. Export all artifacts to `demo/output`.
 
-**Expected Runtime:** ~2 minutes.
+**Expected Runtime:** ~2 minutes per scenario.
+
+## Troubleshooting
+
+- **Docker Errors**: Ensure Docker is running. If network errors occur, run `docker-compose down -v` to clear state.
+- **Port Conflicts**: Ensure ports 3000, 3002, 4000, 5001 are free.
+- **Permissions**: Ensure `bun run` commands are executed with sufficient permissions to write to artifact directories.
+
+## Security & Privacy Note
+
+This project is a demonstration. All processed data is **synthetic**. The "incidents" are seeded bug scenarios, and no real production data, secrets, or PII are ever accessed or transmitted. The "Autopsy" logic uses local heuristics and does not send code to external services in this standalone configuration.

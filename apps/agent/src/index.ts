@@ -55,8 +55,11 @@ function processLine(line: string) {
         logBuffer.shift();
     }
 
-    if (line.includes("SeededDemoFailure") && !line.includes("expected_error_pattern")) {
-        console.log("FAILURE DETECTED! Generating incident report...");
+    if ((line.includes("SeededDemoFailure") ||
+        line.includes("ReferenceError: config is not defined") ||
+        line.includes("Request Timeout - CPU Limit Exceeded")) &&
+        !line.includes("expected_error_pattern")) {
+        console.log(`FAILURE DETECTED: "${line}"! Generating incident report...`);
         // Wait briefly to allow stacktrace lines to accumulate
         setTimeout(() => generateIncident(line), 500);
     }
@@ -100,7 +103,7 @@ async function generateIncident(triggerLine: string) {
         severity: "critical",
         service_name: "sample-app",
         error_details: {
-            message: "SeededDemoFailure: deterministic bug for AIA demo",
+            message: triggerLine.trim() || "Unknown Error",
         },
         stacktrace: stacktrace || triggerLine, // Fallback to trigger line
         last_logs: lastLogs,

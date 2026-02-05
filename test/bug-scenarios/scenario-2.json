@@ -1,0 +1,6 @@
+{
+    "request_id": "demo-req-2",
+    "payload": {
+        "action": "cause_crash"
+    }
+}

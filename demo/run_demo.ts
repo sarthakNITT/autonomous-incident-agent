@@ -29,36 +29,47 @@ async function runCommandWithOutput(command: string, args: string[], cwd: string
 
 async function main() {
     console.log("=== Starting Autonomous Incident Agent Demo ===");
+
+    const args = process.argv.slice(2);
+    let scenarioId = "1";
+    if (args.length >= 2 && args[0] === "--scenario") {
+        scenarioId = args[1];
+    }
+
     const startTime = Date.now();
 
-    // 1. Reset
+
     console.log("\n[1/10] Resetting Environment...");
     await runCommand("docker-compose", ["down"]);
     if (fs.existsSync(DEMO_OUT)) fs.rmSync(DEMO_OUT, { recursive: true });
     fs.mkdirSync(DEMO_OUT, { recursive: true });
 
-    // Cleanup internal artifact dirs
+
     const dirsToClean = ["events", "router/storage", "autopsy/sample_output", "autopsy/patches", "autopsy/pr_description", "app/test/generated", "repro/logs", "dashboard/reports"];
     for (const d of dirsToClean) {
         if (fs.existsSync(d)) fs.rmSync(d, { recursive: true });
         fs.mkdirSync(d, { recursive: true });
     }
 
-    // 2. Start Stack
+
     console.log("\n[2/10] Starting Docker Stack...");
     await runCommand("docker-compose", ["up", "-d", "--build"]);
     console.log("Waiting for services to be ready (10s)...");
     await Bun.sleep(10000);
 
-    console.log("\n[3/10] Triggering Bug in Sample App...");
+    console.log(`\n[3/10] Triggering Bug in Sample App (Scenario ${scenarioId})...`);
+
+    const scenarioPath = `test/bug-scenarios/scenario-${scenarioId}.json`;
+    if (!fs.existsSync(scenarioPath)) {
+        throw new Error(`Scenario file not found: ${scenarioPath}`);
+    }
+    const scenarioPayload = await Bun.file(scenarioPath).json();
+
     try {
         await fetch("http://localhost:3000/trigger", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                request_id: "demo-req-1",
-                payload: { action: "cause_error" }
-            })
+            body: JSON.stringify(scenarioPayload)
         });
     } catch (e) {
         console.log("Trigger request sent.");
@@ -111,7 +122,7 @@ async function main() {
 
     console.log("\n[10/10] Collecting Demo Artifacts...");
 
-    // Copy function
+
     const cp = (src: string, destName: string) => {
         if (fs.existsSync(src)) {
             fs.copyFileSync(src, join(DEMO_OUT, destName));
@@ -121,19 +132,21 @@ async function main() {
         }
     };
 
-    cp(incidentFile, "incident-1.json");
+
+
+    cp(incidentFile, `incident-${scenarioId}.json`);
 
     const snapshotFile = fs.existsSync("router/storage") ?
         join("router/storage", fs.readdirSync("router/storage")[0]) : "";
-    if (snapshotFile) cp(snapshotFile, "snapshot-1.json");
+    if (snapshotFile) cp(snapshotFile, `snapshot-${scenarioId}.json`);
 
-    cp("autopsy/sample_output/incident-1-autopsy.json", "incident-1-autopsy.json");
-    cp("autopsy/patches/patch-1.diff", "patch-1.diff");
+    cp("autopsy/sample_output/incident-1-autopsy.json", `incident-${scenarioId}-autopsy.json`);
+    cp("autopsy/patches/patch-1.diff", `patch-${scenarioId}.diff`);
     cp("repro/logs/pre.txt", "pre.txt");
     cp("repro/logs/post.txt", "post.txt");
-    cp("dashboard/reports/incident-1.pdf", "incident-1.pdf");
+    cp("dashboard/reports/incident-1.pdf", `incident-${scenarioId}.pdf`);
 
-    // Cleanup
+
     console.log("\nCleaning up...");
     await runCommand("docker-compose", ["down"]);
 

@@ -1,7 +1,7 @@
 export interface ScenarioPayload {
     request_id: string;
     payload: {
-        action: "cause_error" | "safe";
+        action: "cause_error" | "safe" | "cause_crash" | "cause_cpu";
         [key: string]: unknown;
     };
     expected_error_pattern?: string;

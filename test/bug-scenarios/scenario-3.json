@@ -1,0 +1,6 @@
+{
+    "request_id": "demo-req-3",
+    "payload": {
+        "action": "cause_cpu"
+    }
+}
