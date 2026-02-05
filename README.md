@@ -6,6 +6,20 @@ This repository contains a demonstration of an Autonomous Incident Agent (AIA) c
 
 The platform is configured via `config/aia.config.yaml`. This file controls ports, paths, environment tags, service behavior, and storage.
 
+### Observability (OpenTelemetry)
+The Agent services act as an OpenTelemetry Receiver on port **4318** (HTTP).
+To monitor your application, configure the OOTB OpenTelemetry Exporter:
+```bash
+export OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:4318"
+export OTEL_SERVICE_NAME="my-app"
+```
+
+The Agent automatically detects:
+- HTTP 5xx errors
+- Uncaught exceptions
+- Latency spikes (>2000ms)
+- Process crashes (via log patterns)
+
 ### Storage (R2)
 The platform uses Cloudflare R2 for data exchange. You must provide valid credentials.
 1. Create an R2 bucket named `aia-incidents`.

@@ -16,3 +16,5 @@ export * from "./agent";
 export * from "./agent";
 export * from "./router";
 export * from "./autopsy";
+export * from "./storage";
+export * from "./observability";
