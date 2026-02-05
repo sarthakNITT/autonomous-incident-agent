@@ -93,7 +93,13 @@ bun run demo/run_demo.ts --scenario 1
 ```
 
 ## Manual Setup
-See `docs/` for detailed architecture.
+See `docs/` for### Web Dashboard
+The new Web Client (Phase 17) provides a rich interface for managing incidents.
+- **Port**: 3007 (default)
+- **Features**: Real-time status timeline, patch review, and manual approval/rejection.
+- **Access**: Open `http://localhost:3007` in your browser.
+
+## Service Architecture.
 
 ## Migration Guide (Phase 10)
 We have migrated from hardcoded constants to `aia.config.yaml`.

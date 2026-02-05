@@ -1,28 +1,16 @@
 {
-  "name": "web",
-  "version": "0.1.0",
-  "type": "module",
-  "private": true,
+  "name": "web-client",
+  "version": "1.0.0",
   "scripts": {
-    "dev": "next dev --port 3003",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint --max-warnings 0",
-    "check-types": "next typegen && tsc --noEmit"
+    "start": "bun run src/server.ts",
+    "dev": "bun run --watch src/server.ts"
   },
   "dependencies": {
-    "@repo/ui": "*",
-    "next": "16.1.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "@repo/types": "workspace:*",
+    "@repo/storage": "workspace:*",
+    "bun": "latest"
   },
   "devDependencies": {
-    "@repo/eslint-config": "*",
-    "@repo/typescript-config": "*",
-    "@types/node": "^22.15.3",
-    "@types/react": "19.2.2",
-    "@types/react-dom": "19.2.2",
-    "eslint": "^9.39.1",
-    "typescript": "5.9.2"
+    "@types/bun": "latest"
   }
 }

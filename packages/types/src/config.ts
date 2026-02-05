@@ -25,6 +25,7 @@ export interface Config {
         git: { port: number; base_url: string; };
         repro: { port: number; base_url: string; };
         state: { port: number; base_url: string; };
+        web: { port: number; base_url: string; };
     };
     storage: {
         provider: "r2" | "mock";

@@ -98,6 +98,10 @@ export function loadConfig(): Config {
         config.services.state = { port: 3006, base_url: "http://localhost:3006" };
     }
 
+    if (!config.services.web) {
+        config.services.web = { port: 3007, base_url: "http://localhost:3007" };
+    }
+
     if (!config.database) {
         config.database = {
             provider: "sqlite",
