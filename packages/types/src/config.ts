@@ -4,12 +4,16 @@ export interface Config {
     environment: string;
     project_name: string;
     storage: StorageConfig;
+    ai: {
+        provider: string;
+        api_key: string;
+        model: string;
+    };
     paths: {
         repo_root: string;
         logs: string;
         events: string;
         storage: string;
-        output: string;
         autopsy_output: string;
         patches: string;
         pr_description: string;
@@ -17,27 +21,10 @@ export interface Config {
         reports: string;
     };
     services: {
-        sample_app: {
-            port: number;
-            base_url: string;
-        };
-        agent: {
-            log_pattern: string;
-        };
-        router: {
-            port: number;
-            base_url: string;
-        };
-        autopsy: {
-            port: number;
-            base_url: string;
-        };
-        dashboard: {
-            port: number;
-            base_url: string;
-        };
-    };
-    demo: {
-        scenario_file_pattern: string;
+        router: { port: number; base_url: string; };
+        agent: { port: number; log_pattern: string; };
+        autopsy: { port: number; base_url: string; };
+        dashboard: { port: number; base_url: string; };
+        sample_app: { port: number; base_url: string; failure_probability: number; };
     };
 }

@@ -18,3 +18,5 @@ export * from "./router";
 export * from "./autopsy";
 export * from "./storage";
 export * from "./observability";
+export * from "./ai";
+export * from "./config";

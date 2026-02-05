@@ -1,15 +1,18 @@
-import type { RouterSnapshot, AutopsyResult } from "@repo/types";
-import { join } from "path";
+import type { RouterSnapshot, AutopsyResult, IncidentEvent } from "@repo/types";
 import { loadConfig } from "../../../shared/config_loader";
 import { R2Client } from "@repo/storage";
+import { AstLocator } from "./ast_locator";
+import { YouComReasoner } from "./ai_reasoner";
+import { join } from "path";
 
 const config = loadConfig();
 const PORT = config.services.autopsy.port;
-// REPO_DIR kept for when we implement real analysis, but unused in this mock
 const REPO_DIR = config.paths.repo_root;
 
-// R2 Client
 const storage = new R2Client(config.storage);
+const locator = new AstLocator(REPO_DIR);
+const aiConfig = config.ai || { api_key: "PLACEHOLDER", model: "mock", provider: "mock" };
+const reasoner = new YouComReasoner(aiConfig.api_key, aiConfig.model);
 
 const server = Bun.serve({
     port: PORT,
@@ -19,57 +22,64 @@ const server = Bun.serve({
         if (req.method === "POST" && url.pathname === "/analyze") {
             try {
                 const body = await req.json() as any;
-                // Expect snapshot_key from caller (Router response)
                 const snapshotKey = body.snapshot_key;
 
                 if (!snapshotKey) {
                     return new Response("Missing snapshot_key", { status: 400 });
                 }
 
-                console.log(`[Autopsy] Analyzing snapshot from key: ${snapshotKey}`);
+                console.log(`[Autopsy] Analysis Request: ${snapshotKey}`);
 
-                // 1. Download Snapshot from R2
                 const snapshot = await storage.downloadJSON<RouterSnapshot>(snapshotKey);
-                // incident_id is available in snapshot? Check types.
-                // In previous step Router sent:
-                // snapshot_id, event, env_metadata, repo_git_ref.
-                // Incident ID is inside event.id.
                 const incidentId = snapshot.event.id;
+                const stacktrace = snapshot.event.stacktrace || "";
 
-                // 2. Mock Analysis
-                const rootCause = "Found deterministic failure in sample-app/src/index.ts handling 'cause_crash' action.";
-                const patchDiff = `--- apps/sample-app/src/index.ts
-+++ apps/sample-app/src/index.ts
-@@ -50,7 +50,7 @@
-         // Vulnerability: No input validation
-         if (payload.action === "cause_crash") {
--            process.exit(1);
-+            // Fixed: process.exit(1);
-+            console.log("Crash averted");
-         }`;
+                console.log(`[Autopsy] Snapshot Loaded. Incident: ${incidentId}`);
 
-                const result: AutopsyResult = {
-                    // analysis_id and snapshot_id are not in AutopsyResult type
-                    root_cause_text: rootCause,
-                    confidence: 0.95,
-                    suggested_patch: {
-                        file_path: "apps/sample-app/src/index.ts",
-                        language: "typescript",
-                        patch_diff: patchDiff
-                    },
-                    file_path: "apps/sample-app/src/index.ts",
-                    line_range: "50-55",
-                    commit_hash: snapshot.repo_git_ref.commit || "unknown" // Mock property if available in snapshot, or hardcode
+                const locations = await locator.locateSource(stacktrace);
+                const fileContext = [];
+                for (const loc of locations) {
+                    console.log(`[Autopsy] Located source: ${loc.relPath}:${loc.line}`);
+                    const content = await locator.readContext(loc.path, loc.line);
+                    fileContext.push({
+                        path: loc.relPath,
+                        content: content,
+                        line_range: `${loc.line - 5}-${loc.line + 5}`
+                    });
+                }
+
+                if (fileContext.length === 0) {
+                    console.warn("[Autopsy] Could not locate source files from stacktrace.");
+                }
+
+                const request = {
+                    stacktrace: stacktrace,
+                    file_context: fileContext,
+                    error_message: snapshot.event.error_details?.message || "Unknown error"
                 };
 
-                // 3. Upload Result to R2
+                const aiResponse = await reasoner.analyze(request);
+
+                const result: AutopsyResult = {
+                    root_cause_text: aiResponse.root_cause,
+                    confidence: aiResponse.confidence,
+                    suggested_patch: {
+                        file_path: aiResponse.patch.file_path,
+                        language: "typescript",
+                        patch_diff: aiResponse.patch.diff
+                    },
+                    file_path: aiResponse.patch.file_path,
+                    line_range: "0-0",
+                    commit_hash: snapshot.repo_git_ref.commit || "unknown"
+                };
+
                 const resultKey = `incidents/${incidentId}/autopsy.json`;
                 const patchKey = `incidents/${incidentId}/patch.diff`;
 
                 await storage.uploadJSON(resultKey, result);
-                await storage.uploadText(patchKey, patchDiff);
+                await storage.uploadText(patchKey, result.suggested_patch.patch_diff);
 
-                console.log(`[Autopsy] Analysis uploaded to ${resultKey}`);
+                console.log(`[Autopsy] Completed. Result: ${resultKey}`);
 
                 return new Response(JSON.stringify({
                     status: "analyzed",
@@ -81,7 +91,7 @@ const server = Bun.serve({
 
             } catch (e) {
                 console.error("Analysis failed", e);
-                return new Response("Internal Server Error", { status: 500 });
+                return new Response(`Internal Server Error: ${e}`, { status: 500 });
             }
         }
 
@@ -89,4 +99,4 @@ const server = Bun.serve({
     },
 });
 
-console.log(`Autopsy listening on http://localhost:${PORT}`);
+console.log(`Autopsy AI Service listening on http://localhost:${PORT}`);

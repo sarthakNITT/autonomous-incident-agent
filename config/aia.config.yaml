@@ -10,6 +10,11 @@ storage:
   secret_key: "PLACEHOLDER"
   public_url: "https://pub-<ID>.r2.dev"
 
+ai:
+  provider: "you.com"
+  api_key: "PLACEHOLDER"
+  model: "you-chat-gpt-4"
+
 paths:
   repo_root: "./"
   logs: "./logs/app.log"

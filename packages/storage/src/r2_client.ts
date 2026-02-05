@@ -9,9 +9,6 @@ export class R2Client implements StorageClient {
         this.bucket = config.bucket;
 
         if (config.provider === "mock") {
-            // We can maybe support a minimal mock purely in memory if needed, 
-            // but for now we will rely on S3Client being usable with proper endpoint
-            // If credentials are bad, it will throw.
             throw new Error("Mock provider not fully implemented in R2Client yet. Use 'r2' with valid creds or a local MinIO.");
         }
 
@@ -29,7 +26,7 @@ export class R2Client implements StorageClient {
         const command = new PutObjectCommand({
             Bucket: this.bucket,
             Key: key,
-            Body: JSON.stringify(data, null, 2),
+            Body: JSON.stringify(data),
             ContentType: "application/json"
         });
         await this.client.send(command);

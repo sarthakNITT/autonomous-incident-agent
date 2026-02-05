@@ -35,6 +35,17 @@ The platform uses Cloudflare R2 for data exchange. You must provide valid creden
      secret_key: "YOUR_SECRET_KEY"
    ```
 
+### AI (You.com)
+The Autopsy engine uses You.com API for reasoning.
+1. Obtain an API Key from [You.com](https://you.com) (or relevant developer portal).
+2. Update `config/aia.config.yaml`:
+   ```yaml
+   ai:
+     provider: "you.com"
+     api_key: "YOUR_API_KEY"
+     model: "you-chat-gpt-4"
+   ```
+
 ### Critical Settings
 - **Ports**: Change `services.<name>.port` to resolve conflicts.
 - **Paths**: `paths.repo_root` defines the target repository to analyze.

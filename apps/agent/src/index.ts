@@ -14,28 +14,24 @@ console.log("Starting Autonomous Observability Agent (OTel Receiver)...");
 const onIncident = async (result: DetectorResult) => {
     console.log(`[Agent] DETECTED INCIDENT: ${result.type} - ${result.reason}`);
 
-    // Create Incident Payload
-    // Match IncidentEvent interface from @repo/types
     const event: IncidentEvent = {
         id: crypto.randomUUID(),
         service_name: config.project_name,
         environment: { env: config.environment, version: "v1.2.0" },
         timestamp: new Date().toISOString(),
-        severity: "critical", // Default to critical for now
+        severity: "critical",
         error_details: {
             message: result.reason || "Unknown Error"
         },
         stacktrace: getDetailsFromSignal(result),
-        last_logs: [], // Empty for now as we don't have a buffer mechanism in this OTel receiver yet
+        last_logs: [],
         request_id: getRequestId(result)
     };
 
-    // 1. Persist Event to R2
     const key = `incidents/${event.id}/event.json`;
     await storage.uploadJSON(key, event);
     console.log(`[Agent] Helper Event Uploaded to R2: ${key}`);
 
-    // 2. Notify Router (for Snapshotting/Routing)
     const routerUrl = `${config.services.router.base_url}/ingest`;
     try {
         await fetch(routerUrl, {
@@ -50,7 +46,6 @@ const onIncident = async (result: DetectorResult) => {
 };
 
 function getRequestId(result: DetectorResult): string {
-    // Try to find traceId
     if (result.scope === "span") {
         const s = result.signal as any;
         return s.traceId || "unknown";
@@ -92,7 +87,6 @@ Bun.serve({
                 }
             } catch (e) {
                 console.error("OTel Ingest Error", e);
-                // Return 200 to not break exporter
                 return new Response("Error", { status: 500 });
             }
         }

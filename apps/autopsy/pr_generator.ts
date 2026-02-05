@@ -1,6 +1,6 @@
 import type { AutopsyResult } from "@repo/types";
 import { join } from "path";
-import { loadConfig } from "../../../shared/config_loader";
+import { loadConfig } from "../../shared/config_loader";
 
 const config = loadConfig();
 
@@ -24,7 +24,6 @@ async function generateArtifacts() {
     const patchFilename = "patch-1.diff";
     const patchPath = join(PATCH_OUTPUT_DIR, patchFilename);
     const patchContent = result.suggested_patch.patch_diff;
-    // Ensure we write exactly what was given. Note: Bun.write handles string/buffers.
     await Bun.write(patchPath, patchContent);
     console.log(`Generated patch: ${patchPath}`);
 

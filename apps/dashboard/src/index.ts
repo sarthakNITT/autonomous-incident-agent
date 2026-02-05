@@ -1,6 +1,8 @@
 import type { AutopsyResult } from "@repo/types";
+import { join } from "path";
 import { loadConfig } from "../../../shared/config_loader";
 import { R2Client } from "@repo/storage";
+import { generatePdfReport } from "./export";
 
 const config = loadConfig();
 const PORT = config.services.dashboard.port;
@@ -12,87 +14,123 @@ const server = Bun.serve({
     async fetch(req) {
         const url = new URL(req.url);
 
-        // List Incidents
-        if (url.pathname === "/" || url.pathname === "/index.html") {
-            try {
-                // List all keys
-                // We expect incidents/{id}/...
-                // R2 listKeys returns flat list. We need to group.
-                // Assuming < 1000 keys for demo.
-                const keys = await storage.listKeys("incidents/");
-                // Extract IDs
-                const incidentIds = new Set<string>();
-                keys.forEach(k => {
-                    const parts = k.split("/");
-                    // incidents / {id} / {file}
-                    if (parts.length >= 2) {
-                        incidentIds.add(parts[1]);
+        if (req.method === "GET" && url.pathname === "/") {
+            const html = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Autonomous Incident Dashboard</title>
+                <style>
+                    body { font-family: sans-serif; padding: 20px; }
+                    .incident { border: 1px solid #ccc; padding: 15px; margin-bottom: 10px; border-radius: 5px; }
+                    .critical { border-left: 5px solid red; }
+                    pre { background: #f4f4f4; padding: 10px; overflow-x: auto; }
+                    .download-btn { background: #007bff; color: white; padding: 5px 10px; text-decoration: none; border-radius: 3px; }
+                </style>
+            </head>
+            <body>
+                <h1>Autonomous Incident Dashboard</h1>
+                <div id="incidents">Loading...</div>
+                <script>
+                    async function load() {
+                        const res = await fetch("/api/incidents");
+                        const data = await res.json();
+                        const container = document.getElementById("incidents");
+                        container.innerHTML = data.incidents.map(i => \`
+                            <div class="incident \${i.severity}">
+                                <h3>Incident: \${i.id}</h3>
+                                <p><strong>Service:</strong> \${i.service_name}</p>
+                                <p><strong>Status:</strong> \${i.status}</p>
+                                <details>
+                                    <summary>Root Cause Analysis</summary>
+                                    <pre>\${i.autopsy ? i.autopsy.root_cause_text : 'Pending Analysis...'}</pre>
+                                </details>
+                                <details>
+                                    <summary>Suggested Patch</summary>
+                                    <pre>\${i.patch_diff || 'No patch available'}</pre>
+                                </details>
+                                <div style="margin-top: 10px;">
+                                    <a href="/export/\${i.id}" class="download-btn" target="_blank">Download PDF Report</a>
+                                </div>
+                            </div>
+                        \`).join("");
                     }
-                });
+                    load();
+                </script>
+            </body>
+            </html>
+            `;
+            return new Response(html, { headers: { "Content-Type": "text/html" } });
+        }
 
-                const listHtml = Array.from(incidentIds).map(id =>
-                    `<li><a href="/incident/${id}">${id}</a></li>`
-                ).join("");
+        if (req.method === "GET" && url.pathname === "/api/incidents") {
+            try {
+                const keys = await storage.listKeys("incidents/");
 
-                return new Response(`
-                    <h1>Incident Dashboard</h1>
-                    <h2>Detected Incidents (R2)</h2>
-                    <ul>${listHtml || "<li>No incidents found</li>"}</ul>
-                `, { headers: { "Content-Type": "text/html" } });
+                const incidentsMap = new Map();
+                for (const key of keys) {
+                    const id = key.split("/")[1];
+                    if (!incidentsMap.has(id)) incidentsMap.set(id, { id });
+                }
 
+                const incidents = [];
+                for (const id of incidentsMap.keys()) {
+                    let status = "Analyzing";
+                    let autopsyJson = null;
+                    let patchDiff = null;
+
+                    try {
+                        autopsyJson = await storage.downloadJSON(`incidents/${id}/autopsy.json`);
+                        status = "Resolved";
+                    } catch (e) { }
+
+                    try {
+                        patchDiff = await storage.downloadText(`incidents/${id}/patch.diff`);
+                    } catch (e) { }
+
+                    incidents.push({
+                        id,
+                        service_name: config.project_name,
+                        status,
+                        severity: "critical",
+                        autopsy: autopsyJson,
+                        patch_diff: patchDiff
+                    });
+                }
+
+                return new Response(JSON.stringify({ incidents }), { headers: { "Content-Type": "application/json" } });
             } catch (e) {
-                return new Response(`Error listing incidents: ${e}`, { status: 500 });
+                console.error("Dashboard API error", e);
+                return new Response("Error fetching incidents", { status: 500 });
             }
         }
 
-        // View Incident
-        // /incident/:id
-        const pathParts = url.pathname.split("/");
-        if (pathParts[1] === "incident" && pathParts[2]) {
-            const incidentId = pathParts[2];
-            try {
-                // Fetch artifacts
-                let autopsyJson = null;
+        if (url.pathname.startsWith("/export/")) {
+            const incidentId = url.pathname.split("/")[2];
+            if (incidentId) {
                 try {
-                    autopsyJson = await storage.downloadJSON(`incidents/${incidentId}/autopsy.json`);
-                } catch (e) { }
+                    console.log(`Generating PDF for ${incidentId}...`);
 
-                let patchDiff = "";
-                try {
-                    patchDiff = await storage.downloadText(`incidents/${incidentId}/patch.diff`);
-                } catch (e) { }
+                    let autopsyJson = null;
+                    let patchDiff = "";
+                    let preLog = "";
 
-                // Logs (Optional)
-                let preLog = "";
-                try {
-                    preLog = await storage.downloadText(`incidents/${incidentId}/logs/pre.txt`);
-                } catch (e) { }
+                    try { autopsyJson = await storage.downloadJSON(`incidents/${incidentId}/autopsy.json`); } catch (e) { }
+                    try { patchDiff = await storage.downloadText(`incidents/${incidentId}/patch.diff`); } catch (e) { }
+                    try { preLog = await storage.downloadText(`incidents/${incidentId}/logs/pre.txt`); } catch (e) { }
 
-                const autopsyHtml = autopsyJson ? `
-                    <h3>Root Cause</h3>
-                    <pre>${JSON.stringify(autopsyJson, null, 2)}</pre>
-                ` : "<p>Analysis pending or failed</p>";
+                    const pdfPath = await generatePdfReport(incidentId, {
+                        autopsy: autopsyJson,
+                        patch: patchDiff,
+                        logs: preLog
+                    });
 
-                const patchHtml = patchDiff ? `
-                    <h3>Suggested Patch</h3>
-                    <pre>${patchDiff}</pre>
-                ` : "";
-
-                const logsHtml = preLog ? `
-                    <h3>Repro Logs (Pre-Fix)</h3>
-                    <pre>${preLog}</pre>
-                ` : "";
-
-                return new Response(`
-                    <h1>Incident: ${incidentId}</h1>
-                    <a href="/">Back to List</a>
-                    ${autopsyHtml}
-                    ${patchHtml}
-                    ${logsHtml}
-                `, { headers: { "Content-Type": "text/html" } });
-
-            } catch (e) {
-                return new Response(`Error loading incident ${incidentId}: ${e}`, { status: 500 });
+                    const file = Bun.file(pdfPath);
+                    return new Response(file);
+                } catch (e) {
+                    console.error("Export failed", e);
+                    return new Response("Export failed", { status: 500 });
+                }
             }
         }
 

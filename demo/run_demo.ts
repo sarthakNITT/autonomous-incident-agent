@@ -6,7 +6,7 @@ import { R2Client } from "@repo/storage";
 
 const config = loadConfig();
 
-const DEMO_OUT = config.paths.output;
+const DEMO_OUT = config.paths.reports;
 
 async function runCommand(command: string, args: string[], cwd: string = "."): Promise<void> {
     console.log(`> ${command} ${args.join(" ")}`);
@@ -57,9 +57,9 @@ async function main() {
         config.paths.autopsy_output,
         config.paths.patches,
         config.paths.pr_description,
-        join(config.paths.repo_root, "app/test/generated"), // Hardcoded relative path inside repo?
+        join(config.paths.repo_root, "app/test/generated"),
         config.paths.repro_logs,
-        "dashboard/reports" // Dashboard export path? I didn't verify dashboard export path refactor. Check dashboard export.ts
+        config.paths.reports
     ];
 
     for (const d of dirsToClean) {

@@ -5,9 +5,7 @@ import { R2Client } from "@repo/storage";
 
 const config = loadConfig();
 const PORT = config.services.router.port;
-// Storage dir usage removed in favor of R2, but keeping for legacy or backup if needed? 
-// Requirements say "replace local file exchange". So we remove it.
-// const STORAGE_DIR = config.paths.storage; 
+
 
 const storage = new R2Client(config.storage);
 
@@ -21,7 +19,6 @@ const server = Bun.serve({
                 const event = await req.json() as IncidentEvent;
                 console.log(`[Router] Received incident: ${event.id}`);
 
-                // Enrich with Metadata
                 const meta: EnvMetadata = {
                     service_name: event.service_name || "unknown",
                     env: event.environment?.env || "unknown",
@@ -42,10 +39,7 @@ const server = Bun.serve({
                     repo_git_ref: repoRef
                 };
 
-                // Upload to R2
-                // Structure: incidents/{id}/snapshot.json
                 const key = `incidents/${event.id}/snapshot.json`;
-                // Also upload event? Requirement says "writes event and snapshot to R2"
                 const eventKey = `incidents/${event.id}/event.json`;
 
                 await storage.uploadJSON(eventKey, event);
