@@ -41,6 +41,17 @@ services:
       - ./:/repo
       - ./autopsy/sample_output:/output
 
+  dashboard:
+    build:
+      context: .
+      dockerfile: apps/dashboard/Dockerfile
+    ports:
+      - "3002:3000"
+    volumes:
+      - ./autopsy:/app/autopsy:ro
+      - ./repro/logs:/app/repro/logs:ro
+      - ./dashboard/reports:/app/dashboard/reports
+
 volumes:
   shared_logs:
 

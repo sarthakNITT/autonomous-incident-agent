@@ -1,0 +1,16 @@
+{
+    "name": "dashboard",
+    "version": "1.0.0",
+    "scripts": {
+        "start": "bun run src/index.ts",
+        "export": "bun run src/export.ts"
+    },
+    "dependencies": {
+        "pdfkit": "^0.14.0",
+        "@repo/types": "workspace:*"
+    },
+    "devDependencies": {
+        "@types/pdfkit": "^0.13.3",
+        "@types/node": "^20.0.0"
+    }
+}

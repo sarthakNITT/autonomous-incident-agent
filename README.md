@@ -118,3 +118,19 @@ bun run repro/run_repro.ts
 **2. Verify Logs:**
 - `repro/logs/pre.txt`: Should show the test failing (HTTP 500).
 - `repro/logs/post.txt`: Should show the test passing (HTTP 200).
+
+### 6. Verification (Phase 7: Dashboard & Reporting)
+
+**1. Start the Dashboard:**
+```bash
+docker-compose up -d dashboard
+```
+
+**2. View Incident Report:**
+Open [http://localhost:3002/incident-1](http://localhost:3002/incident-1) in your browser.
+
+**3. Generate PDF Report:**
+```bash
+bun run apps/dashboard/src/export.ts
+```
+Verify `dashboard/reports/incident-1.pdf` is created.
