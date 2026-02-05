@@ -90,6 +90,10 @@ export function loadConfig(): Config {
         config.services.git = { port: 3004, base_url: "http://localhost:3004" };
     }
 
+    if (!config.services.repro) {
+        config.services.repro = { port: 3005, base_url: "http://localhost:3005" };
+    }
+
     cachedConfig = config;
     return config;
 }

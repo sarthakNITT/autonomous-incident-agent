@@ -1,0 +1,44 @@
+name: Validate Incident Patch
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [ opened, synchronize ]
+
+jobs:
+  validate:
+    if: startsWith(github.head_ref, 'aia/incident-')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Build Repro Container
+        run: docker build -t aia-repro -f apps/repro/Dockerfile .
+
+      - name: Extract Incident ID
+        id: incident_id
+        run: echo "id=$(echo ${{ github.head_ref }} | sed 's/aia\/incident-//')" >> $GITHUB_OUTPUT
+
+      - name: Run Validation Orchestrator
+        env:
+          INCIDENT_ID: ${{ steps.incident_id.outputs.id }}
+          COMMIT_HASH: ${{ github.sha }}
+          AIA_CONFIG_PATH: config/aia.config.yaml
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          docker run \
+            -e INCIDENT_ID=$INCIDENT_ID \
+            -e COMMIT_HASH=$COMMIT_HASH \
+            -e GITHUB_TOKEN=$GITHUB_TOKEN \
+            -v $(pwd)/config:/app/config \
+            aia-repro

@@ -61,10 +61,17 @@ To enable automated PR creation:
      email: "bot@aia.local"
    ```
    
-> [!IMPORTANT]
-> Ensure the token has permissions to create branches and open pull requests.
+### Automated Validation
+The system includes a CI/CD pipeline for automated remediation validation:
+1. **Trigger**: Phase 14 creates a PR with branch `aia/incident-{id}`.
+2. **Action**: `.github/workflows/validate-pr.yml` triggers the `apps/repro` container.
+3. **Execution**:
+   - Downloads `patch.diff` and `generated_test.ts` from R2.
+   - Applies patch and runs tests in isolation.
+   - Reports results back to R2 and validates the PR.
 
-### Critical Settings
+> [!IMPORTANT]
+> The validation pipeline requires Docker and access to the R2 bucket.
 - **Ports**: Change `services.<name>.port` to resolve conflicts.
 - **Paths**: `paths.repo_root` defines the target repository to analyze.
 - **AI Provider**: (Placeholder) Add `ai` section to config in future phases.

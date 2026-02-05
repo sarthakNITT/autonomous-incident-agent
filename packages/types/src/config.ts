@@ -23,6 +23,7 @@ export interface Config {
         dashboard: { port: number; base_url: string; };
         sample_app: { port: number; base_url: string; };
         git: { port: number; base_url: string; };
+        repro: { port: number; base_url: string; };
     };
     storage: {
         provider: "r2" | "mock";
