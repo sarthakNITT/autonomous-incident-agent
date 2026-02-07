@@ -1,0 +1,47 @@
+
+# Data Flow & Lifecycle
+
+This document describes the step-by-step flow of data through the system, from the initial error detection to the final Pull Request.
+
+## The Incident Lifecycle
+
+### 1. Ingestion
+- **Source**: Application via OpenTelemetry.
+- **Action**: Application emits a `500` error trace.
+- **Receiver**: `Router Service` receives the span.
+- **Logic**: Router filters out noise and forwards the trace to the `Agent`.
+
+### 2. Analysis
+- **State**: `ANALYZING`
+- **Action**: Agent triggers `Autopsy Service`.
+- **Logic**:
+    - Autopsy retrieves source code via `Git Service`.
+    - LLM analyzes the stack trace and codebase.
+    - Result: A probable root cause and file location.
+
+### 3. Reproduction
+- **State**: `REPRODUCING`
+- **Action**: Agent triggers `Repro Service`.
+- **Logic**:
+    - Generates a reproduction script (test case) that fails.
+    - Verifies the failure against the current codebase.
+
+### 4. Remediation
+- **State**: `FIXING`
+- **Action**: Agent requests a patch from `Autopsy Service`.
+- **Logic**:
+    - LLM generates a code patch based on the root cause.
+    - `Repro Service` applies the patch and runs the test case.
+    - If the test passes, the fix is verified.
+
+### 5. Deployment
+- **State**: `PUBLISHING`
+- **Action**: Agent instructs `Git Service`.
+- **Logic**:
+    - Creates a new branch (e.g., `fix/incident-123`).
+    - Commits the patch and the new test case.
+    - Pushes to GitHub and opens a Pull Request.
+
+## Event Exchange
+
+Services communicate via asynchronous events (e.g., Kafka or internal message bus) or direct RPC calls, ensuring decoupling and resilience.

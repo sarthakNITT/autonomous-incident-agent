@@ -1,5 +1,14 @@
 import React from "react";
-import { Home, BookOpen, Layers } from "lucide-react";
+import {
+  Home,
+  BookOpen,
+  Layers,
+  Activity,
+  Brain,
+  Database,
+  GitBranch,
+  TestTube,
+} from "lucide-react";
 import { ScrollArea } from "./ui/scroll-area";
 import { cn } from "../lib/utils";
 
@@ -36,12 +45,50 @@ export function Sidebar({ className }: SidebarProps) {
                 <BookOpen className="h-4 w-4" />
                 Getting Started
               </a>
+              <h4 className="mb-1 mt-4 rounded-md px-2 py-1 text-sm font-semibold">
+                Architecture
+              </h4>
               <a
-                href="/architecture"
+                href="/architecture/overview"
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <Layers className="h-4 w-4" />
-                Architecture
+                Overview
+              </a>
+              <a
+                href="/architecture/data-flow"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+              >
+                <Activity className="h-4 w-4" />
+                Data Flow
+              </a>
+              <a
+                href="/architecture/ai-engine"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+              >
+                <Brain className="h-4 w-4" />
+                AI Engine
+              </a>
+              <a
+                href="/architecture/r2-lifecycle"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+              >
+                <Database className="h-4 w-4" />
+                R2 Lifecycle
+              </a>
+              <a
+                href="/architecture/git-integration"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+              >
+                <GitBranch className="h-4 w-4" />
+                Git Integration
+              </a>
+              <a
+                href="/architecture/repro-pipeline"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+              >
+                <TestTube className="h-4 w-4" />
+                Repro Pipeline
               </a>
 
               <h4 className="mb-1 mt-4 rounded-md px-2 py-1 text-sm font-semibold">

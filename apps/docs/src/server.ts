@@ -34,7 +34,6 @@ const server = serve({
     const { pathname } = url;
     console.log(`[Request] ${req.method} ${pathname}`);
 
-    // Serve static files
     if (pathname === "/styles.css") {
       const cssPath = join(process.cwd(), "public", "styles.css");
       const file = Bun.file(cssPath);
@@ -46,7 +45,6 @@ const server = serve({
     }
 
     try {
-      // Router
       if (pathname === "/") {
         return renderPage("Docs App - Home", React.createElement(Home));
       }
@@ -67,6 +65,66 @@ const server = serve({
         );
         return renderPage(
           "Architecture",
+          React.createElement("div", { className: "mdx-content" }, mdxContent),
+        );
+      }
+
+      if (pathname === "/architecture/overview") {
+        const mdxContent = await loadMdx(
+          join(process.cwd(), "src/pages/ArchitectureOverview.mdx"),
+        );
+        return renderPage(
+          "Architecture Overview",
+          React.createElement("div", { className: "mdx-content" }, mdxContent),
+        );
+      }
+
+      if (pathname === "/architecture/data-flow") {
+        const mdxContent = await loadMdx(
+          join(process.cwd(), "src/pages/DataFlow.mdx"),
+        );
+        return renderPage(
+          "Data Flow",
+          React.createElement("div", { className: "mdx-content" }, mdxContent),
+        );
+      }
+
+      if (pathname === "/architecture/ai-engine") {
+        const mdxContent = await loadMdx(
+          join(process.cwd(), "src/pages/AIEngine.mdx"),
+        );
+        return renderPage(
+          "AI Engine",
+          React.createElement("div", { className: "mdx-content" }, mdxContent),
+        );
+      }
+
+      if (pathname === "/architecture/r2-lifecycle") {
+        const mdxContent = await loadMdx(
+          join(process.cwd(), "src/pages/R2Lifecycle.mdx"),
+        );
+        return renderPage(
+          "R2 Lifecycle",
+          React.createElement("div", { className: "mdx-content" }, mdxContent),
+        );
+      }
+
+      if (pathname === "/architecture/git-integration") {
+        const mdxContent = await loadMdx(
+          join(process.cwd(), "src/pages/GitIntegration.mdx"),
+        );
+        return renderPage(
+          "Git Integration",
+          React.createElement("div", { className: "mdx-content" }, mdxContent),
+        );
+      }
+
+      if (pathname === "/architecture/repro-pipeline") {
+        const mdxContent = await loadMdx(
+          join(process.cwd(), "src/pages/ReproPipeline.mdx"),
+        );
+        return renderPage(
+          "Repro Pipeline",
           React.createElement("div", { className: "mdx-content" }, mdxContent),
         );
       }

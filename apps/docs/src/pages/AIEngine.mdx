@@ -1,0 +1,30 @@
+
+# AI Engine
+
+The core intelligence of AIA is powered by Large Language Models (LLMs), primarily leveraging You.com's search and reasoning capabilities alongside precise code navigation.
+
+## Reasoning Process
+
+The AI Engine does not simply "guess" code. It follows a structured chain-of-thought:
+
+1.  **Context Gathering**: It first understands the error by reading the stack trace and the immediate surrounding code.
+2.  **Hypothesis Generation**: It formulates multiple theories about why the error occurred (e.g., null reference, type mismatch, logic error).
+3.  **Validation**: It looks for evidence in the code to support these theories.
+
+## AST-Based Locator
+
+To ensure patches are applied correctly, AIA uses an Abstract Syntax Tree (AST) locator instead of line numbers.
+
+-   **Why?**: Line numbers change as code is modified. AST nodes (FunctionDeclaration, ClassMethod) are structural and stable.
+-   **How**:
+    - The LLM identifies the target function or block.
+    - The `Autopsy Service` parses the file into an AST.
+    - It locates the exact node and replaces only the relevant subtree.
+
+## Patch Generation
+
+When generating a fix, the engine produces two things:
+1.  **The Fix**: The actual code change.
+2.  **The Test**: A standalone script or unit test that reproduces the bug.
+
+This "Test-Driven Repair" approach ensures that every fix is verified before it ever reaches a human reviewer.

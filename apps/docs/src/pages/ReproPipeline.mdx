@@ -1,0 +1,20 @@
+
+# Reproduction Pipeline
+
+The `Repro Service` is responsible for the critical task of validating that a fix actually works. It prevents the AI from submitting "hallucinated" patches.
+
+## Validation Steps
+
+1.  **Environment Setup**: The service spins up an isolated Docker container mirroring the application's runtime (e.g., Node.js 18).
+2.  **Dependency Install**: It runs `npm install` (or equivalent) to ensure dependencies are present.
+3.  **Test Execution (Phase 1)**: The AI-generated reproduction script is run against the *current* codebase. It MUST fail. If it passes, the reproduction is invalid.
+4.  **Patch Application**: The generated patch is applied.
+5.  **Test Execution (Phase 2)**: The reproduction script is run again. It MUST pass.
+
+## CI Interaction
+
+In addition to running the isolated reproduction script, successful patches trigger the project's existing CI pipeline to ensure no regressions were introduced.
+
+## Result Reporting
+
+The outcomes (pass/fail, logs, error messages) are sent back to the `Agent`, which decides whether to proceed with the PR or attempt another fix.

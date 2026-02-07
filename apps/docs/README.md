@@ -4,6 +4,15 @@ A standalone documentation web application built with **Bun**, **React**, **MDX*
 
 This app features a custom server implementation that supports Server-Side Rendering (SSR) of React components and MDX content, styled with Tailwind CSS and Radix UI primitives.
 
+## Architecture
+
+- [Overview](/src/pages/ArchitectureOverview.mdx)
+- [Data Flow](/src/pages/DataFlow.mdx)
+- [AI Engine](/src/pages/AIEngine.mdx)
+- [R2 Lifecycle](/src/pages/R2Lifecycle.mdx)
+- [Git Integration](/src/pages/GitIntegration.mdx)
+- [Repro Pipeline](/src/pages/ReproPipeline.mdx)
+
 ## Documentation
 
 - [Installation](/src/pages/Install.mdx)

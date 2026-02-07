@@ -1,0 +1,24 @@
+
+# R2 Storage Lifecycle
+
+AIA relies on Cloudflare R2 for storing transient and persistent artifacts. This document outlines how data is managed to balance performance and cost.
+
+## Object Layout
+
+We use a structured key naming convention:
+
+- `runs/{run_id}/context.json`: Original context that triggered this run.
+- `runs/{run_id}/logs/`: Agent execution logs.
+- `artifacts/{artifact_id}/{filename}`: Generated files (e.g., diff patches, test scripts).
+- `cache/repo/{owner}/{repo}/{commit_sha}/`: Cached git checkouts for faster Autopsy.
+
+## Artifact Ownership
+
+Artifacts are owned by the `Agent` that created them. However, they are accessible by any service (e.g., `Repro Service`, `Autopsy Service`) given the correct IAM permissions.
+
+## Cleanup Strategy
+
+Since R2 is object storage, old data accumulates. We implement a Time-To-Live (TTL) using R2 Lifecycle rules:
+- **Temporary artifacts**: Deleted after 7 days.
+- **Run logs**: Deleted after 30 days.
+- **Important incident reports**: Retained indefinitely (unless manually deleted).

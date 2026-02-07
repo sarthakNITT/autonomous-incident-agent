@@ -1,0 +1,33 @@
+
+# Architecture Overview
+
+The Autonomous Incident Agent (AIA) is a microservices-based system designed to autonomously detect, analyze, and fix software errors.
+
+## Core Components
+
+The system consists of several specialized services, each responsible for a specific domain of the incident lifecycle.
+
+### 1. Agent Service (`apps/agent`)
+The brain of the operation. It orchestrates the entire incident response process, managing the state machine and coordinating between other services.
+
+### 2. Router Service (`apps/router`)
+The entry point for telemetry data. It ingests OpenTelemetry traces via OTLP/HTTP, filters for anomalies, and forwards relevant error events to the Agent.
+
+### 3. Autopsy Service (`apps/autopsy`)
+Responsible for deep analysis of error artifacts. It uses LLMs to analyze stack traces, source code, and logs to generate root cause hypotheses.
+
+### 4. Git Service (`apps/git-service`)
+Handles all interaction with version control. It clones repositories, creates branches, commits patches, and manages Pull Requests.
+
+### 5. Repro Service (`apps/repro-service`)
+Validates fixes by running reproduction scripts and test suites. It executes code in isolated environments to confirm that a generated patch actually resolves the issue.
+
+### 6. State Service (`apps/state-service`)
+Manages the persistence of incident data. It tracks the lifecycle state of every detected anomaly (e.g., `detected`, `analyzing`, `fixing`, `resolved`).
+
+### 7. Web Dashboard (`apps/web`)
+A user interface for developers to monitor active incidents, review proposed fixes, and configure agent settings.
+
+## Deployment Model
+
+The services are designed to be deployed as a cluster of containers (e.g., Kubernetes) or as serverless functions, depending on the scale. The Agent and Router act as the primary operational loop, while other services are invoked on-demand.
