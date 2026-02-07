@@ -1,0 +1,42 @@
+
+# State Schema
+
+AIA persists incident state in a relational database (e.g., PostgreSQL or SQLite) to allow resuming interrupted runs and auditing actions.
+
+## Tables
+
+### Incidents
+
+Tracks high-level anomalies detected by the system.
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `id` | UUID | Unique identifier. |
+| `trace_id` | String | OpenTelemetry trace ID causing the incident. |
+| `status` | Enum | `DETECTED`, `ANALYZING`, `FIXING`, `RESOLVED`. |
+| `created_at` | Timestamp | When the incident was first detected. |
+| `updated_at` | Timestamp | Last activity timestamp. |
+
+### Steps
+
+Tracks individual actions taken by the agent (e.g., "Cloning repo", "Running tests").
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `id` | UUID | Unique step identifier. |
+| `incident_id` | UUID | Foreign key to `Incidents`. |
+| `action` | String | Name of the action (e.g., `git.clone`). |
+| `status` | Enum | `PENDING`, `RUNNING`, `SUCCESS`, `FAILURE`. |
+| `payload` | JSON | Input arguments for the action. |
+| `result` | JSON | Output/result of the action. |
+
+### Artifacts
+
+Links generated files (patches, reports) to incidents.
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `id` | UUID | Unique artifact identifier. |
+| `incident_id` | UUID | Foreign key to `Incidents`. |
+| `type` | String | MIME type or custom type (e.g., `application/x-patch`). |
+| `storage_path` | String | Path in R2 bucket where file is stored. |

@@ -1,0 +1,44 @@
+
+# Event Schema
+
+AIA ingests Observability events via OpenTelemetry (OTLP). This document defines the expected structure of these events.
+
+## Trace Span Structure
+
+The agent primarily looks for spans containing exceptions or HTTP 5xx errors.
+
+```json
+{
+  "traceId": "5b8aa5a2d2c872e8321cf37308d69df2",
+  "spanId": "051581bf3cb55c1f",
+  "name": "GET /api/users",
+  "kind": "SERVER",
+  "status": {
+    "code": "ERROR",
+    "message": "Internal Server Error"
+  },
+  "attributes": {
+    "http.method": "GET",
+    "http.status_code": 500,
+    "http.url": "https://api.example.com/api/users"
+  },
+  "events": [
+    {
+      "name": "exception",
+      "timeUnixNano": "1689874837483000000",
+      "attributes": {
+        "exception.type": "TypeError",
+        "exception.message": "Cannot read properties of undefined (reading 'id')",
+        "exception.stacktrace": "TypeError: Cannot read properties of undefined (reading 'id')\n    at UserController.getUser (/app/src/controllers/user.ts:42:15)\n    ..."
+      }
+    }
+  ]
+}
+```
+
+## Validation Rules
+
+1.  **Trace ID**: Must be a valid 32-character hex string.
+2.  **Span ID**: Must be a valid 16-character hex string.
+3.  **Error Status**: The span `status.code` must be `ERROR` or contain an `exception` event.
+4.  **Service Name**: The `service.name` resource attribute is used to identify the source application.

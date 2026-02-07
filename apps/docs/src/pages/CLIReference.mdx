@@ -1,0 +1,54 @@
+
+# CLI Reference
+
+The `aia` CLI allows you to interact with the Autonomous Incident Agent locally.
+
+## Installation
+
+```bash
+npm install -g @aia/cli
+# or
+bun add -g @aia/cli
+```
+
+## Commands
+
+### `aia init`
+
+Initializes a new configuration file in the current directory.
+
+**Options:**
+- `--force`: Overwrite existing config file.
+
+**Usage:**
+```bash
+aia init
+```
+
+### `aia run`
+
+Starts the agent in standalone mode.
+
+**Options:**
+- `--config <path>`: Path to config file (default: `aia.config.ts`).
+- `--port <number>`: Port to listen for OTLP traces (default: 4318).
+- `--verbose`: Enable debug logging.
+
+**Usage:**
+```bash
+aia run --config ./my-aia-config.ts --verbose
+```
+
+### `aia verify`
+
+Runs a suite of diagnostic tests to ensure your environment is correctly set up (credentials, network access, etc.).
+
+**Checks:**
+- R2 bucket accessibility.
+- GitHub token validity.
+- Docker availability (for repro service).
+
+**Usage:**
+```bash
+aia verify
+```

@@ -13,6 +13,14 @@ This app features a custom server implementation that supports Server-Side Rende
 - [Git Integration](/src/pages/GitIntegration.mdx)
 - [Repro Pipeline](/src/pages/ReproPipeline.mdx)
 
+## Reference
+
+- [Configuration](/src/pages/ConfigReference.mdx)
+- [Event Schema](/src/pages/EventSchema.mdx)
+- [R2 Layout](/src/pages/R2Layout.mdx)
+- [State Schema](/src/pages/StateSchema.mdx)
+- [CLI Commands](/src/pages/CLIReference.mdx)
+
 ## Documentation
 
 - [Installation](/src/pages/Install.mdx)

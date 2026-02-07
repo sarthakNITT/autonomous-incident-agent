@@ -1,0 +1,73 @@
+
+# Configuration Reference
+
+The `aia.config.ts` (or `aia.config.yaml`) file controls the behavior of the Autonomous Incident Agent.
+
+## Schema
+
+```typescript
+export interface AIAConfig {
+  project: string;
+  storage: {
+    type: "r2";
+    bucket: string;
+    region?: string;
+    accountId?: string;
+    accessKeyId?: string;
+    secretAccessKey?: string;
+  };
+  github: {
+    owner: string;
+    repo: string;
+    token: string;
+    botUsername: string;
+  };
+  agent: {
+    model: "claude-3-opus" | "gpt-4-turbo";
+    maxIterations: number;
+    logLevel: "debug" | "info" | "warn" | "error";
+  };
+}
+```
+
+## Field Descriptions
+
+### Project
+- **project**: A unique string identifier for your project. Used for namespacing artifacts.
+
+### Storage
+- **type**: Currently only `"r2"` is supported.
+- **bucket**: The name of your Cloudflare R2 bucket.
+- **region**: Defaults to `auto`.
+- **accountId**: Your Cloudflare account ID.
+
+### GitHub
+- **owner**: Organization or user name.
+- **repo**: Repository name.
+- **token**: Personal Access Token (PAT) or GitHub App token.
+- **botUsername**: The username of the bot account (for commenting).
+
+### Agent
+- **model**: The underlying LLM to manipulate code.
+- **maxIterations**: Maximum number of attempts to fix a bug before giving up (default: 5).
+- **logLevel**: Verbosity of the agent's output.
+
+## Examples
+
+### Production (Environment Variables)
+
+Recommended for security.
+
+```typescript
+export default {
+  project: "my-app",
+  storage: {
+    type: "r2",
+    bucket: process.env.R2_BUCKET,
+    accountId: process.env.R2_ACCOUNT_ID,
+    accessKeyId: process.env.R2_ACCESS_KEY_ID,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+  },
+  // ...
+};
+```

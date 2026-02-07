@@ -129,6 +129,56 @@ const server = serve({
         );
       }
 
+      if (pathname === "/reference/config") {
+        const mdxContent = await loadMdx(
+          join(process.cwd(), "src/pages/ConfigReference.mdx"),
+        );
+        return renderPage(
+          "Config Reference",
+          React.createElement("div", { className: "mdx-content" }, mdxContent),
+        );
+      }
+
+      if (pathname === "/reference/events") {
+        const mdxContent = await loadMdx(
+          join(process.cwd(), "src/pages/EventSchema.mdx"),
+        );
+        return renderPage(
+          "Event Schema",
+          React.createElement("div", { className: "mdx-content" }, mdxContent),
+        );
+      }
+
+      if (pathname === "/reference/r2-layout") {
+        const mdxContent = await loadMdx(
+          join(process.cwd(), "src/pages/R2Layout.mdx"),
+        );
+        return renderPage(
+          "R2 Layout",
+          React.createElement("div", { className: "mdx-content" }, mdxContent),
+        );
+      }
+
+      if (pathname === "/reference/state") {
+        const mdxContent = await loadMdx(
+          join(process.cwd(), "src/pages/StateSchema.mdx"),
+        );
+        return renderPage(
+          "State Schema",
+          React.createElement("div", { className: "mdx-content" }, mdxContent),
+        );
+      }
+
+      if (pathname === "/reference/cli") {
+        const mdxContent = await loadMdx(
+          join(process.cwd(), "src/pages/CLIReference.mdx"),
+        );
+        return renderPage(
+          "CLI Reference",
+          React.createElement("div", { className: "mdx-content" }, mdxContent),
+        );
+      }
+
       if (pathname === "/install") {
         const mdxContent = await loadMdx(
           join(process.cwd(), "src/pages/Install.mdx"),

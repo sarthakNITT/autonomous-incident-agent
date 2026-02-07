@@ -1,0 +1,38 @@
+
+# R2 Object Layout
+
+This document describes the folder structure and naming conventions used within the R2 artifact bucket.
+
+## Bucket Structure
+
+```
+/
+├── runs/
+│   └── {run_id}/
+│       ├── context.json       # Trigger event and metadata
+│       ├── logs/
+│       │   └── agent.log      # Executive log of the run
+│       └── workspace/         # (Optional) Zipped workspace snapshot
+│
+├── artifacts/
+│   └── {artifact_id}/
+│       ├── patch.diff         # Git diff of the proposed fix
+│       ├── reproduction.ts    # The generated reproduction script
+│       └── analysis.md        # The LLM's root cause analysis
+│
+└── cache/
+    └── {repo_owner}/
+        └── {repo_name}/
+            └── {commit_sha}.zip # Cached repository snapshot
+```
+
+## Lifecycle Policies
+
+To manage costs and storage size, we enforce the following policies:
+
+| Path Prefix | Retention Period | Description |
+| :--- | :--- | :--- |
+| `runs/*/logs/` | 30 Days | Detailed execution logs are kept for debugging. |
+| `artifacts/` | 7 Days | Generated patches and scripts are transient. |
+| `cache/` | 24 Hours | Git caches are frequently invalidated. |
+| `runs/*/context.json` | 90 Days | High-level run metadata is kept longer for auditing. |

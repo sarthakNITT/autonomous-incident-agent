@@ -8,6 +8,9 @@ import {
   Database,
   GitBranch,
   TestTube,
+  Settings,
+  TableProperties,
+  Terminal,
 } from "lucide-react";
 import { ScrollArea } from "./ui/scroll-area";
 import { cn } from "../lib/utils";
@@ -83,12 +86,43 @@ export function Sidebar({ className }: SidebarProps) {
                 <GitBranch className="h-4 w-4" />
                 Git Integration
               </a>
+              <h4 className="mb-1 mt-4 rounded-md px-2 py-1 text-sm font-semibold">
+                Reference
+              </h4>
               <a
-                href="/architecture/repro-pipeline"
+                href="/reference/config"
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
-                <TestTube className="h-4 w-4" />
-                Repro Pipeline
+                <Settings className="h-4 w-4" />
+                Config
+              </a>
+              <a
+                href="/reference/events"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+              >
+                <Activity className="h-4 w-4" />
+                Event Schema
+              </a>
+              <a
+                href="/reference/r2-layout"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+              >
+                <Database className="h-4 w-4" />
+                R2 Layout
+              </a>
+              <a
+                href="/reference/state"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+              >
+                <TableProperties className="h-4 w-4" />
+                State Schema
+              </a>
+              <a
+                href="/reference/cli"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+              >
+                <Terminal className="h-4 w-4" />
+                CLI
               </a>
 
               <h4 className="mb-1 mt-4 rounded-md px-2 py-1 text-sm font-semibold">
