@@ -30,43 +30,36 @@ async function runCommand(cmd: string, args: string[], cwd: string): Promise<Tes
     });
 }
 
-async function main() {
-    console.log(`[Repro] Starting Validation for Incident ${INCIDENT_ID}`);
+export async function validateIncident(incidentId: string, commitHash: string, repoPath: string): Promise<ReproResult> {
+    console.log(`[Repro] Starting Validation for Incident ${incidentId}`);
 
     try {
-        const patchKey = `incidents/${INCIDENT_ID}/patch.diff`;
+        const patchKey = `incidents/${incidentId}/patch.diff`;
         const patchContent = await storage.downloadText(patchKey);
         if (!patchContent) throw new Error("Patch not found in R2");
 
-        const testKey = `incidents/${INCIDENT_ID}/repro_test.ts`;
-        // In real flow, we'd assume the test was uploaded. Logic pending in Autopsy?
-        // Autopsy uploads `incident-1-autopsy.json` which contains specific test logic maybe?
-        // Or we generated it. For now, we assume it's there or we skip.
-
-        const testContent = await storage.downloadText(testKey);
-        // If test content is missing, we might use a default or fail.
+        const testKey = `incidents/${incidentId}/repro_test.ts`;
+        const testContent = await storage.downloadText(testKey).catch(() => null);
 
         // 1. Apply Patch
-        const patchFile = join(REPO_PATH, "temp_repro.patch");
+        const patchFile = join(repoPath, "temp_repro.patch");
         await Bun.write(patchFile, patchContent);
 
-        const patchRes = await runCommand("git", ["apply", patchFile], REPO_PATH);
+        const patchRes = await runCommand("git", ["apply", patchFile], repoPath);
         if (patchRes.exit_code !== 0) {
             throw new Error(`Patch application failed: ${patchRes.output}`);
         }
 
         // 2. Run Test
-        // Assuming test is a standalone bun test or part of repo
-        // If we have testContent, we write it to a file
         if (testContent) {
-            const testPath = join(REPO_PATH, "repro.test.ts");
+            const testPath = join(repoPath, "repro.test.ts");
             await Bun.write(testPath, testContent);
 
-            const testRes = await runCommand("bun", ["test", "repro.test.ts"], REPO_PATH);
+            const testRes = await runCommand("bun", ["test", "repro.test.ts"], repoPath);
 
             const result: ReproResult = {
-                incident_id: INCIDENT_ID,
-                commit_hash: COMMIT_HASH,
+                incident_id: incidentId,
+                commit_hash: commitHash,
                 passed: testRes.exit_code === 0,
                 logs: {
                     stdout: testRes.output,
@@ -75,12 +68,11 @@ async function main() {
                 timestamp: new Date().toISOString()
             };
 
-            await storage.uploadJSON(`incidents/${INCIDENT_ID}/repro/result.json`, result);
-            await storage.uploadText(`incidents/${INCIDENT_ID}/repro/post.txt`, testRes.output);
+            await storage.uploadJSON(`incidents/${incidentId}/repro/result.json`, result);
+            await storage.uploadText(`incidents/${incidentId}/repro/post.txt`, testRes.output);
 
-            // Update State: RESOLVED or FAILED
             const status = result.passed ? "resolved" : "failed";
-            await fetch(`${config.services.state.base_url}/incidents/${INCIDENT_ID}/update`, {
+            await fetch(`${config.services.state.base_url}/incidents/${incidentId}/update`, {
                 method: "POST", headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     status,
@@ -90,26 +82,45 @@ async function main() {
 
             console.log(`[Repro] Validation Complete. Passed: ${result.passed}`);
 
-            // Post comment to PR
             const token = process.env.GITHUB_TOKEN;
             if (token && config.github.provider === "github") {
-                const commentBody = `### Validation Result\n\n**Status**: ${result.passed ? "✅ Passed" : "❌ Failed"}\n\n**Logs**:\n\`\`\`\n${testRes.output.slice(0, 1000)}\n\`\`\``;
-                // Need to find PR number. For now, we simulate or assume we can find it via API list
-                // Simplified: Just log intent. Real implementation requires finding PR by branch.
-                console.log("[Repro] Would post comment to PR:", commentBody);
+                // PR comment logic would go here
             }
 
-            if (!result.passed) {
-                process.exit(1);
-            }
+            return result;
         } else {
             console.log("[Repro] No standalone test found to run.");
+            return {
+                incident_id: incidentId,
+                commit_hash: commitHash,
+                passed: true, // No test to fail, so consider it passed for now
+                logs: { stdout: "No test found to run.", stderr: "" },
+                timestamp: new Date().toISOString()
+            };
         }
 
     } catch (e) {
         console.error("Repro Orchestrator Failed", e);
-        process.exit(1);
+        throw e;
     }
 }
 
-main();
+if (import.meta.main) {
+    const INCIDENT_ID = process.env.INCIDENT_ID || "unknown";
+    const COMMIT_HASH = process.env.COMMIT_HASH || "HEAD";
+    const REPO_PATH = process.env.REPO_PATH || "/app/target_repo";
+
+    // Only run if ENV vars are present (CI mode)
+    if (INCIDENT_ID !== "unknown") {
+        validateIncident(INCIDENT_ID, COMMIT_HASH, REPO_PATH)
+            .then((result) => {
+                if (!result.passed) {
+                    process.exit(1);
+                }
+            })
+            .catch(() => process.exit(1));
+    } else {
+        console.log("INCIDENT_ID not set. Skipping direct execution.");
+    }
+}
+

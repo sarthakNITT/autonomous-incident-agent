@@ -1,0 +1,211 @@
+$ turbo run dev --concurrency 15
+• turbo 2.8.3
+• Packages in scope: @repo/eslint-config, @repo/storage, @repo/types, @repo/typescript-config, @repo/ui, agent, autopsy, dashboard, docs-site, git-service, repro-service, router, sample-app, state-service, web-client
+• Running dev in 15 packages
+• Remote caching disabled
+agent:dev: cache bypass, force executing b1ab6223a24a04c6
+repro-service:dev: cache bypass, force executing ccdfb85f8f4b8f0b
+sample-app:dev: cache bypass, force executing e3bb845e0a006abd
+git-service:dev: cache bypass, force executing 8e4af44ae2b862f9
+docs-site:dev: cache bypass, force executing 75ed01371c53e3ca
+repro-service:dev: $ bun run --watch src/server.ts
+agent:dev: $ bun run --watch src/index.ts
+router:dev: cache bypass, force executing bd3fb1ef86cfd63c
+sample-app:dev: $ bun run --watch src/index.ts
+git-service:dev: $ bun run --watch src/index.ts
+dashboard:dev: cache bypass, force executing 33bc6e787ee220c0
+state-service:dev: cache bypass, force executing 707ec29798ed870d
+docs-site:dev: $ bun run --watch src/server.ts
+web-client:dev: cache bypass, force executing 1f178342603972bb
+autopsy:dev: cache bypass, force executing b82f9734e5fb44d4
+dashboard:dev: $ bun run --watch src/index.ts
+router:dev: $ bun run --watch src/index.ts
+state-service:dev: $ bun run --watch src/index.ts
+autopsy:dev: $ bun run --watch src/index.ts
+web-client:dev: $ bun run --watch src/server.ts
+sample-app:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+docs-site:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+sample-app:dev: Starting sample-app on port 3009...
+sample-app:dev: 4 | const config = loadConfig();
+sample-app:dev: 5 | const PORT = config.services.sample_app.port;
+sample-app:dev: 6 | 
+sample-app:dev: 7 | console.log(`Starting sample-app on port ${PORT}...`);
+sample-app:dev: 8 | 
+sample-app:dev: 9 | const server = Bun.serve({
+sample-app:dev:                        ^
+sample-app:dev: error: Failed to start server. Is port 3009 in use?
+sample-app:dev:  syscall: "listen",
+sample-app:dev:    errno: 0,
+sample-app:dev:     code: "EADDRINUSE"
+sample-app:dev: 
+sample-app:dev:       at /Users/sarthakkarode/autonomus-incident-agent/apps/sample-app/src/index.ts:9:20
+sample-app:dev:       at loadAndEvaluateModule (2:1)
+docs-site:dev: 4 | import { Architecture } from "./pages/Architecture";
+docs-site:dev: 5 | 
+docs-site:dev: 6 | const config = loadConfig();
+docs-site:dev: 7 | const PORT = config.services.docs.port;
+docs-site:dev: 8 | 
+docs-site:dev: 9 | const server = Bun.serve({
+docs-site:dev:                        ^
+docs-site:dev: error: Failed to start server. Is port 3008 in use?
+docs-site:dev:  syscall: "listen",
+docs-site:dev:    errno: 0,
+docs-site:dev:     code: "EADDRINUSE"
+docs-site:dev: 
+docs-site:dev:       at /Users/sarthakkarode/autonomus-incident-agent/apps/docs/src/server.ts:9:20
+docs-site:dev:       at loadAndEvaluateModule (2:1)
+state-service:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+state-service:dev: 3 | import type { CreateIncidentRequest, UpdateIncidentRequest } from "@repo/types";
+state-service:dev: 4 | 
+state-service:dev: 5 | const config = loadConfig();
+state-service:dev: 6 | const PORT = config.services.state.port;
+state-service:dev: 7 | 
+state-service:dev: 8 | const server = Bun.serve({
+state-service:dev:                        ^
+state-service:dev: error: Failed to start server. Is port 3006 in use?
+state-service:dev:  syscall: "listen",
+state-service:dev:    errno: 0,
+state-service:dev:     code: "EADDRINUSE"
+state-service:dev: 
+state-service:dev:       at /Users/sarthakkarode/autonomus-incident-agent/apps/state/src/index.ts:8:20
+state-service:dev:       at loadAndEvaluateModule (2:1)
+autopsy:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+agent:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+router:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+web-client:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+repro-service:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+git-service:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+autopsy:dev: R2Client: Using MOCK provider. Operations will be no-ops or simulated.
+agent:dev: R2Client: Using MOCK provider. Operations will be no-ops or simulated.
+router:dev: R2Client: Using MOCK provider. Operations will be no-ops or simulated.
+web-client:dev: R2Client: Using MOCK provider. Operations will be no-ops or simulated.
+agent:dev: Starting Autonomous Observability Agent (OTel Receiver)...
+repro-service:dev: R2Client: Using MOCK provider. Operations will be no-ops or simulated.
+git-service:dev: R2Client: Using MOCK provider. Operations will be no-ops or simulated.
+router:dev:  7 | const PORT = config.services.router.port;
+router:dev:  8 | 
+router:dev:  9 | 
+router:dev: 10 | const storage = new R2Client(config.storage);
+router:dev: 11 | 
+router:dev: 12 | const server = Bun.serve({
+router:dev:                         ^
+router:dev: error: Failed to start server. Is port 3001 in use?
+router:dev:  syscall: "listen",
+router:dev:    errno: 0,
+router:dev:     code: "EADDRINUSE"
+router:dev: 
+router:dev:       at /Users/sarthakkarode/autonomus-incident-agent/apps/router/src/index.ts:12:20
+router:dev:       at loadAndEvaluateModule (2:1)
+autopsy:dev: 12 | const storage = new R2Client(config.storage);
+autopsy:dev: 13 | const locator = new AstLocator(REPO_DIR);
+autopsy:dev: 14 | const aiConfig = config.ai || { api_key: "PLACEHOLDER", model: "mock", provider: "mock" };
+autopsy:dev: 15 | const reasoner = new YouComReasoner(aiConfig.api_key, aiConfig.model);
+autopsy:dev: 16 | 
+autopsy:dev: 17 | const server = Bun.serve({
+autopsy:dev:                         ^
+autopsy:dev: error: Failed to start server. Is port 3002 in use?
+autopsy:dev:  syscall: "listen",
+autopsy:dev:    errno: 0,
+autopsy:dev:     code: "EADDRINUSE"
+autopsy:dev: 
+autopsy:dev:       at /Users/sarthakkarode/autonomus-incident-agent/apps/autopsy/src/index.ts:17:20
+autopsy:dev:       at loadAndEvaluateModule (2:1)
+agent:dev: 68 | 
+agent:dev: 69 | const listener = new OtelListener(detectors, onIncident);
+agent:dev: 70 | 
+agent:dev: 71 | const PORT = 4318;
+agent:dev: 72 | 
+agent:dev: 73 | Bun.serve({
+agent:dev:          ^
+agent:dev: error: Failed to start server. Is port 4318 in use?
+agent:dev:  syscall: "listen",
+agent:dev:    errno: 0,
+agent:dev:     code: "EADDRINUSE"
+agent:dev: 
+agent:dev:       at /Users/sarthakkarode/autonomus-incident-agent/apps/agent/src/index.ts:73:5
+agent:dev:       at loadAndEvaluateModule (2:1)
+web-client:dev:  6 | 
+web-client:dev:  7 | const config = loadConfig();
+web-client:dev:  8 | const PORT = config.services.web.port;
+web-client:dev:  9 | const storage = new R2Client(config.storage);
+web-client:dev: 10 | 
+web-client:dev: 11 | const server = Bun.serve({
+web-client:dev:                         ^
+web-client:dev: error: Failed to start server. Is port 3007 in use?
+web-client:dev:  syscall: "listen",
+web-client:dev:    errno: 0,
+web-client:dev:     code: "EADDRINUSE"
+web-client:dev: 
+web-client:dev:       at /Users/sarthakkarode/autonomus-incident-agent/apps/web/src/server.ts:11:20
+web-client:dev:       at loadAndEvaluateModule (2:1)
+git-service:dev: 11 | 
+git-service:dev: 12 | const storage = new R2Client(config.storage);
+git-service:dev: 13 | const github = new GitHubClient(config.github);
+git-service:dev: 14 | const repoMgr = new RepoManager(WORK_DIR);
+git-service:dev: 15 | 
+git-service:dev: 16 | const server = Bun.serve({
+git-service:dev:                         ^
+git-service:dev: error: Failed to start server. Is port 3004 in use?
+git-service:dev:  syscall: "listen",
+git-service:dev:    errno: 0,
+git-service:dev:     code: "EADDRINUSE"
+git-service:dev: 
+git-service:dev:       at /Users/sarthakkarode/autonomus-incident-agent/apps/git/src/index.ts:16:20
+git-service:dev:       at loadAndEvaluateModule (2:1)
+repro-service:dev: 2 | import { validateIncident } from "./orchestrator";
+repro-service:dev: 3 | 
+repro-service:dev: 4 | const config = loadConfig();
+repro-service:dev: 5 | const PORT = config.services.repro.port;
+repro-service:dev: 6 | 
+repro-service:dev: 7 | const server = Bun.serve({
+repro-service:dev:                        ^
+repro-service:dev: error: Failed to start server. Is port 3005 in use?
+repro-service:dev:  syscall: "listen",
+repro-service:dev:    errno: 0,
+repro-service:dev:     code: "EADDRINUSE"
+repro-service:dev: 
+repro-service:dev:       at /Users/sarthakkarode/autonomus-incident-agent/apps/repro/src/server.ts:7:20
+repro-service:dev:       at loadAndEvaluateModule (2:1)
+dashboard:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+dashboard:dev: R2Client: Using MOCK provider. Operations will be no-ops or simulated.
+dashboard:dev:  7 | const config = loadConfig();
+dashboard:dev:  8 | const PORT = config.services.dashboard.port;
+dashboard:dev:  9 | 
+dashboard:dev: 10 | const storage = new R2Client(config.storage);
+dashboard:dev: 11 | 
+dashboard:dev: 12 | const server = Bun.serve({
+dashboard:dev:                         ^
+dashboard:dev: error: Failed to start server. Is port 3000 in use?
+dashboard:dev:  syscall: "listen",
+dashboard:dev:    errno: 0,
+dashboard:dev:     code: "EADDRINUSE"
+dashboard:dev: 
+dashboard:dev:       at /Users/sarthakkarode/autonomus-incident-agent/apps/dashboard/src/index.ts:12:20
+dashboard:dev:       at loadAndEvaluateModule (2:1)
+dashboard:dev: ERROR: command finished with error: command (/Users/sarthakkarode/autonomus-incident-agent/apps/dashboard) /Users/sarthakkarode/autonomus-incident-agent/node_modules/.bin/bun run dev was killed (exit code 137), likely due to running out of memory
+autopsy:dev: ERROR: command finished with error: command (/Users/sarthakkarode/autonomus-incident-agent/apps/autopsy) /Users/sarthakkarode/autonomus-incident-agent/node_modules/.bin/bun run dev was killed (exit code 137), likely due to running out of memory
+web-client:dev: ERROR: command finished with error: command (/Users/sarthakkarode/autonomus-incident-agent/apps/web) /Users/sarthakkarode/autonomus-incident-agent/node_modules/.bin/bun run dev was killed (exit code 137), likely due to running out of memory
+router:dev: ERROR: command finished with error: command (/Users/sarthakkarode/autonomus-incident-agent/apps/router) /Users/sarthakkarode/autonomus-incident-agent/node_modules/.bin/bun run dev was killed (exit code 137), likely due to running out of memory
+state-service:dev: ERROR: command finished with error: command (/Users/sarthakkarode/autonomus-incident-agent/apps/state) /Users/sarthakkarode/autonomus-incident-agent/node_modules/.bin/bun run dev was killed (exit code 137), likely due to running out of memory
+repro-service:dev: ERROR: command finished with error: command (/Users/sarthakkarode/autonomus-incident-agent/apps/repro) /Users/sarthakkarode/autonomus-incident-agent/node_modules/.bin/bun run dev was killed (exit code 137), likely due to running out of memory
+sample-app:dev: ERROR: command finished with error: command (/Users/sarthakkarode/autonomus-incident-agent/apps/sample-app) /Users/sarthakkarode/autonomus-incident-agent/node_modules/.bin/bun run dev was killed (exit code 137), likely due to running out of memory
+docs-site:dev: ERROR: command finished with error: command (/Users/sarthakkarode/autonomus-incident-agent/apps/docs) /Users/sarthakkarode/autonomus-incident-agent/node_modules/.bin/bun run dev was killed (exit code 137), likely due to running out of memory
+agent:dev: ERROR: command finished with error: command (/Users/sarthakkarode/autonomus-incident-agent/apps/agent) /Users/sarthakkarode/autonomus-incident-agent/node_modules/.bin/bun run dev was killed (exit code 137), likely due to running out of memory
+git-service:dev: ERROR: command finished with error: command (/Users/sarthakkarode/autonomus-incident-agent/apps/git) /Users/sarthakkarode/autonomus-incident-agent/node_modules/.bin/bun run dev was killed (exit code 137), likely due to running out of memory
+autopsy#dev: command (/Users/sarthakkarode/autonomus-incident-agent/apps/autopsy) /Users/sarthakkarode/autonomus-incident-agent/node_modules/.bin/bun run dev exited (137)
+dashboard#dev: command (/Users/sarthakkarode/autonomus-incident-agent/apps/dashboard) /Users/sarthakkarode/autonomus-incident-agent/node_modules/.bin/bun run dev exited (137)
+web-client#dev: command (/Users/sarthakkarode/autonomus-incident-agent/apps/web) /Users/sarthakkarode/autonomus-incident-agent/node_modules/.bin/bun run dev exited (137)
+router#dev: command (/Users/sarthakkarode/autonomus-incident-agent/apps/router) /Users/sarthakkarode/autonomus-incident-agent/node_modules/.bin/bun run dev exited (137)
+state-service#dev: command (/Users/sarthakkarode/autonomus-incident-agent/apps/state) /Users/sarthakkarode/autonomus-incident-agent/node_modules/.bin/bun run dev exited (137)
+repro-service#dev: command (/Users/sarthakkarode/autonomus-incident-agent/apps/repro) /Users/sarthakkarode/autonomus-incident-agent/node_modules/.bin/bun run dev exited (137)
+sample-app#dev: command (/Users/sarthakkarode/autonomus-incident-agent/apps/sample-app) /Users/sarthakkarode/autonomus-incident-agent/node_modules/.bin/bun run dev exited (137)
+docs-site#dev: command (/Users/sarthakkarode/autonomus-incident-agent/apps/docs) /Users/sarthakkarode/autonomus-incident-agent/node_modules/.bin/bun run dev exited (137)
+agent#dev: command (/Users/sarthakkarode/autonomus-incident-agent/apps/agent) /Users/sarthakkarode/autonomus-incident-agent/node_modules/.bin/bun run dev exited (137)
+git-service#dev: command (/Users/sarthakkarode/autonomus-incident-agent/apps/git) /Users/sarthakkarode/autonomus-incident-agent/node_modules/.bin/bun run dev exited (137)
+
+ Tasks:    0 successful, 10 total
+Cached:    0 cached, 10 total
+  Time:    1m53.027s 
+Failed:    agent#dev, autopsy#dev, dashboard#dev, docs-site#dev, git-service#dev, repro-service#dev, router#dev, sample-app#dev, state-service#dev, web-client#dev
+
+ ERROR  run failed: command  exited (137)

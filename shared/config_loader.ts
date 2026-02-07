@@ -11,12 +11,16 @@ export function loadConfig(): Config {
 
     const configPath = process.env.AIA_CONFIG_PATH || join(__dirname, "../../config/aia.config.yaml");
 
-    let possiblePaths = [
-        configPath,
+    const possiblePaths = [
+        process.env.AIA_CONFIG_PATH,
+        join(process.cwd(), "config", "aia.config.yaml"),
+        join(process.cwd(), "aia.config.yaml"),
+        join(process.cwd(), "../aia.config.yaml"),
+        join(process.cwd(), "../../aia.config.yaml"), // apps/appname/ to root
+        join(process.cwd(), "../../../aia.config.yaml"), // deep nested
         "/config/aia.config.yaml",
-        "/app/config/aia.config.yaml",
-        join(process.cwd(), "config/aia.config.yaml")
-    ];
+        "/app/config/aia.config.yaml"
+    ].filter(Boolean) as string[];
 
     let loadedContent = "";
     let foundPath = "";
@@ -25,6 +29,7 @@ export function loadConfig(): Config {
         if (existsSync(p)) {
             loadedContent = readFileSync(p, "utf-8");
             foundPath = p;
+            console.log(`[ConfigLoader] Loaded config from: ${foundPath}`);
             break;
         }
     }
@@ -94,12 +99,28 @@ export function loadConfig(): Config {
         config.services.repro = { port: 3005, base_url: "http://localhost:3005" };
     }
 
+    if (!config.services.repro) {
+        config.services.repro = { port: 3005, base_url: "http://localhost:3005" };
+    }
+
     if (!config.services.state) {
         config.services.state = { port: 3006, base_url: "http://localhost:3006" };
     }
 
     if (!config.services.web) {
         config.services.web = { port: 3007, base_url: "http://localhost:3007" };
+    }
+
+    if (!config.services.docs) {
+        config.services.docs = { port: 3008, base_url: "http://localhost:3008" };
+    }
+
+    if (!config.services.dashboard) {
+        config.services.dashboard = { port: 3000, base_url: "http://localhost:3000" };
+    }
+
+    if (!config.services.sample_app) {
+        config.services.sample_app = { port: 3009, base_url: "http://localhost:3009" };
     }
 
     if (!config.database) {

@@ -20,20 +20,28 @@ The Agent automatically detects:
 - Latency spikes (>2000ms)
 - Process crashes (via log patterns)
 
-### Storage (R2)
-The platform uses Cloudflare R2 for data exchange. You must provide valid credentials.
-1. Create an R2 bucket named `aia-incidents`.
-2. Generate Access Key and Secret Key.
-3. Update `config/aia.config.yaml`:
-   ```yaml
-   storage:
-     provider: "r2"
-     bucket: "aia-incidents"
-     region: "auto"
-     endpoint: "https://<ACCOUNT_ID>.r2.cloudflarestorage.com"
-     access_key: "YOUR_ACCESS_KEY"
-     secret_key: "YOUR_SECRET_KEY"
-   ```
+# Quick Start
+
+## Onboarding
+Run the automated installer to configure your environment:
+```bash
+bun run cli/install.ts
+```
+
+## Documentation
+Start the local documentation site for architecture details and guides:
+```bash
+bun run apps/docs/src/server.ts
+```
+Then visit `http://localhost:3008`.
+
+## Web Dashboard
+Launch the user interface:
+```bash
+bun run apps/web/src/server.ts
+```
+Visit `http://localhost:3007`.
+
 
 ### AI (You.com)
 The Autopsy engine uses You.com API for reasoning.

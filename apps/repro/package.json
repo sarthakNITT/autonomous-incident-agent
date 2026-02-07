@@ -2,7 +2,8 @@
     "name": "repro-service",
     "version": "1.0.0",
     "scripts": {
-        "start": "bun run src/orchestrator.ts"
+        "start": "bun run src/server.ts",
+        "dev": "bun run --watch src/server.ts"
     },
     "dependencies": {
         "@repo/types": "workspace:*",

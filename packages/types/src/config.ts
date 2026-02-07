@@ -26,6 +26,7 @@ export interface Config {
         repro: { port: number; base_url: string; };
         state: { port: number; base_url: string; };
         web: { port: number; base_url: string; };
+        docs: { port: number; base_url: string; };
     };
     storage: {
         provider: "r2" | "mock";
