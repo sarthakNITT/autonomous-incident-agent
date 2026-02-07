@@ -1,0 +1,28 @@
+
+# Tutorial: Netlify Integration
+
+Deploying to Netlify requires forwarding logs or using Netlify Functions.
+
+## Netlify Functions
+
+Netlify Functions run on AWS Lambda. Similar to Vercel, you need to configure the OTLP exporter.
+
+### Environment Variables
+
+Set `OTEL_EXPORTER_OTLP_ENDPOINT` in your Netlify Site settings under **Build & deploy > Environment**.
+
+### Log Forwarding
+
+If you are not using OTLP directly, you can configure Netlify Log Drains to forward logs to an intermediate service that pushes to AIA. However, direct OTLP export via the SDK is recommended.
+
+## Testing Steps
+
+1.  Deploy your site using `netlify deploy`.
+2.  Trigger a function error.
+3.  Check the Netlify Function logs to confirm the error occurred.
+4.  Check the AIA Dashboard to see if the trace was received.
+
+## Known Limitations
+
+-   **Execution Time**: Netlify Functions have a 10s default timeout. Ensure your AIA Agent responds quickly.
+-   **Cold Starts**: Large OTel SDKs may increase cold start times. Use webpack or esbuild to bundle dependencies efficiently.

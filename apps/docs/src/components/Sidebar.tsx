@@ -11,6 +11,11 @@ import {
   Settings,
   TableProperties,
   Terminal,
+  Server,
+  AppWindow,
+  Triangle,
+  Hexagon,
+  Bug,
 } from "lucide-react";
 import { ScrollArea } from "./ui/scroll-area";
 import { cn } from "../lib/utils";
@@ -86,6 +91,45 @@ export function Sidebar({ className }: SidebarProps) {
                 <GitBranch className="h-4 w-4" />
                 Git Integration
               </a>
+              <h4 className="mb-1 mt-4 rounded-md px-2 py-1 text-sm font-semibold">
+                Examples
+              </h4>
+              <a
+                href="/tutorials/node"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+              >
+                <Server className="h-4 w-4" />
+                Node.js
+              </a>
+              <a
+                href="/tutorials/next"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+              >
+                <AppWindow className="h-4 w-4" />
+                Next.js
+              </a>
+              <a
+                href="/tutorials/vercel"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+              >
+                <Triangle className="h-4 w-4" />
+                Vercel
+              </a>
+              <a
+                href="/tutorials/netlify"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+              >
+                <Hexagon className="h-4 w-4" />
+                Netlify
+              </a>
+              <a
+                href="/tutorials/debug"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+              >
+                <Bug className="h-4 w-4" />
+                Debug Guide
+              </a>
+
               <h4 className="mb-1 mt-4 rounded-md px-2 py-1 text-sm font-semibold">
                 Reference
               </h4>

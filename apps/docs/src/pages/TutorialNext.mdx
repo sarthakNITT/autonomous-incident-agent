@@ -1,0 +1,67 @@
+
+# Tutorial: Next.js Integration
+
+This guide covers setting up AIA with a Next.js App Router project.
+
+## Step 1: Install Dependencies
+
+```bash
+npm install @opentelemetry/api @opentelemetry/sdk-node \
+  @opentelemetry/auto-instrumentations-node \
+  @opentelemetry/exporter-trace-otlp-http
+```
+
+## Step 2: Enable Instrumentation Hook
+
+Next.js requires enabling the arbitrary instrumentation hook in `next.config.js`.
+
+```javascript
+const nextConfig = {
+  experimental: {
+    instrumentationHook: true,
+  },
+};
+
+module.exports = nextConfig;
+```
+
+## Step 3: Create instrumentation.ts
+
+Create `instrumentation.ts` (or `.js`) in your project root (or `src/` folder).
+
+```typescript
+export async function register() {
+  if (process.env.NEXT_RUNTIME === 'nodejs') {
+    await import('./instrumentation.node');
+  }
+}
+```
+
+## Step 4: Create Node Instrumentation Logic
+
+Create `instrumentation.node.ts` to Initialize the SDK.
+
+```typescript
+import { NodeSDK } from '@opentelemetry/sdk-node';
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
+import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
+
+const sdk = new NodeSDK({
+  traceExporter: new OTLPTraceExporter({
+    url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:4318/v1/traces',
+  }),
+  instrumentations: [getNodeAutoInstrumentations()],
+});
+
+sdk.start();
+```
+
+## Step 5: Verification
+
+Start your Next.js app:
+
+```bash
+npm run dev
+```
+
+Trigger a server-side error (e.g., in a Server Component or Route Handler). Verify that the trace reaches the agent.

@@ -1,0 +1,39 @@
+
+# Debugging Guide
+
+If AIA isn't behaving as expected, use this guide to troubleshoot common issues.
+
+## Issue: Agent Not Receiving Events
+
+If your application errors but nothing appears in the AIA dashboard:
+
+1.  **Check Connectivity**: Can your application reach the Agent?
+    - If running locally, ensure `localhost` resolves correctly.
+    - If in Docker, use `http://host.docker.internal:4318`.
+
+2.  **Verify Endpoint Protocol**: The agent expects OTLP over HTTP/Protobuf or JSON. Ensure you aren't sending gRPC traffic to the HTTP port (default 4318).
+
+3.  **Inspect Logs**: Check the application logs for OTel exporter errors. Set `OTEL_DIAG_LOG_LEVEL=DEBUG` in your application environment.
+
+## Issue: R2 Permission Errors
+
+If the agent fails to save artifacts:
+
+1.  **Verify Keys**: Double-check `R2_ACCESS_KEY_ID` and `R2_SECRET_ACCESS_KEY`.
+2.  **Check Bucket Name**: Ensure the bucket exists and the name matches `aia.config.ts`.
+3.  **Region**: Although R2 is global, some SDKs require a region. Use `auto`.
+
+## Issue: PR Not Created
+
+The agent found a fix but didn't open a PR.
+
+1.  **Check Token Scopes**: The GitHub token must have `Contents: Write` and `Pull Requests: Write`.
+2.  **Branch Protection**: Does the repo require signed commits or prevent direct pushes?
+3.  **Existing PR**: The agent checks for open PRs for the same issue to avoid spamming. Close old PRs if you want a new one.
+
+## Issue: Repro Failures
+
+The agent claims it cannot reproduce the issue.
+
+1.  **Environment Mismatch**: The repro container might lack system dependencies (e.g., `imagemagick`) that your app needs. Custom Docker images for the Repro Service may be required.
+2.  **Missing Context**: The error might depend on database state not present in the repro environment.

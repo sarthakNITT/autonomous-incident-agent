@@ -1,0 +1,31 @@
+
+# Tutorial: Vercel Deployment
+
+Deploying applications monitored by AIA on Vercel requires specific configuration for serverless environments.
+
+## Environment Variables
+
+In your Vercel Project Settings, add the following environment variables:
+
+- `OTEL_EXPORTER_OTLP_ENDPOINT`: The URL of your AIA Agent (e.g., `https://aia-agent.your-domain.com/v1/traces`).
+- `NEXT_OTEL_VERBOSE`: Set to `1` (optional) to debug telemetry issues.
+
+## Vercel OTEL Integration
+
+Vercel offers an automatic OpenTelemetry integartion.
+
+1.  Go to the Vercel Marketplace.
+2.  Install the **OpenTelemetry** integration.
+3.  Configure it to send traces to your AIA Agent endpoint.
+
+## Serverless Timeout Considerations
+
+Serverless functions on Vercel have a default timeout (usually 10s or 60s).
+
+Ensure your OTLP exporter is configured to flush traces quickly, or use `BatchSpanProcessor` with a short timeout to avoid losing traces when the function freezes.
+
+## Troubleshooting
+
+If traces are missing:
+1.  Check the Runtime Logs in the Vercel Dashboard.
+2.  Ensure your AIA Agent is publicly accessible (not localhost).

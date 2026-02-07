@@ -1,0 +1,70 @@
+
+# Tutorial: Node.js Integration
+
+This guide demonstrates how to integrate the Autonomous Incident Agent into a standard Node.js Express application.
+
+## Prerequisites
+
+- An existing Node.js project.
+- A running instance of the AIA Agent (or a deployed URL).
+
+## Step 1: Install Dependencies
+
+Install the OpenTelemetry SDK and auto-instrumentations.
+
+```bash
+npm install @opentelemetry/api @opentelemetry/sdk-node \
+  @opentelemetry/auto-instrumentations-node \
+  @opentelemetry/exporter-trace-otlp-http
+```
+
+## Step 2: Configure Instrumentation
+
+Create a file named `instrumentation.ts` in your project root.
+
+```typescript
+import { NodeSDK } from '@opentelemetry/sdk-node';
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
+import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
+
+const sdk = new NodeSDK({
+  traceExporter: new OTLPTraceExporter({
+    url: 'http://localhost:4318/v1/traces',
+  }),
+  instrumentations: [getNodeAutoInstrumentations()],
+});
+
+sdk.start();
+```
+
+## Step 3: Connect to Your App
+
+Import the instrumentation at the very top of your entry point (e.g., `index.ts`).
+
+```typescript
+import './instrumentation';
+import express from 'express';
+
+const app = express();
+const port = 3000;
+
+app.get('/', (req, res) => {
+  res.send('Hello World!');
+});
+
+app.get('/error', (req, res) => {
+  throw new Error('Test Incident Triggers Here');
+});
+
+app.listen(port, () => {
+  console.log(`App listening on port ${port}`);
+});
+```
+
+## Step 4: Simulate Failure
+
+Run your application and visit `http://localhost:3000/error`.
+
+The application will crash (or return a 500). The OpenTelemetry SDK will capture this exception and send a trace to the AIA Agent.
+
+Open the AIA Dashboard or check the logs to see the incident created.

@@ -129,6 +129,56 @@ const server = serve({
         );
       }
 
+      if (pathname === "/tutorials/node") {
+        const mdxContent = await loadMdx(
+          join(process.cwd(), "src/pages/TutorialNode.mdx"),
+        );
+        return renderPage(
+          "Node.js Tutorial",
+          React.createElement("div", { className: "mdx-content" }, mdxContent),
+        );
+      }
+
+      if (pathname === "/tutorials/next") {
+        const mdxContent = await loadMdx(
+          join(process.cwd(), "src/pages/TutorialNext.mdx"),
+        );
+        return renderPage(
+          "Next.js Tutorial",
+          React.createElement("div", { className: "mdx-content" }, mdxContent),
+        );
+      }
+
+      if (pathname === "/tutorials/vercel") {
+        const mdxContent = await loadMdx(
+          join(process.cwd(), "src/pages/TutorialVercel.mdx"),
+        );
+        return renderPage(
+          "Vercel Tutorial",
+          React.createElement("div", { className: "mdx-content" }, mdxContent),
+        );
+      }
+
+      if (pathname === "/tutorials/netlify") {
+        const mdxContent = await loadMdx(
+          join(process.cwd(), "src/pages/TutorialNetlify.mdx"),
+        );
+        return renderPage(
+          "Netlify Tutorial",
+          React.createElement("div", { className: "mdx-content" }, mdxContent),
+        );
+      }
+
+      if (pathname === "/tutorials/debug") {
+        const mdxContent = await loadMdx(
+          join(process.cwd(), "src/pages/DebugGuide.mdx"),
+        );
+        return renderPage(
+          "Debugging Guide",
+          React.createElement("div", { className: "mdx-content" }, mdxContent),
+        );
+      }
+
       if (pathname === "/reference/config") {
         const mdxContent = await loadMdx(
           join(process.cwd(), "src/pages/ConfigReference.mdx"),
