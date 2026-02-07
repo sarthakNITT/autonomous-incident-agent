@@ -4,25 +4,25 @@ import Image from "next/image";
 import { CodeBlock } from "@/components/code-block";
 import { cn } from "@/lib/utils";
 
-// Utility to slugify headings for anchors
 function slugify(str: string) {
   return str
     .toString()
     .toLowerCase()
-    .trim() // trim leading/trailing spaces
-    .replace(/\s+/g, "-") // replace spaces with -
-    .replace(/&/g, "-and-") // replace & with -and-
-    .replace(/[^\w\-]+/g, "") // remove all non-word chars
-    .replace(/\-\-+/g, "-"); // replace multiple - with single -
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/&/g, "-and-")
+    .replace(/[^\w\-]+/g, "")
+    .replace(/\-\-+/g, "-");
 }
 
 export const components: MDXComponents = {
   h1: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
     <h1
       className={cn(
-        "scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl mb-8",
+        "scroll-m-20 text-[40px] font-bold tracking-tight mb-4",
         className,
       )}
+      style={{ letterSpacing: "-0.02em" }}
       {...props}
     />
   ),
@@ -36,12 +36,18 @@ export const components: MDXComponents = {
       <h2
         id={id}
         className={cn(
-          "scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight transition-colors first:mt-0 mt-10 mb-4",
+          "group scroll-m-20 border-b pb-2 text-[28px] font-semibold tracking-tight transition-colors first:mt-0 mt-10 mb-4",
           className,
         )}
+        style={{ letterSpacing: "-0.01em" }}
         {...props}
       >
-        {children}
+        <a
+          href={`#${id}`}
+          className="hover:underline underline-offset-4 decoration-muted-foreground/50"
+        >
+          {children}
+        </a>
       </h2>
     );
   },
@@ -55,12 +61,17 @@ export const components: MDXComponents = {
       <h3
         id={id}
         className={cn(
-          "scroll-m-20 text-2xl font-semibold tracking-tight mt-8 mb-4",
+          "group scroll-m-20 text-[22px] font-semibold tracking-tight mt-8 mb-4",
           className,
         )}
         {...props}
       >
-        {children}
+        <a
+          href={`#${id}`}
+          className="hover:underline underline-offset-4 decoration-muted-foreground/50"
+        >
+          {children}
+        </a>
       </h3>
     );
   },
@@ -74,18 +85,26 @@ export const components: MDXComponents = {
       <h4
         id={id}
         className={cn(
-          "scroll-m-20 text-xl font-semibold tracking-tight mt-6 mb-4",
+          "group scroll-m-20 text-lg font-semibold tracking-tight mt-6 mb-4",
           className,
         )}
         {...props}
       >
-        {children}
+        <a
+          href={`#${id}`}
+          className="hover:underline underline-offset-4 decoration-muted-foreground/50"
+        >
+          {children}
+        </a>
       </h4>
     );
   },
   p: ({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => (
     <p
-      className={cn("leading-7 [&:not(:first-child)]:mt-6", className)}
+      className={cn(
+        "text-[15px] leading-7 text-muted-foreground [&:not(:first-child)]:mt-6",
+        className,
+      )}
       {...props}
     />
   ),
@@ -113,10 +132,10 @@ export const components: MDXComponents = {
       {...props}
     />
   ),
-  img: (props: any) => (
+  img: (props: React.ImgHTMLAttributes<HTMLImageElement>) => (
     <img
       className={cn("rounded-md border my-4 w-full", props.className)}
-      alt={props.alt}
+      alt={props.alt || ""}
       {...props}
     />
   ),
@@ -155,10 +174,11 @@ export const components: MDXComponents = {
     children,
     ...props
   }: React.HTMLAttributes<HTMLPreElement>) => {
-    // In next-mdx-remote, `pre` usually wraps a `code` block.
-    // We want to pass the content to CodeBlock.
     return (
-      <CodeBlock className={className} {...(props as any)}>
+      <CodeBlock
+        className={className}
+        {...(props as React.ComponentProps<typeof CodeBlock>)}
+      >
         {children}
       </CodeBlock>
     );
@@ -177,8 +197,6 @@ export const components: MDXComponents = {
     href,
     ...props
   }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => {
-    // Handle internal vs external links?
-    // Simplified:
     return (
       <Link
         href={href as string}

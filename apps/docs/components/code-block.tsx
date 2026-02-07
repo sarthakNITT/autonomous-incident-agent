@@ -4,14 +4,18 @@ import * as React from "react";
 import { Check, Copy } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-// Use relative path or alias if configured. Alias @/components/ui/button is correct.
 import { Button } from "@/components/ui/button";
+
+interface CodeBlockProps extends React.HTMLAttributes<HTMLDivElement> {
+  title?: string;
+}
 
 export function CodeBlock({
   className,
+  title,
   children,
   ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
+}: CodeBlockProps) {
   const [isCopied, setIsCopied] = React.useState(false);
   const ref = React.useRef<HTMLDivElement>(null);
 
@@ -26,17 +30,19 @@ export function CodeBlock({
   return (
     <div
       className={cn(
-        "relative mb-4 mt-6 rounded-lg border bg-zinc-950",
+        "relative mb-4 mt-6 overflow-hidden rounded-lg border bg-muted text-foreground",
         className,
       )}
       {...props}
-      ref={ref}
     >
-      <div className="absolute right-4 top-4 z-20 flex items-center space-x-2">
+      <div className="flex items-center justify-between bg-muted px-4 py-2 border-b">
+        <span className="text-xs font-medium text-muted-foreground">
+          {title || "Code"}
+        </span>
         <Button
           variant="ghost"
           size="icon"
-          className="h-6 w-6 text-zinc-50 hover:bg-zinc-700 hover:text-zinc-50"
+          className="h-6 w-6 text-muted-foreground hover:bg-background hover:text-foreground"
           onClick={onCopy}
         >
           {isCopied ? (
@@ -47,8 +53,8 @@ export function CodeBlock({
           <span className="sr-only">Copy code</span>
         </Button>
       </div>
-      <div className="relative overflow-x-auto rounded-lg py-4">
-        <div className="font-mono text-sm leading-relaxed text-zinc-50 px-4">
+      <div className="overflow-x-auto py-4">
+        <div ref={ref} className="font-mono text-sm leading-relaxed px-4">
           {children}
         </div>
       </div>

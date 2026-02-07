@@ -42,19 +42,20 @@ export function DocsTOC() {
 
   return (
     <div className="space-y-2">
-      <p className="font-medium">On This Page</p>
+      <p className="font-medium text-sm">On This Page</p>
       <ul className="m-0 list-none">
         {headings.map((item, index) => (
           <li key={index} className="mt-0 pt-2">
             <a
               href={`#${item.id}`}
               className={cn(
-                "inline-block no-underline transition-colors hover:text-foreground line-clamp-1",
+                "inline-block no-underline transition-colors hover:text-foreground line-clamp-1 text-[13px]",
                 item.id === activeId
-                  ? "font-medium text-foreground"
+                  ? "font-medium text-foreground border-l-2 border-primary pl-4 -ml-4"
                   : "text-muted-foreground",
                 item.depth === 3 && "pl-4",
                 item.depth === 4 && "pl-8",
+                item.id !== activeId && item.depth === 2 && "pl-0",
               )}
             >
               {item.title}
