@@ -62,25 +62,32 @@ export function DocsSidebar({ className }: DocsSidebarProps) {
   const pathname = usePathname();
 
   return (
-    <div
-      className={cn("relative overflow-hidden py-6 pr-6 lg:py-8", className)}
-    >
-      <div className="h-full w-full bg-transparent">
+    <div className={cn("relative h-full pt-10 pb-6 px-10 lg:py-8", className)}>
+      <div className="absolute right-0 top-1/2 -translate-y-1/2 h-full w-[1px] bg-gradient-to-b from-transparent via-border/50 to-transparent" />
+      <div
+        className="h-full w-full bg-transparent overflow-y-auto pb-10 pr-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']"
+        style={{
+          maskImage:
+            "linear-gradient(to bottom, transparent, black 20px, black 90%, transparent)",
+          WebkitMaskImage:
+            "linear-gradient(to bottom, transparent, black 20px, black 90%, transparent)",
+        }}
+      >
         {sidebarItems.map((group, i) => (
           <div key={i} className="pb-4">
-            <h4 className="mb-1 rounded-md px-2 py-1 text-xs font-semibold text-muted-foreground">
+            <h4 className="mb-1 mt-2 rounded-md px-2 py-1 text-xs font-normal text-muted-foreground/50">
               {group.title}
             </h4>
             {group.items?.length && (
-              <div className="grid grid-flow-row auto-rows-max text-[13px] gap-0.5">
+              <div className="grid grid-flow-row auto-rows-max text-[13px] gap-1">
                 {group.items.map((item, j) => (
                   <Link
                     key={j}
                     href={item.href}
                     className={cn(
-                      "group flex w-full items-center border border-transparent px-[10px] py-[6px] hover:underline text-muted-foreground hover:bg-muted/40 transition-colors duration-140 rounded-[6px]",
+                      "group flex w-full items-center rounded-md border border-transparent px-2 py-0.5 hover:underline text-muted-foreground transition-colors",
                       pathname === item.href
-                        ? "font-medium text-foreground border-l-2 border-accent !border-t-transparent !border-r-transparent !border-b-transparent rounded-none -ml-[1px] pl-[9px]"
+                        ? "font-medium text-foreground bg-accent"
                         : "hover:text-foreground",
                     )}
                   >

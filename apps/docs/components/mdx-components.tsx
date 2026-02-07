@@ -19,7 +19,7 @@ export const components: MDXComponents = {
   h1: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
     <h1
       className={cn(
-        "scroll-m-20 text-[38px] font-bold tracking-tight mb-4",
+        "scroll-m-20 text-[36px] font-bold tracking-tight mb-5",
         className,
       )}
       style={{ letterSpacing: "-0.02em" }}
@@ -36,7 +36,7 @@ export const components: MDXComponents = {
       <h2
         id={id}
         className={cn(
-          "group scroll-m-20 border-b pb-2 text-[26px] font-semibold tracking-tight transition-colors first:mt-0 mt-10 mb-4",
+          "group scroll-m-20 pb-2 text-[24px] font-semibold tracking-tight transition-colors first:mt-0 mt-7 mb-3",
           className,
         )}
         style={{ letterSpacing: "-0.01em" }}
@@ -56,7 +56,7 @@ export const components: MDXComponents = {
   h3: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
     <h3
       className={cn(
-        "scroll-m-20 text-[20px] font-semibold tracking-tight mt-8 mb-4",
+        "scroll-m-20 text-[20px] font-semibold tracking-tight mt-5 mb-4",
         className,
       )}
       {...props}
@@ -89,7 +89,7 @@ export const components: MDXComponents = {
   p: ({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => (
     <p
       className={cn(
-        "text-[15px] leading-7 text-muted-foreground/92 [&:not(:first-child)]:mt-[18px]",
+        "text-[15px] leading-[1.8] text-muted-foreground [&:not(:first-child)]:my-5",
         className,
       )}
       {...props}
@@ -98,7 +98,7 @@ export const components: MDXComponents = {
   ul: ({ className, ...props }: React.HTMLAttributes<HTMLUListElement>) => (
     <ul
       className={cn(
-        "my-6 ml-6 list-disc [&>li]:mt-2 marker:text-muted-foreground",
+        "my-6 ml-6 list-disc [&>li]:mt-2 marker:text-muted-foreground pl-[18px]",
         className,
       )}
       {...props}
@@ -118,33 +118,30 @@ export const components: MDXComponents = {
   ),
   blockquote: ({ className, ...props }: React.HTMLAttributes<HTMLElement>) => (
     <blockquote
-      className={cn("mt-6 border-l-2 pl-6 italic text-muted", className)}
+      className={cn("mt-6 pl-6 italic text-muted", className)}
       {...props}
     />
   ),
   img: (props: React.ImgHTMLAttributes<HTMLImageElement>) => (
     <img
-      className={cn("rounded-md border my-4 w-full", props.className)}
+      className={cn("rounded-md my-4 w-full", props.className)}
       alt={props.alt || ""}
       {...props}
     />
   ),
   hr: ({ ...props }) => <hr className="my-4 md:my-8" {...props} />,
   table: ({ className, ...props }: React.HTMLAttributes<HTMLTableElement>) => (
-    <div className="my-6 w-full overflow-y-auto rounded-[6px] border border-border/45">
+    <div className="my-6 w-full overflow-y-auto rounded-[6px]">
       <table className={cn("w-full text-sm", className)} {...props} />
     </div>
   ),
   tr: ({ className, ...props }: React.HTMLAttributes<HTMLTableRowElement>) => (
-    <tr
-      className={cn("m-0 border-t p-0 even:bg-muted/25", className)}
-      {...props}
-    />
+    <tr className={cn("m-0 p-0 even:bg-muted/25", className)} {...props} />
   ),
   th: ({ className, ...props }: React.HTMLAttributes<HTMLTableCellElement>) => (
     <th
       className={cn(
-        "border border-border/45 px-4 py-2 text-left font-bold bg-muted/40 [&[align=center]]:text-center [&[align=right]]:text-right",
+        "px-4 py-2 text-left font-bold bg-muted/40 [&[align=center]]:text-center [&[align=right]]:text-right",
         className,
       )}
       {...props}
@@ -153,7 +150,7 @@ export const components: MDXComponents = {
   td: ({ className, ...props }: React.HTMLAttributes<HTMLTableCellElement>) => (
     <td
       className={cn(
-        "border border-border/45 px-4 py-2 text-left [&[align=center]]:text-center [&[align=right]]:text-right text-muted-foreground",
+        "px-4 py-2 text-left [&[align=center]]:text-center [&[align=right]]:text-right text-muted-foreground",
         className,
       )}
       {...props}
@@ -176,7 +173,7 @@ export const components: MDXComponents = {
   code: ({ className, ...props }: React.HTMLAttributes<HTMLElement>) => (
     <code
       className={cn(
-        "relative rounded bg-card px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold text-foreground border border-border/45",
+        "relative rounded bg-card px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold text-foreground",
         className,
       )}
       {...props}

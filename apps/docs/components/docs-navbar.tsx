@@ -30,35 +30,24 @@ export function DocsNavbar() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-grid border-b bg-card/70 backdrop-blur-[8px]">
-      <div className="container flex h-14 max-w-screen-2xl items-center">
+    <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-14 max-w-screen-2xl items-center px-6">
         <div className="mr-4 hidden md:flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
             <span className="hidden font-bold sm:inline-block">AIA Docs</span>
           </Link>
-          <nav className="flex items-center gap-6 text-sm">
-            <Link
-              href="/docs"
-              className={cn(
-                "transition-colors hover:text-foreground/80",
-                pathname === "/docs" ? "text-foreground" : "text-foreground/60",
-              )}
-            >
-              Docs
-            </Link>
-          </nav>
         </div>
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
           <div className="w-full flex-1 md:w-auto md:flex-none">
             <button
               onClick={() => setShowSearch(true)}
-              className="inline-flex items-center whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input/45 hover:bg-accent hover:text-accent-foreground px-4 py-2 relative h-9 w-full justify-start rounded-[10px] bg-card text-[14px] font-normal text-muted-foreground shadow-sm sm:pr-12 md:w-[640px]"
+              className="inline-flex items-center whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-white/10 hover:bg-accent hover:text-accent-foreground px-4 py-1 relative h-8 w-full justify-start rounded-[0.5rem] bg-muted/50 text-[13px] font-normal text-muted-foreground/50 shadow-none sm:pr-12 md:w-[480px]"
             >
               <span className="hidden lg:inline-flex">
                 Search documentation...
               </span>
               <span className="inline-flex lg:hidden">Search...</span>
-              <kbd className="pointer-events-none absolute right-[0.3rem] top-[0.3rem] hidden h-5 select-none items-center gap-1 rounded-[6px] border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
+              <kbd className="pointer-events-none absolute right-[0.3rem] top-1/2 -translate-y-1/2 hidden h-5 select-none items-center gap-1 rounded border border-white/5 bg-muted/50 px-1.5 font-mono text-[10px] font-medium text-muted-foreground/60 opacity-100 sm:flex">
                 <span className="text-xs">⌘</span>K
               </kbd>
             </button>
@@ -66,7 +55,7 @@ export function DocsNavbar() {
               <SearchDialog open={showSearch} onOpenChange={setShowSearch} />
             )}
           </div>
-          <nav className="flex items-center gap-2">
+          <nav className="flex items-center gap-1">
             <Link
               href="https://github.com/sarthakNITT/autonomous-incident-agent"
               target="_blank"
@@ -80,10 +69,11 @@ export function DocsNavbar() {
                   "h-9 w-9 px-0 opacity-80 hover:opacity-100",
                 )}
               >
-                <Github className="h-[18px] w-[18px]" />
+                <Github className="h-4 w-4" />
                 <span className="sr-only">GitHub</span>
               </div>
             </Link>
+            <div className="h-4 w-[1px] bg-muted-foreground/50" />
             <Link href="https://twitter.com" target="_blank" rel="noreferrer">
               <div
                 className={cn(
@@ -93,10 +83,11 @@ export function DocsNavbar() {
                   "h-9 w-9 px-0 opacity-80 hover:opacity-100",
                 )}
               >
-                <Twitter className="h-[18px] w-[18px]" />
+                <Twitter className="h-4 w-4" />
                 <span className="sr-only">Twitter</span>
               </div>
             </Link>
+            <div className="h-4 w-[1px] bg-muted-foreground/50" />
             <ModeToggle />
             <Sheet>
               <SheetTrigger asChild>

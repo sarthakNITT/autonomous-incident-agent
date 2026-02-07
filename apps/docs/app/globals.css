@@ -75,9 +75,18 @@
 
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1, "ss02" 1;
-    font-size: 15px;
+    font-family: var(--font-geist-sans), system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    font-size: 14px;
     line-height: 1.75;
+  }
+
+  code,
+  pre {
+    font-family: var(--font-geist-mono), monospace;
+    font-size: 13px;
   }
 }
 

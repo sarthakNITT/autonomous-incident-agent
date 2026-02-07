@@ -30,14 +30,14 @@ export function CodeBlock({
   return (
     <div
       className={cn(
-        "relative mb-4 mt-6 overflow-hidden rounded-[8px] border border-border/45 bg-card/60 text-foreground",
+        "relative mb-4 mt-6 overflow-hidden rounded-[8px] bg-card/70 text-foreground",
         className,
       )}
       {...props}
     >
-      <div className="flex h-[32px] items-center justify-between bg-muted/40 px-0 border-b border-border/45 backdrop-blur-[6px]">
+      <div className="flex h-[32px] items-center justify-between bg-muted/40 px-0 backdrop-blur-[6px]">
         <div className="flex h-full items-center">
-          <div className="flex h-full items-center justify-center border-r border-border/45 bg-card px-4 text-[13px] font-medium font-mono text-foreground">
+          <div className="flex h-full items-center justify-center bg-card px-4 text-[13px] font-medium font-mono text-foreground">
             {title || "index.ts"}
           </div>
         </div>
@@ -58,7 +58,7 @@ export function CodeBlock({
         </div>
       </div>
       <div className="overflow-x-auto py-4">
-        <div ref={ref} className="font-mono text-[13px] leading-relaxed px-4">
+        <div ref={ref} className="font-mono text-[13px] leading-[1.7] px-4">
           {children}
         </div>
       </div>
