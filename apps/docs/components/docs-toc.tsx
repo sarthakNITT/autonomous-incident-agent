@@ -51,11 +51,10 @@ export function DocsTOC() {
               className={cn(
                 "inline-block no-underline transition-colors hover:text-foreground line-clamp-1 text-[12.5px] duration-160 ease-out",
                 item.id === activeId
-                  ? "font-medium text-foreground pl-4 -ml-4"
-                  : "text-muted-foreground hover:text-foreground",
+                  ? "font-medium text-foreground"
+                  : "text-foreground/10 hover:text-foreground",
                 item.depth === 3 && "pl-4",
                 item.depth === 4 && "pl-8",
-                item.id !== activeId && item.depth === 2 && "pl-0",
               )}
             >
               {item.title}

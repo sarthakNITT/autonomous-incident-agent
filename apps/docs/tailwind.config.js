@@ -13,7 +13,12 @@ const config = {
                 "2xl": "1400px",
             },
         },
-        extend: {},
+        extend: {
+            fontFamily: {
+                sans: ["var(--font-geist-sans)"],
+                mono: ["var(--font-geist-mono)"],
+            },
+        },
     },
     plugins: [],
 };

@@ -68,36 +68,38 @@ export function DocsSidebar({ className }: DocsSidebarProps) {
         className="h-full w-full bg-transparent overflow-y-auto pb-10 pr-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']"
         style={{
           maskImage:
-            "linear-gradient(to bottom, transparent, black 20px, black 90%, transparent)",
+            "linear-gradient(to bottom, transparent, black 40px, black 90%, transparent)",
           WebkitMaskImage:
-            "linear-gradient(to bottom, transparent, black 20px, black 90%, transparent)",
+            "linear-gradient(to bottom, transparent, black 40px, black 90%, transparent)",
         }}
       >
-        {sidebarItems.map((group, i) => (
-          <div key={i} className="pb-4">
-            <h4 className="mb-1 mt-2 rounded-md px-2 py-1 text-xs font-normal text-muted-foreground/50">
-              {group.title}
-            </h4>
-            {group.items?.length && (
-              <div className="grid grid-flow-row auto-rows-max text-[13px] gap-1">
-                {group.items.map((item, j) => (
-                  <Link
-                    key={j}
-                    href={item.href}
-                    className={cn(
-                      "group flex w-full items-center rounded-md border border-transparent px-2 py-0.5 hover:underline text-muted-foreground transition-colors",
-                      pathname === item.href
-                        ? "font-medium text-foreground bg-accent"
-                        : "hover:text-foreground",
-                    )}
-                  >
-                    {item.title}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
+        <div className="mx-auto w-full max-w-[220px]">
+          {sidebarItems.map((group, i) => (
+            <div key={i} className={cn("pb-8", i === 0 && "mt-8")}>
+              <h4 className="mb-2 mt-2 px-2 text-[11px] font-normal text-foreground/10">
+                {group.title}
+              </h4>
+              {group.items?.length && (
+                <div className="grid grid-flow-row auto-rows-max text-[13px]">
+                  {group.items.map((item, j) => (
+                    <Link
+                      key={j}
+                      href={item.href}
+                      className={cn(
+                        "group flex w-fit items-start rounded-md border border-transparent px-3 py-1 text-muted-foreground transition-colors hover:text-foreground hover:bg-white/10",
+                        pathname === item.href
+                          ? "font-medium text-foreground bg-white/10"
+                          : "hover:bg-white/5 mt-1",
+                      )}
+                    >
+                      {item.title}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
