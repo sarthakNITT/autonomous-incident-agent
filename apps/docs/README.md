@@ -21,6 +21,28 @@ This app features a custom server implementation that supports Server-Side Rende
 - [Netlify Integration](/src/pages/TutorialNetlify.mdx)
 - [Debugging Guide](/src/pages/DebugGuide.mdx)
 
+## Phase D6: UI Redesign
+
+The application has been redesigned to match the **shadcn/ui** documentation style.
+
+### Key Features
+
+- **3-Column Layout**: Sidebar, Content, and Table of Contents.
+- **Navigation**: Top Navbar with search and responsive mobile drawer.
+- **Typography**: Optimized specifically for documentation with `inter` font.
+- **Search**: Instant client-side search across all documentation pages.
+- **Code Blocks**: Syntax highlighting with "Copy to Clipboard" functionality.
+
+### Components
+
+All components are built using React and Tailwind CSS, adhering to strict clean code principles (Zero commented code).
+
+- `src/layouts/MainLayout.tsx`: Core layout structure.
+- `src/components/Navbar.tsx`: Top navigation and search.
+- `src/components/Sidebar.tsx`: Navigation menu.
+- `src/components/TOC.tsx`: Right-side table of contents.
+- `src/components/MDXComponents.tsx`: Custom MDX renderers.
+
 ## Reference
 
 - [Configuration](/src/pages/ConfigReference.mdx)
