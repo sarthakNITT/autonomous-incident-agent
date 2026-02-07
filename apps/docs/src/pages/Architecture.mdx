@@ -1,0 +1,18 @@
+
+# Architecture
+
+The Docs App is built using a custom server implementation with **Bun**.
+
+## Tech Stack
+
+- **Runtime**: Bun
+- **Framework**: React (SSR)
+- **Content**: MDX
+- **Styling**: CSS Variables (Shadcn-inspired)
+
+## How it Works
+
+1. **Server**: `src/server.ts` handles incoming requests.
+2. **Routing**: Simple URL matching maps routes to React components or MDX files.
+3. **Rendering**: React components are rendered to a stream using `react-dom/server`.
+4. **Styling**: A global CSS file provides the visual theme.
