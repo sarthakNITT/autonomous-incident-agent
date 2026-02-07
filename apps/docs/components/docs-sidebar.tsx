@@ -68,19 +68,19 @@ export function DocsSidebar({ className }: DocsSidebarProps) {
       <div className="h-full w-full bg-transparent">
         {sidebarItems.map((group, i) => (
           <div key={i} className="pb-4">
-            <h4 className="mb-1 rounded-md px-2 py-1 text-sm font-semibold text-foreground">
+            <h4 className="mb-1 rounded-md px-2 py-1 text-xs font-semibold text-muted-foreground">
               {group.title}
             </h4>
             {group.items?.length && (
-              <div className="grid grid-flow-row auto-rows-max text-sm gap-0.5">
+              <div className="grid grid-flow-row auto-rows-max text-[13px] gap-0.5">
                 {group.items.map((item, j) => (
                   <Link
                     key={j}
                     href={item.href}
                     className={cn(
-                      "group flex w-full items-center border border-transparent px-2 py-1 hover:underline text-muted-foreground hover:bg-muted/40 transition-colors duration-140",
+                      "group flex w-full items-center border border-transparent px-[10px] py-[6px] hover:underline text-muted-foreground hover:bg-muted/40 transition-colors duration-140 rounded-[6px]",
                       pathname === item.href
-                        ? "font-medium text-foreground border-l-2 border-l-primary !border-t-transparent !border-r-transparent !border-b-transparent rounded-none -ml-[1px] pl-[7px]"
+                        ? "font-medium text-foreground border-l-2 border-accent !border-t-transparent !border-r-transparent !border-b-transparent rounded-none -ml-[1px] pl-[9px]"
                         : "hover:text-foreground",
                     )}
                   >

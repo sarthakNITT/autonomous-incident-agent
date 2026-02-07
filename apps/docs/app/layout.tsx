@@ -29,17 +29,17 @@ export default function RootLayout({
         >
           <div className="relative flex min-h-screen flex-col bg-background">
             <DocsNavbar />
-            <div className="grid flex-1 items-start md:grid-cols-[240px_minmax(0,1fr)] lg:grid-cols-[240px_minmax(0,1fr)_240px] gap-6 lg:gap-10">
-              <aside className="fixed top-14 z-30 -ml-2 hidden h-[calc(100vh-3.5rem)] w-full shrink-0 md:sticky md:block border-r border-border/40">
+            <div className="grid flex-1 items-start md:grid-cols-[240px_minmax(0,1fr)] lg:grid-cols-[240px_minmax(0,1fr)_240px] gap-6">
+              <aside className="fixed top-14 z-30 -ml-2 hidden h-[calc(100vh-3.5rem)] w-full shrink-0 md:sticky md:block border-r border-border/40 bg-card/80 backdrop-blur-[2px]">
                 <DocsSidebar />
               </aside>
-              <main className="relative py-6 lg:py-8 lg:px-8">
+              <main className="relative py-8 px-6 bg-card min-h-[calc(100vh-3.5rem)] shadow-surface">
                 <div className="mx-auto w-full min-w-0 max-w-[760px]">
                   {children}
                 </div>
               </main>
 
-              <div className="hidden text-sm lg:block">
+              <div className="hidden text-sm lg:block bg-card/80 backdrop-blur-[2px]">
                 <DocsTOC />
               </div>
             </div>

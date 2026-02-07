@@ -30,31 +30,35 @@ export function CodeBlock({
   return (
     <div
       className={cn(
-        "relative mb-4 mt-6 overflow-hidden rounded-lg border bg-muted/40 text-foreground",
+        "relative mb-4 mt-6 overflow-hidden rounded-[8px] border border-border/45 bg-card/60 text-foreground",
         className,
       )}
       {...props}
     >
-      <div className="flex items-center justify-between bg-muted/40 px-4 py-2 border-b">
-        <span className="text-xs font-medium text-muted-foreground">
-          {title || "Code"}
-        </span>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6 text-muted-foreground hover:bg-background hover:text-foreground"
-          onClick={onCopy}
-        >
-          {isCopied ? (
-            <Check className="h-3 w-3" />
-          ) : (
-            <Copy className="h-3 w-3" />
-          )}
-          <span className="sr-only">Copy code</span>
-        </Button>
+      <div className="flex h-[32px] items-center justify-between bg-muted/40 px-0 border-b border-border/45 backdrop-blur-[6px]">
+        <div className="flex h-full items-center">
+          <div className="flex h-full items-center justify-center border-r border-border/45 bg-card px-4 text-[13px] font-medium font-mono text-foreground">
+            {title || "index.ts"}
+          </div>
+        </div>
+        <div className="flex items-center pr-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 text-muted-foreground hover:bg-transparent hover:text-foreground opacity-70 hover:opacity-100 transition-opacity"
+            onClick={onCopy}
+          >
+            {isCopied ? (
+              <Check className="h-3 w-3" />
+            ) : (
+              <Copy className="h-3 w-3" />
+            )}
+            <span className="sr-only">Copy code</span>
+          </Button>
+        </div>
       </div>
       <div className="overflow-x-auto py-4">
-        <div ref={ref} className="font-mono text-sm leading-relaxed px-4">
+        <div ref={ref} className="font-mono text-[13px] leading-relaxed px-4">
           {children}
         </div>
       </div>
