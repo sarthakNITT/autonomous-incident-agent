@@ -1,20 +1,12 @@
 {
-    "extends": "@repo/typescript-config/base.json",
-    "compilerOptions": {
-        "outDir": "dist",
-        "rootDir": "src",
-        "module": "esnext",
-        "moduleResolution": "bundler",
-        "target": "esnext",
-        "types": [
-            "bun-types"
-        ]
-    },
-    "include": [
-        "src"
-    ],
-    "exclude": [
-        "node_modules",
-        "dist"
-    ]
+  "extends": "@repo/typescript-config/base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "target": "esnext",
+    "types": ["bun-types"]
+  },
+  "include": ["src", "../../shared"],
+  "exclude": ["node_modules", "dist"]
 }
