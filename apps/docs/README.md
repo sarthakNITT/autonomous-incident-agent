@@ -4,6 +4,15 @@ A standalone documentation web application built with **Bun**, **React**, **MDX*
 
 This app features a custom server implementation that supports Server-Side Rendering (SSR) of React components and MDX content, styled with Tailwind CSS and Radix UI primitives.
 
+## Documentation
+
+- [Installation](/src/pages/Install.mdx)
+- [OpenTelemetry Integration](/src/pages/OpenTelemetry.mdx)
+- [R2 Storage Setup](/src/pages/R2Setup.mdx)
+- [GitHub Bot Setup](/src/pages/GitHubBot.mdx)
+- [Running the Agent](/src/pages/RunningAgent.mdx)
+- [Troubleshooting](/src/pages/Troubleshooting.mdx)
+
 ## Getting Started
 
 ### Prerequisites

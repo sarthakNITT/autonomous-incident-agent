@@ -1,0 +1,47 @@
+
+# Troubleshooting
+
+This guide addresses common issues users may encounter when integrating or running the Autonomous Incident Agent (AIA).
+
+## Common Issues
+
+### 1. Agent Not Receiving Events
+
+**Symptoms**: The application runs without errors, but the agent shows no activity in the logs.
+
+**Possible Causes**:
+- **Incorrect Endpoint**: Ensure `OTEL_EXPORTER_OTLP_ENDPOINT` points to the correct URL (e.g., `http://localhost:4318` or your deployed agent service).
+- **Network Issues**: Check if the agent port is accessible from your application container.
+- **Trace Sampling**: If you're using a high sampling rate, some traces might be dropped. Ensure error traces are prioritized.
+
+### 2. PR Not Created
+
+**Symptoms**: The agent detects an anomaly but fails to create a Pull Request.
+
+**Possible Causes**:
+- **GitHub Token Permissions**: Verify your token has `Contents: Write` and `Pull Requests: Write` scopes.
+- **Branch Protection**: Ensure the bot account is allowed to push to protected branches or bypass restrictions.
+- **Existing PR**: The agent may skip creating a PR if one already exists for the same issue.
+
+### 3. Validation Failures
+
+**Symptoms**: The agent generates a fix, but CI tests fail.
+
+**Possible Causes**:
+- **Flaky Tests**: Rerun the CI workflow to rule out flakiness.
+- **Missing Context**: The agent might lack sufficient context about your testing environment. try adding more documentation to your `.agent/` folder.
+- **Dependency Issues**: Ensure the agent has access to all necessary dependencies to run tests.
+
+## Debugging
+
+To get more insight into what the agent is doing, enable verbose logging:
+
+```bash
+LOG_LEVEL=debug bun run start
+```
+
+This will output detailed logs about trace processing, analysis steps, and GitHub interactions.
+
+## Support
+
+If you're still facing issues, please open an issue in the [GitHub Repository](https://github.com/your-org/aia-agent/issues) or contact support.

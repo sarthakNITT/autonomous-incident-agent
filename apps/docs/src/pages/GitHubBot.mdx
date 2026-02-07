@@ -1,0 +1,46 @@
+
+# GitHub Bot Setup
+
+To automate incident response, AIA needs a GitHub App or a dedicated bot account to interact with your repositories. This allows it to:
+- Open issues for verified anomalies.
+- Create Pull Requests with fixes.
+- Comment on PRs with analysis.
+
+## Creating a Bot Account
+
+1.  Create a new GitHub account (e.g., `my-org-aia-bot`).
+2.  Add this account as a collaborator to your repositories with **Write** access.
+
+## Generating a Personal Access Token (PAT)
+
+We recommend using a fine-grained Personal Access Token for better security.
+
+1.  Go to **Settings > Developer settings > Personal access tokens > Fine-grained tokens**.
+2.  Click **Generate new token**.
+3.  Name the token (e.g., `aia-agent-token`).
+4.  **Expiration**: Set an appropriate expiration (e.g., 90 days).
+5.  **Repository access**: Select **All repositories** or specific repositories.
+
+### Required Scopes
+
+Grant the following permissions:
+
+- **Contents**: Read and Write (to create branches and PRs).
+- **Issues**: Read and Write (to create incident issues).
+- **Pull Requests**: Read and Write (to comment and merge).
+- **Workflows**: Read and Write (to trigger CI/CD).
+
+## Configuring the Agent
+
+Add the token to your environment variables:
+
+```env
+GITHUB_TOKEN=your_pat_token
+GITHUB_USERNAME=my-org-aia-bot
+```
+
+## Security Best Practices
+
+- **Least Privilege**: Only grant access to repositories the agent needs to monitor.
+- **Rotation**: Rotate tokens regularly (every 60-90 days).
+- **Webhooks**: Use webhooks to trigger the agent instead of polling for updates.

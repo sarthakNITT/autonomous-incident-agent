@@ -70,6 +70,66 @@ const server = serve({
           React.createElement("div", { className: "mdx-content" }, mdxContent),
         );
       }
+
+      if (pathname === "/install") {
+        const mdxContent = await loadMdx(
+          join(process.cwd(), "src/pages/Install.mdx"),
+        );
+        return renderPage(
+          "Installation",
+          React.createElement("div", { className: "mdx-content" }, mdxContent),
+        );
+      }
+
+      if (pathname === "/opentelemetry") {
+        const mdxContent = await loadMdx(
+          join(process.cwd(), "src/pages/OpenTelemetry.mdx"),
+        );
+        return renderPage(
+          "OpenTelemetry",
+          React.createElement("div", { className: "mdx-content" }, mdxContent),
+        );
+      }
+
+      if (pathname === "/r2-setup") {
+        const mdxContent = await loadMdx(
+          join(process.cwd(), "src/pages/R2Setup.mdx"),
+        );
+        return renderPage(
+          "R2 Setup",
+          React.createElement("div", { className: "mdx-content" }, mdxContent),
+        );
+      }
+
+      if (pathname === "/github-bot") {
+        const mdxContent = await loadMdx(
+          join(process.cwd(), "src/pages/GitHubBot.mdx"),
+        );
+        return renderPage(
+          "GitHub Bot",
+          React.createElement("div", { className: "mdx-content" }, mdxContent),
+        );
+      }
+
+      if (pathname === "/running-agent") {
+        const mdxContent = await loadMdx(
+          join(process.cwd(), "src/pages/RunningAgent.mdx"),
+        );
+        return renderPage(
+          "Running the Agent",
+          React.createElement("div", { className: "mdx-content" }, mdxContent),
+        );
+      }
+
+      if (pathname === "/troubleshooting") {
+        const mdxContent = await loadMdx(
+          join(process.cwd(), "src/pages/Troubleshooting.mdx"),
+        );
+        return renderPage(
+          "Troubleshooting",
+          React.createElement("div", { className: "mdx-content" }, mdxContent),
+        );
+      }
     } catch (e) {
       console.error("Error handling request:", e);
       return new Response(

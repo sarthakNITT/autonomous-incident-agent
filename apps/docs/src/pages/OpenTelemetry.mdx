@@ -1,0 +1,64 @@
+
+# OpenTelemetry Integration
+
+Autonomous Incident Agent (AIA) relies on OpenTelemetry (OTel) to detect anomalies and errors in your application.
+
+## Overview
+
+Your application must send trace data to the AIA collector endpoint. This allows the agent to:
+1.  Detect 500 errors and exceptions.
+2.  Analyze trace context to pinpoint root causes.
+3.  Trigger autonomous investigation workflows.
+
+## Adding OpenTelemetry
+
+We recommend using the standard OTel SDKs for your language/framework.
+
+### Node.js (Express/NestJS)
+
+Install the necessary packages:
+
+```bash
+bun add @opentelemetry/api @opentelemetry/sdk-node \
+  @opentelemetry/auto-instrumentations-node \
+  @opentelemetry/exporter-trace-otlp-http
+```
+
+Configure the SDK to export to your AIA agent's endpoint:
+
+```typescript
+import { NodeSDK } from '@opentelemetry/sdk-node';
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
+import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
+
+const sdk = new NodeSDK({
+  traceExporter: new OTLPTraceExporter({
+    // Point this to your deployed AIA agent or local instance
+    url: 'http://localhost:4318/v1/traces',
+  }),
+  instrumentations: [getNodeAutoInstrumentations()],
+});
+
+sdk.start();
+```
+
+### Next.js
+
+For Next.js App Router, you can use the experimental instrumentation hook or a custom `instrumentation.ts` file.
+
+Ensure you set the exporter URL:
+
+```bash
+OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:4318"
+```
+
+## Data Privacy
+
+AIA only analyzes error traces. We recommend sanitizing sensitive data (PII, secrets) before exporting spans, although the agent is designed to ignore non-error data by default.
+
+## Verification
+
+To verify that traces are being received:
+
+1.  Run your application and trigger an error (page crash, API failure).
+2.  Check the AIA agent logs. You should see "Received span" or "Processing anomaly".

@@ -1,0 +1,71 @@
+
+# Running the Agent
+
+This guide covers how to run the Autonomous Incident Agent (AIA) in different environments.
+
+## Local Development
+
+For testing and local development, you can run the agent directly on your machine.
+
+1.  **Clone the repository**:
+    ```bash
+    git clone https://github.com/your-org/aia-agent.git
+    cd aia-agent
+    ```
+
+2.  **Install dependencies**:
+    ```bash
+    bun install
+    ```
+
+3.  **Start the agent**:
+    ```bash
+    bun run start
+    ```
+
+The agent will start listening for OpenTelemetry traces on port `4318`.
+
+## Docker Deployment (Sidecar)
+
+For production, we recommend deploying the agent as a sidecar container alongside your application.
+
+### Docker Compose
+
+Add the agent service to your `docker-compose.yml`:
+
+```yaml
+version: '3.8'
+
+services:
+  app:
+    build: .
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://aia-agent:4318
+    depends_on:
+      - aia-agent
+
+  aia-agent:
+    image: ghcr.io/your-org/aia-agent:latest
+    environment:
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}
+      - R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}
+    ports:
+      - "4318:4318" # OTLP HTTP receiver
+```
+
+## Verifying Detection
+
+To ensure the agent is running correctly:
+
+1.  **Check Logs**: Look for "AIA Agent started" in the container logs.
+2.  **Send a Test Trace**: Use `curl` to send a dummy error trace.
+
+```bash
+curl -X POST http://localhost:4318/v1/traces \
+  -H "Content-Type: application/json" \
+  -d '{ ... otel trace json ... }'
+```
+
+If the agent receives the trace, it will log "Received span" and begin analysis.

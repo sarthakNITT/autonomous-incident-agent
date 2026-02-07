@@ -1,0 +1,75 @@
+
+# Installation
+
+Get started with Autonomous Incident Agent (AIA) by installing the core package and setting up your project.
+
+## Prerequisites
+
+- **Node.js** v18+ or **Bun** v1.0+
+- A GitHub repository for your project
+- An R2 bucket (Cloudflare) for artifact storage due to current Vercel limits
+
+## Step 1: Install the Package
+
+Run the following command in your project root:
+
+```bash
+bun add aia-agent
+# or
+npm install aia-agent
+pnpm add aia-agent
+yarn add aia-agent
+```
+
+## Step 2: Run the Installer
+
+We provide a CLI tool to scaffold the necessary configuration files and directory structure.
+
+```bash
+# Using bun
+bunx aia-init
+
+# Using npx
+npx aia-init
+```
+
+This command will:
+1.  Create an `aia.config.ts` file in your root directory.
+2.  Set up the `.agent` directory structure for workflows and artifacts.
+3.  Ask for necessary API keys (GitHub, OpenAI/Anthropic, R2).
+
+## Folder Structure
+
+After installation, your project should look like this:
+
+```
+my-project/
+├── .agent/
+│   ├── workflows/       # Custom workflow definitions (.md)
+│   └── artifacts/       # Generated artifacts (diagrams, plans)
+├── aia.config.ts        # Main configuration file
+├── package.json
+└── ...
+```
+
+### `aia.config.ts`
+
+This is the heart of your AIA configuration. It defines:
+- **Project Name**: Unique identifier for your project.
+- **Model Configuration**: LLM provider and model selection.
+- **Storage**: R2 bucket credentials and settings.
+- **GitHub**: Token and repo details.
+
+```typescript
+import { defineConfig } from 'aia-agent/config';
+
+export default defineConfig({
+  project: 'my-awesome-app',
+  storage: {
+    type: 'r2',
+    bucket: process.env.R2_BUCKET_NAME,
+    // ...
+  },
+  // ...
+});
+```

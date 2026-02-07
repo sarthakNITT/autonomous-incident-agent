@@ -43,6 +43,53 @@ export function Sidebar({ className }: SidebarProps) {
                 <Layers className="h-4 w-4" />
                 Architecture
               </a>
+
+              <h4 className="mb-1 mt-4 rounded-md px-2 py-1 text-sm font-semibold">
+                Guides
+              </h4>
+
+              <a
+                href="/install"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+              >
+                <span className="text-lg">📦</span>
+                Installation
+              </a>
+              <a
+                href="/opentelemetry"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+              >
+                <span className="text-lg">📡</span>
+                OpenTelemetry
+              </a>
+              <a
+                href="/r2-setup"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+              >
+                <span className="text-lg">☁️</span>
+                R2 Storage
+              </a>
+              <a
+                href="/github-bot"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+              >
+                <span className="text-lg">🤖</span>
+                GitHub Bot
+              </a>
+              <a
+                href="/running-agent"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+              >
+                <span className="text-lg">🚀</span>
+                Running Agent
+              </a>
+              <a
+                href="/troubleshooting"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+              >
+                <span className="text-lg">🔧</span>
+                Troubleshooting
+              </a>
             </nav>
           </ScrollArea>
         </div>
