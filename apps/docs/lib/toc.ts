@@ -5,7 +5,10 @@ export const extractToc = (content: string) => {
   return headings.map((heading) => {
     const depth = heading.match(/^#+/)?.[0].length || 2;
     const title = heading.replace(/^#+\s+/, "").replace(/<.*?>/g, "");
-    const url = `#${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+    const url = `#${title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "")}`;
     return { title, url, depth };
   });
 };
