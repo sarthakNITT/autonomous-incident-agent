@@ -5,7 +5,6 @@ import * as React from "react";
 import Link from "next/link";
 
 import { cn } from "@/lib/utils";
-// Ensure components/ui/button etc exist. Copy command earlier should have done this.
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -29,8 +28,8 @@ export function DocsNavbar() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center">
+    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-14 max-w-screen-2xl items-center">
         <div className="mr-4 hidden md:flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
             <span className="hidden font-bold sm:inline-block">AIA Docs</span>
@@ -40,7 +39,7 @@ export function DocsNavbar() {
           <div className="w-full flex-1 md:w-auto md:flex-none">
             <button
               onClick={() => setShowSearch(true)}
-              className="inline-flex items-center whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input hover:bg-accent hover:text-accent-foreground px-4 py-2 relative h-8 w-full justify-start rounded-[0.5rem] bg-background text-sm font-normal text-muted-foreground shadow-none sm:pr-12 md:w-40 lg:w-64"
+              className="inline-flex items-center whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input hover:bg-accent hover:text-accent-foreground px-4 py-2 relative h-8 w-full justify-start rounded-[10px] bg-background text-sm font-normal text-muted-foreground shadow-sm sm:pr-12 md:w-[640px]"
             >
               <span className="hidden lg:inline-flex">
                 Search documentation...
@@ -97,8 +96,7 @@ function SearchDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const [query, setQuery] = React.useState("");
-  // We need docsRoutes from lib/routes. But those hrefs might be legacy ("/getting-started").
-  // Our rewrites handle them, so linking to them is valid.
+
   const results = React.useMemo(() => {
     if (!query) return [];
     return docsRoutes.filter((route) =>
@@ -132,24 +130,7 @@ function SearchDialog({
           {results.map((result) => (
             <Link
               key={result.href}
-              href={result.href} // "/getting-started" etc. Next.js Link will handle rewrites client-side? No, rewrites are server-side.
-              // But if we click Link to "/getting-started", Next router might try to find page at /getting-started.
-              // If page doesn't exist, it might hard reload or 404 client side?
-              // Actually, for client-side navigation to work with rewrites, we might need to link to the DESTINATION ("/docs/getting-started")?
-              // Let's assume we should update routes.ts?
-              // Or map them here.
-              // The sidebar links point to /docs/...
-              // The search results point to legacy routes.
-              // I should probably map them to /docs/... here or update routes.ts.
-              // Updating routes.ts is cleaner but users said "Copy without changes: ... sidebar navigation structure".
-              // But I rewrote sidebar items in `docs-sidebar.tsx`.
-              // `docsRoutes` is imported from `lib/routes.ts` which I COPIED.
-              // So `lib/routes.ts` has legacy paths.
-              // I will map `result.href` to `/docs` prefix if it doesn't have it, to be safe for client router.
-              // Or rely on server rewrite if hard reload?
-              // Client router usually respects rewrites defined in next.config.js?
-              // "Rewrites are applied to client-side routing" -> Yes.
-              // So `<Link href="/getting-started">` should work if rewrite is defined.
+              href={result.href}
               onClick={() => onOpenChange(false)}
               className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
             >

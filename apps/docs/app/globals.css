@@ -75,8 +75,15 @@
 
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1, "ss02" 1;
     font-size: 15px;
     line-height: 1.75;
+  }
+}
+
+@layer utilities {
+  .border-grid {
+    border-width: 0.5px;
+    border-color: hsl(var(--border) / 0.4);
   }
 }

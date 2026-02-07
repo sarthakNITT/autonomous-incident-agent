@@ -30,12 +30,12 @@ export function CodeBlock({
   return (
     <div
       className={cn(
-        "relative mb-4 mt-6 overflow-hidden rounded-lg border bg-muted text-foreground",
+        "relative mb-4 mt-6 overflow-hidden rounded-lg border bg-muted/40 text-foreground",
         className,
       )}
       {...props}
     >
-      <div className="flex items-center justify-between bg-muted px-4 py-2 border-b">
+      <div className="flex items-center justify-between bg-muted/40 px-4 py-2 border-b">
         <span className="text-xs font-medium text-muted-foreground">
           {title || "Code"}
         </span>

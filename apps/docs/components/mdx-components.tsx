@@ -19,7 +19,7 @@ export const components: MDXComponents = {
   h1: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
     <h1
       className={cn(
-        "scroll-m-20 text-[40px] font-bold tracking-tight mb-4",
+        "scroll-m-20 text-3xl font-bold tracking-tight lg:text-4xl mb-4",
         className,
       )}
       style={{ letterSpacing: "-0.02em" }}
@@ -36,7 +36,7 @@ export const components: MDXComponents = {
       <h2
         id={id}
         className={cn(
-          "group scroll-m-20 border-b pb-2 text-[28px] font-semibold tracking-tight transition-colors first:mt-0 mt-10 mb-4",
+          "group scroll-m-20 border-b pb-2 text-2xl font-semibold tracking-tight transition-colors first:mt-0 mt-10 mb-4",
           className,
         )}
         style={{ letterSpacing: "-0.01em" }}
