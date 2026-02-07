@@ -1,1 +1,5 @@
-bunx lint-staged
+echo "Starting pre-commit hook..."
+# --concurrent false: Runs tasks serially to avoid output swallowing
+# --verbose: Shows output of commands for visibility
+./node_modules/.bin/lint-staged --verbose --concurrent false
+echo "Pre-commit hook finished."
