@@ -1,28 +1,24 @@
-
 # Tutorial: Netlify Integration
 
-Deploying to Netlify requires forwarding logs or using Netlify Functions.
+To monitor applications deployed on Netlify, you must configure the environment to send traces to your public AIA endpoint.
+
+## Environment Variables
+
+In your Netlify Site settings (**Build & deploy > Environment**):
+
+*   `OTEL_EXPORTER_OTLP_ENDPOINT`: `https://your-aia-agent.com/v1/traces`
+*   `OTEL_SERVICE_NAME`: `my-netlify-app`
 
 ## Netlify Functions
 
-Netlify Functions run on AWS Lambda. Similar to Vercel, you need to configure the OTLP exporter.
+Netlify Functions (AWS Lambda) have short lifecycles. Ensure your OTel SDK flushes data before the function freezes.
 
-### Environment Variables
+### Code Considerations
 
-Set `OTEL_EXPORTER_OTLP_ENDPOINT` in your Netlify Site settings under **Build & deploy > Environment**.
+If using the `instrumentation.node.ts` approach, the auto-instrumentation usually handles this safely. However, if using manual spans, always `await span.end()`.
 
-### Log Forwarding
+## Verification
 
-If you are not using OTLP directly, you can configure Netlify Log Drains to forward logs to an intermediate service that pushes to AIA. However, direct OTLP export via the SDK is recommended.
-
-## Testing Steps
-
-1.  Deploy your site using `netlify deploy`.
+1.  Deploy with `netlify deploy`.
 2.  Trigger a function error.
-3.  Check the Netlify Function logs to confirm the error occurred.
-4.  Check the AIA Dashboard to see if the trace was received.
-
-## Known Limitations
-
--   **Execution Time**: Netlify Functions have a 10s default timeout. Ensure your AIA Agent responds quickly.
--   **Cold Starts**: Large OTel SDKs may increase cold start times. Use webpack or esbuild to bundle dependencies efficiently.
+3.  Check the AIA Dashboard.

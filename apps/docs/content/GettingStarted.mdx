@@ -1,27 +1,102 @@
-
 # Getting Started
 
-Welcome to the Docs App! This guide will help you get started with adding new content.
+The Autonomous Incident Agent (AIA) is a production-grade system that automatically detects, analyzes, and fixes application failures. It connects your observability data with an intelligent agentic loop to resolve incidents without human intervention.
 
-## Adding Content
+## One-Line Start
 
-To add a new page, simply create a new `.mdx` file in `src/pages`.
-
-### Example
-
-Create a file named `NewPage.mdx`:
-
-```mdx
-# My New Page
-
-This is some content.
-```
-
-## Running Locally
-
-To run the app locally:
+If you have already configured your environment, you can start the full AIA stack with a single command:
 
 ```bash
-bun install
-bun run dev
+bun run start
 ```
+
+This will launch all services, including the Agent, Router, Autopsy, and Dashboard.
+
+## Core Concepts
+
+Understanding AIA requires identifying its four main stages of operation.
+
+### 1. Detection (Router)
+
+The lifecycle begins when your application emits an error trace via OpenTelemetry. The **Router** service ingests this trace, filters out noise, and identifies it as a distinct incident.
+
+### 2. Analysis (Autopsy)
+
+Once an incident is detected, the **Autopsy** service analyzes the stack trace, local variables, and recent logs. It correlates this data to pinpoint the root cause in the codebase.
+
+### 3. Resolution (Agent)
+
+The **Agent** takes the autopsy report and spins up a reproduction environment. It attempts to:
+1.  Create a reproduction script (repro) that fails.
+2.  Write a patch to fix the code.
+3.  Verify the patch passes the repro and existing tests.
+
+### 4. Delivery (GitHub)
+
+Finally, if the patch is verified, AIA automatically opens a Pull Request in your repository with the fix, the reproduction proof, and a detailed explanation of the change.
+
+## Zero to Hero Overview
+
+<Steps>
+  <Step>
+    ### Installation
+
+    Install the package and dependencies used by your project.
+
+    <Tabs defaultValue="bun">
+      <TabsList>
+        <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+          <TabsTrigger value="npm">npm</TabsTrigger>
+          <TabsTrigger value="pnpm">pnpm</TabsTrigger>
+          <TabsTrigger value="yarn">yarn</TabsTrigger>
+          <TabsTrigger value="bun">bun</TabsTrigger>
+        </div>
+        <TabsCopyButton />
+      </TabsList>
+      <TabsContent value="npm">
+        ```bash
+        npm install @aia/sdk
+        ```
+      </TabsContent>
+      <TabsContent value="pnpm">
+        ```bash
+        pnpm add @aia/sdk
+        ```
+      </TabsContent>
+      <TabsContent value="yarn">
+        ```bash
+        yarn add @aia/sdk
+        ```
+      </TabsContent>
+      <TabsContent value="bun">
+        ```bash
+        bun add @aia/sdk
+        ```
+      </TabsContent>
+    </Tabs>
+  </Step>
+
+  <Step>
+    ### Configuration
+
+    Set up your `aia.config.ts` to point to your repository, R2 bucket, and GitHub App.
+  </Step>
+
+  <Step>
+    ### Instrumentation
+
+    Add the AIA OpenTelemetry instrumentation to your application's entry point.
+  </Step>
+
+  <Step>
+    ### Deployment
+
+    Deploy the agent alongside your application or as a standalone service.
+  </Step>
+</Steps>
+
+## Next Steps
+
+Now that you understand the high-level flow, proceed to the installation guide to set up your environment.
+
+[Installation](./Install.mdx)

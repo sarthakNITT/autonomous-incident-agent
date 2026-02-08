@@ -1,19 +1,52 @@
-
 # Tutorial: Next.js Integration
 
-This guide covers setting up AIA with a Next.js App Router project.
+This guide covers setting up AIA with a Next.js App Router project using Bun.
 
 ## Step 1: Install Dependencies
 
-```bash
-npm install @opentelemetry/api @opentelemetry/sdk-node \
-  @opentelemetry/auto-instrumentations-node \
-  @opentelemetry/exporter-trace-otlp-http
-```
+<Tabs defaultValue="bun">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="npm">npm</TabsTrigger>
+      <TabsTrigger value="pnpm">pnpm</TabsTrigger>
+      <TabsTrigger value="yarn">yarn</TabsTrigger>
+      <TabsTrigger value="bun">bun</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="npm">
+    ```bash
+    npm install @opentelemetry/api @opentelemetry/sdk-node \
+      @opentelemetry/auto-instrumentations-node \
+      @opentelemetry/exporter-trace-otlp-http
+    ```
+  </TabsContent>
+  <TabsContent value="pnpm">
+    ```bash
+    pnpm add @opentelemetry/api @opentelemetry/sdk-node \
+      @opentelemetry/auto-instrumentations-node \
+      @opentelemetry/exporter-trace-otlp-http
+    ```
+  </TabsContent>
+  <TabsContent value="yarn">
+    ```bash
+    yarn add @opentelemetry/api @opentelemetry/sdk-node \
+      @opentelemetry/auto-instrumentations-node \
+      @opentelemetry/exporter-trace-otlp-http
+    ```
+  </TabsContent>
+  <TabsContent value="bun">
+    ```bash
+    bun add @opentelemetry/api @opentelemetry/sdk-node \
+      @opentelemetry/auto-instrumentations-node \
+      @opentelemetry/exporter-trace-otlp-http
+    ```
+  </TabsContent>
+</Tabs>
 
-## Step 2: Enable Instrumentation Hook
+## Step 2: Enable Instrumentation
 
-Next.js requires enabling the arbitrary instrumentation hook in `next.config.js`.
+Update `next.config.js` to enable the experimental hook:
 
 ```javascript
 const nextConfig = {
@@ -21,13 +54,12 @@ const nextConfig = {
     instrumentationHook: true,
   },
 };
-
 module.exports = nextConfig;
 ```
 
-## Step 3: Create instrumentation.ts
+## Step 3: Create Instrumentation File
 
-Create `instrumentation.ts` (or `.js`) in your project root (or `src/` folder).
+Create `instrumentation.ts` in your project root (or `src/`):
 
 ```typescript
 export async function register() {
@@ -37,9 +69,9 @@ export async function register() {
 }
 ```
 
-## Step 4: Create Node Instrumentation Logic
+## Step 4: Node SDK Setup
 
-Create `instrumentation.node.ts` to Initialize the SDK.
+Create `instrumentation.node.ts`:
 
 ```typescript
 import { NodeSDK } from '@opentelemetry/sdk-node';
@@ -48,7 +80,7 @@ import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentation
 
 const sdk = new NodeSDK({
   traceExporter: new OTLPTraceExporter({
-    url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:4318/v1/traces',
+    url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:3001/v1/traces',
   }),
   instrumentations: [getNodeAutoInstrumentations()],
 });
@@ -56,12 +88,40 @@ const sdk = new NodeSDK({
 sdk.start();
 ```
 
-## Step 5: Verification
+## Step 5: Verify
 
-Start your Next.js app:
+Start your app:
 
-```bash
-npm run dev
-```
+<Tabs defaultValue="bun">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="npm">npm</TabsTrigger>
+      <TabsTrigger value="pnpm">pnpm</TabsTrigger>
+      <TabsTrigger value="yarn">yarn</TabsTrigger>
+      <TabsTrigger value="bun">bun</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="npm">
+    ```bash
+    npm run dev
+    ```
+  </TabsContent>
+  <TabsContent value="pnpm">
+    ```bash
+    pnpm dev
+    ```
+  </TabsContent>
+  <TabsContent value="yarn">
+    ```bash
+    yarn dev
+    ```
+  </TabsContent>
+  <TabsContent value="bun">
+    ```bash
+    bun run dev
+    ```
+  </TabsContent>
+</Tabs>
 
-Trigger a server-side error (e.g., in a Server Component or Route Handler). Verify that the trace reaches the agent.
+Trigger an error in a Server Component and check the AIA logs.

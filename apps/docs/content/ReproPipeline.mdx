@@ -1,20 +1,61 @@
+# Repro Pipeline
 
-# Reproduction Pipeline
+The Repro (Reproduction) Pipeline is the validation layer of AIA. It ensures that every generated patch fixes the issue it claims to without breaking existing functionality.
 
-The `Repro Service` is responsible for the critical task of validating that a fix actually works. It prevents the AI from submitting "hallucinated" patches.
+## Test-Driven Repair
 
-## Validation Steps
+AIA follows a strict TDD approach to autonomous coding:
 
-1.  **Environment Setup**: The service spins up an isolated Docker container mirroring the application's runtime (e.g., Node.js 18).
-2.  **Dependency Install**: It runs `npm install` (or equivalent) to ensure dependencies are present.
-3.  **Test Execution (Phase 1)**: The AI-generated reproduction script is run against the *current* codebase. It MUST fail. If it passes, the reproduction is invalid.
-4.  **Patch Application**: The generated patch is applied.
-5.  **Test Execution (Phase 2)**: The reproduction script is run again. It MUST pass.
+1.  **Fail**: Create a test case (`repro.ts`) that fails against the current codebase.
+2.  **Fix**: Apply the patch.
+3.  **Pass**: Verify the test case now passes.
 
-## CI Interaction
+## The `Repro Service`
 
-In addition to running the isolated reproduction script, successful patches trigger the project's existing CI pipeline to ensure no regressions were introduced.
+The service runs in a sandboxed environment (e.g., a Docker container or isolated process).
 
-## Result Reporting
+### Workflow
 
-The outcomes (pass/fail, logs, error messages) are sent back to the `Agent`, which decides whether to proceed with the PR or attempt another fix.
+1.  **Setup**: Clone the repo and checkout the specific commit where the error occurred.
+2.  **Instrument**: Inject the generated `repro.ts` into the test suite.
+3.  **Run (Red)**: Execute `bun test repro.ts`. It *must* fail. If it passes, the reproduction is invalid (hallucinated).
+4.  **Patch**: Apply `fix.diff`.
+5.  **Run (Green)**: Execute `bun test repro.ts`. It *must* pass.
+
+## Manual Triggering
+
+You can manually trigger a reproduction run for debugging purposes via HTTP:
+
+<Tabs defaultValue="bash">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="bash">bash</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="bash">
+    ```bash
+    curl -X POST http://localhost:3005/reproduce \
+      -H "Content-Type: application/json" \
+      -d '{
+        "repo": "my-org/my-repo",
+        "commit": "sha123",
+        "repro_script": "test(\"should fail\", () => { ... })"
+      }'
+    ```
+  </TabsContent>
+</Tabs>
+
+## Anatomy of a `repro.ts`
+
+A reproduction script is a standalone test file that mimics the conditions of the detected error.
+
+```typescript
+import { mainHandler } from "./src/main";
+
+test("reproduce null pointer in mainHandler", async () => {
+  const badInput = { user: null };
+  // Expect this to throw
+  expect(async () => await mainHandler(badInput)).toThrow();
+});
+```

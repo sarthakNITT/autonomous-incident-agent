@@ -1,10 +1,6 @@
-
 # GitHub Bot Setup
 
-To automate incident response, AIA needs a GitHub App or a dedicated bot account to interact with your repositories. This allows it to:
-- Open issues for verified anomalies.
-- Create Pull Requests with fixes.
-- Comment on PRs with analysis.
+To automate incident response, AIA needs a GitHub App or a dedicated bot account to interact with your repositories.
 
 ## Creating a Bot Account
 
@@ -25,22 +21,42 @@ We recommend using a fine-grained Personal Access Token for better security.
 
 Grant the following permissions:
 
-- **Contents**: Read and Write (to create branches and PRs).
-- **Issues**: Read and Write (to create incident issues).
-- **Pull Requests**: Read and Write (to comment and merge).
-- **Workflows**: Read and Write (to trigger CI/CD).
+| Scope | Access | Reason |
+| :--- | :--- | :--- |
+| **Contents** | Read and Write | To read code and push branches. |
+| **Issues** | Read and Write | To create incident issues. |
+| **Pull Requests** | Read and Write | To open and comment on PRs. |
+| **Workflows** | Read and Write | To trigger CI/CD checks. |
 
 ## Configuring the Agent
 
-Add the token to your environment variables:
+Add the token to your environment variables or `aia.config.ts`:
 
-```env
-GITHUB_TOKEN=your_pat_token
-GITHUB_USERNAME=my-org-aia-bot
+<Tabs defaultValue="bash">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="bash">bash</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="bash">
+    ```bash
+    GITHUB_TOKEN=your_pat_token
+    ```
+  </TabsContent>
+</Tabs>
+
+And in your config:
+
+```typescript
+github: {
+  // ...
+  token: process.env.GITHUB_TOKEN,
+  username: "aia-bot-account",
+}
 ```
 
 ## Security Best Practices
 
-- **Least Privilege**: Only grant access to repositories the agent needs to monitor.
-- **Rotation**: Rotate tokens regularly (every 60-90 days).
-- **Webhooks**: Use webhooks to trigger the agent instead of polling for updates.
+*   **Least Privilege**: Only grant access to repositories the agent needs to monitor.
+*   **Rotation**: Rotate tokens regularly (every 60-90 days).

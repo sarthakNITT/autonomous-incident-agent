@@ -1,20 +1,17 @@
-
 # Git Integration
 
-The `Git Service` is the bridge between AIA and your source code repositories. It abstracts away the complexity of git operations.
+For details on how to set up the GitHub bot and permissions, please refer to the [GitHub Bot Setup](./GitHubBot.mdx) guide.
 
-## Workflow
+## Branching Strategy
 
-1.  **Clone**: When an incident starts, the service performs a shallow clone of the target repository at the specific commit where the error occurred.
-2.  **Blame**: To identify potential authors for code review, `git blame` is run on the crashing lines.
-3.  **Branch**: A new feature branch is created for each incident (e.g., `aia/fix-incident-123`).
-4.  **Pull Request**: Once a fix is verified, the branch is pushed, and a PR is opened via the GitHub API.
+When AIA detects an incident and generates a fix, it follows a strict branching strategy to avoid conflicts.
 
-## Permissions Model
+1.  **Branch Name**: `aia/fix-<incident-id>`
+2.  **Commit Message**: `fix: resolve issue <incident-id> (automated)`
+3.  **PR Title**: `[AIA] Fix: <Error Description>`
 
-To function correctly, the GitHub App or Bot needs:
-- `Contents: Read/Write`: To clone code and push branches.
-- `Pull Requests: Read/Write`: To open and comment on PRs.
-- `Issues: Read/Write`: To report bugs if no fix is found.
+## PR Lifecycle
 
-We support both **Fine-Grained Personal Access Tokens (PATs)** and **GitHub App Installations**.
+1.  **Open**: The agent opens the PR with the `aia-generated` label.
+2.  **Review**: Developers review the changes and the attached Autopsy Report.
+3.  **Merge**: Once approved (and CI passes), the PR is merged into the main branch.

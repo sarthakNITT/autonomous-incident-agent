@@ -1,13 +1,12 @@
-
 # R2 Storage Setup
 
-Due to Vercel's immutable file system and generic artifact storage limits, AIA uses **Cloudflare R2** for storing persistent data like investigation reports, diagrams, and memory snapshots.
+AIA uses **Cloudflare R2** for storing persistent data like investigation reports, diagrams, and memory snapshots. This avoids filesystem limitations in serverless environments.
 
 ## Why R2?
 
-- **Low Cost**: Zero egress fees.
-- **S3 Compatible**: Easy to integrate using standard S3 SDKs.
-- **Performance**: Edge caching for fast retrieval.
+*   **S3 Compatibility**: Works with standard AWS SDKs.
+*   **Zero Egress Fees**: Cost-effective for high-volume trace data.
+*   **Edge Performance**: Low latency for global agents.
 
 ## Setup Instructions
 
@@ -16,43 +15,42 @@ Due to Vercel's immutable file system and generic artifact storage limits, AIA u
 1.  Log in to the [Cloudflare Dashboard](https://dash.cloudflare.com/).
 2.  Navigate to **R2**.
 3.  Click **Create Bucket**.
-4.  Name your bucket (e.g., `aia-artifacts-storage`).
-5.  Choose a region close to your agent's deployment.
+4.  Name your bucket (e.g., `aia-artifacts`).
 
 ### 2. Generate API Keys
 
-1.  In the R2 dashboard, click **Manage R2 API Tokens**.
+1.  Click **Manage R2 API Tokens**.
 2.  Click **Create API Token**.
-3.  Name the token (e.g., `aia-agent-token`).
-4.  **Permissions**: Select **Object Read & Write**.
-5.  **Scope**: Limit to the specific bucket you created.
-6.  Click **Create Token**.
+3.  Permissions: **Object Read & Write**.
+4.  Copy the `Access Key ID`, `Secret Access Key`, and `Endpoint`.
 
 ### 3. Configure Agent
 
-Copy the `Access Key ID`, `Secret Access Key`, and the `Enpoint` URL. Add them to your environment variables or `aia.config.ts`:
+Add these to your environment variables:
 
-```env
-# .env
-R2_ACCESS_KEY_ID=your_access_key
-R2_SECRET_ACCESS_KEY=your_secret_key
-R2_BUCKET_NAME=aia-artifacts-storage
-R2_ACCOUNT_ID=your_account_id
-```
+<Tabs defaultValue="bash">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="bash">bash</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="bash">
+    ```bash
+    R2_ACCESS_KEY_ID=your_id
+    R2_SECRET_ACCESS_KEY=your_secret
+    R2_BUCKET=aia-artifacts
+    R2_ENDPOINT=https://<accountid>.r2.cloudflarestorage.com
+    ```
+  </TabsContent>
+</Tabs>
 
-The agent will now automatically use this bucket to store generated artifacts.
+And ensuring your `aia.config.ts` maps them correctly:
 
-## Folder Structure in Bucket
-
-The agent organizes files as follows:
-
-```
-/
-├── incidents/
-│   ├── incident-123/
-│   │   ├── report.md
-│   │   ├── diagram.png
-│   │   └── trace.json
-└── memory/
-    └── embedding-index.bin
+```typescript
+storage: {
+  provider: "r2",
+  bucket: process.env.R2_BUCKET,
+  // ...
+}
 ```

@@ -2,6 +2,15 @@ import type { MDXComponents } from "mdx/types";
 import Link from "next/link";
 import Image from "next/image";
 import { CodeBlock } from "@/components/code-block";
+import { Card, Cards } from "@/components/card";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+  TabsCopyButton,
+} from "@/components/ui/tabs";
+import { Steps, Step } from "@/components/step";
 import { cn } from "@/lib/utils";
 
 function slugify(str: string) {
@@ -53,15 +62,30 @@ export const components: MDXComponents = {
       </h2>
     );
   },
-  h3: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h3
-      className={cn(
-        "scroll-m-20 text-[20px] font-semibold tracking-tight mt-5 mb-4",
-        className,
-      )}
-      {...props}
-    />
-  ),
+  h3: ({
+    className,
+    children,
+    ...props
+  }: React.HTMLAttributes<HTMLHeadingElement>) => {
+    const id = slugify(typeof children === "string" ? children : "");
+    return (
+      <h3
+        id={id}
+        className={cn(
+          "group scroll-m-20 text-[20px] font-semibold tracking-tight mt-5 mb-4",
+          className,
+        )}
+        {...props}
+      >
+        <a
+          href={`#${id}`}
+          className="hover:underline underline-offset-4 decoration-muted-foreground/50"
+        >
+          {children}
+        </a>
+      </h3>
+    );
+  },
   h4: ({
     className,
     children,
@@ -195,4 +219,13 @@ export const components: MDXComponents = {
       />
     );
   },
+  Card,
+  Cards,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+  TabsCopyButton,
+  Steps,
+  Step,
 };

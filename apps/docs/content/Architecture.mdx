@@ -1,18 +1,37 @@
-
 # Architecture
 
-The Docs App is built using a custom server implementation with **Bun**.
+The Autonomous Incident Agent (AIA) is a modular, event-driven system designed to run alongside your applications. It mimics the workflow of a human Site Reliability Engineer (SRE) but operates at machine speed.
 
-## Tech Stack
+## System Overview
 
-- **Runtime**: Bun
-- **Framework**: React (SSR)
-- **Content**: MDX
-- **Styling**: CSS Variables (Shadcn-inspired)
+AIA is composed of several specialized microservices that coordinate to handle the incident lifecycle.
 
-## How it Works
+### Core Services
 
-1. **Server**: `src/server.ts` handles incoming requests.
-2. **Routing**: Simple URL matching maps routes to React components or MDX files.
-3. **Rendering**: React components are rendered to a stream using `react-dom/server`.
-4. **Styling**: A global CSS file provides the visual theme.
+#### 1. Router (`apps/router`)
+The entry point for all telemetry. The Router ingests OpenTelemetry traces from your application, filters out noise, and identifies distinct error patterns. It acts as the "ears" of the system.
+
+#### 2. Agent (`apps/agent`)
+The brain of the operation. The Agent is a state machine that orchestrates the resolution process. It decides when to trigger an autopsy, when to attempt a reproduction, and when to give up.
+
+#### 3. Autopsy (`apps/autopsy`)
+The analytical engine. Autopsy uses LLMs to read stack traces, analyze source code, and formulate hypotheses about why an error occurred. It produces an "Autopsy Report" artifact.
+
+#### 4. Repo / Git (`apps/git-service`)
+The hands of the system. This service manages git operations, including cloning repositories, creating branches, applying patches, and opening Pull Requests.
+
+#### 5. Repro (`apps/repro-service`)
+The validation lab. This service runs in a sandboxed environment to execute reproduction scripts and verify fixes. It ensures that the "fix" actually works before it reaches a human.
+
+## Storage Layout
+
+AIA uses **Cloudflare R2** as a central artifact store. All intermediate data—from raw traces to generated patches—is persisted here.
+
+*   `/events`: Raw OpenTelemetry spans.
+*   `/autopsy`: Analysis reports and hypothesis docs.
+*   `/patches`: Generated code patches.
+*   `/repro`: Reproduction scripts and logs.
+
+## Deployment
+
+These services are packaged as Docker containers and can be deployed to any container orchestration platform (Kubernetes, ECS, Nomad) or run on a single robust instance via Docker Compose.

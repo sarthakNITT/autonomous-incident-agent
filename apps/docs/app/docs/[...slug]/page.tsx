@@ -1,5 +1,6 @@
 import { compileMDX } from "next-mdx-remote/rsc";
 import { components } from "@/components/mdx-components";
+import { DocsPager } from "@/components/docs-pager";
 import fs from "fs";
 import path from "path";
 import { notFound } from "next/navigation";
@@ -62,6 +63,7 @@ export default async function Page(props: {
   return (
     <article className="prose prose-zinc dark:prose-invert max-w-none">
       {content}
+      <DocsPager />
     </article>
   );
 }

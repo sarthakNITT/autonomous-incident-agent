@@ -1,44 +1,74 @@
-
 # Event Schema
 
-AIA ingests Observability events via OpenTelemetry (OTLP). This document defines the expected structure of these events.
+AIA ingests Observability events via OpenTelemetry (OTLP). This document defines the expected structure of these events based on the internal `OtelSpan` type.
 
 ## Trace Span Structure
 
 The agent primarily looks for spans containing exceptions or HTTP 5xx errors.
 
+```typescript
+interface OtelSpan {
+  traceId: string;
+  spanId: string;
+  parentSpanId?: string;
+  name: string; // e.g., "GET /api/users"
+  kind: number; // 0=INTERNAL, 1=SERVER, 2=CLIENT, etc.
+  startTimeUnixNano: string;
+  endTimeUnixNano: string;
+  status: {
+    code: number; // 0=UNSET, 1=OK, 2=ERROR
+    message?: string;
+  };
+  attributes: Array<{
+    key: string;
+    value: { stringValue?: string; intValue?: string; boolValue?: boolean };
+  }>;
+  events?: Array<{
+    timeUnixNano: string;
+    name: string; // e.g., "exception"
+    attributes: Array<{
+      key: string;
+      value: { stringValue?: string };
+    }>;
+  }>;
+}
+```
+
+## Example Payload
+
+A typical error span looks like this:
+
 ```json
 {
   "traceId": "5b8aa5a2d2c872e8321cf37308d69df2",
-  "spanId": "051581bf3cb55c1f",
   "name": "GET /api/users",
-  "kind": "SERVER",
+  "kind": 1,
   "status": {
-    "code": "ERROR",
+    "code": 2,
     "message": "Internal Server Error"
   },
-  "attributes": {
-    "http.method": "GET",
-    "http.status_code": 500,
-    "http.url": "https://api.example.com/api/users"
-  },
+  "attributes": [
+    { "key": "http.method", "value": { "stringValue": "GET" } },
+    { "key": "http.status_code", "value": { "intValue": "500" } }
+  ],
   "events": [
     {
       "name": "exception",
-      "timeUnixNano": "1689874837483000000",
-      "attributes": {
-        "exception.type": "TypeError",
-        "exception.message": "Cannot read properties of undefined (reading 'id')",
-        "exception.stacktrace": "TypeError: Cannot read properties of undefined (reading 'id')\n    at UserController.getUser (/app/src/controllers/user.ts:42:15)\n    ..."
-      }
+      "attributes": [
+        { "key": "exception.type", "value": { "stringValue": "TypeError" } },
+        { "key": "exception.message", "value": { "stringValue": "Cannot read properties of undefined" } },
+        { "key": "exception.stacktrace", "value": { "stringValue": "..." } }
+      ]
     }
   ]
 }
 ```
 
-## Validation Rules
+## Detector Types
 
-1.  **Trace ID**: Must be a valid 32-character hex string.
-2.  **Span ID**: Must be a valid 16-character hex string.
-3.  **Error Status**: The span `status.code` must be `ERROR` or contain an `exception` event.
-4.  **Service Name**: The `service.name` resource attribute is used to identify the source application.
+The `DetectorResult` object classifies the incoming signals:
+
+- **http_error**: High error rate or 500 status codes.
+- **latency**: Anomaly in duration.
+- **exception**: Explicit exception event in span.
+- **crash**: Process exit or health check failure.

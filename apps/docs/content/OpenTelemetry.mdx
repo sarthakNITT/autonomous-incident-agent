@@ -1,11 +1,10 @@
-
 # OpenTelemetry Integration
 
 Autonomous Incident Agent (AIA) relies on OpenTelemetry (OTel) to detect anomalies and errors in your application.
 
 ## Overview
 
-Your application must send trace data to the AIA collector endpoint. This allows the agent to:
+Your application must send trace data to the AIA `router` endpoint. This allows the agent to:
 1.  Detect 500 errors and exceptions.
 2.  Analyze trace context to pinpoint root causes.
 3.  Trigger autonomous investigation workflows.
@@ -14,17 +13,51 @@ Your application must send trace data to the AIA collector endpoint. This allows
 
 We recommend using the standard OTel SDKs for your language/framework.
 
-### Node.js (Express/NestJS)
+### Node.js (Express/NestJS/Bun)
 
 Install the necessary packages:
 
-```bash
-bun add @opentelemetry/api @opentelemetry/sdk-node \
-  @opentelemetry/auto-instrumentations-node \
-  @opentelemetry/exporter-trace-otlp-http
-```
+<Tabs defaultValue="bun">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="npm">npm</TabsTrigger>
+      <TabsTrigger value="pnpm">pnpm</TabsTrigger>
+      <TabsTrigger value="yarn">yarn</TabsTrigger>
+      <TabsTrigger value="bun">bun</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="npm">
+    ```bash
+    npm install @opentelemetry/api @opentelemetry/sdk-node \
+      @opentelemetry/auto-instrumentations-node \
+      @opentelemetry/exporter-trace-otlp-http
+    ```
+  </TabsContent>
+  <TabsContent value="pnpm">
+    ```bash
+    pnpm add @opentelemetry/api @opentelemetry/sdk-node \
+      @opentelemetry/auto-instrumentations-node \
+      @opentelemetry/exporter-trace-otlp-http
+    ```
+  </TabsContent>
+  <TabsContent value="yarn">
+    ```bash
+    yarn add @opentelemetry/api @opentelemetry/sdk-node \
+      @opentelemetry/auto-instrumentations-node \
+      @opentelemetry/exporter-trace-otlp-http
+    ```
+  </TabsContent>
+  <TabsContent value="bun">
+    ```bash
+    bun add @opentelemetry/api @opentelemetry/sdk-node \
+      @opentelemetry/auto-instrumentations-node \
+      @opentelemetry/exporter-trace-otlp-http
+    ```
+  </TabsContent>
+</Tabs>
 
-Configure the SDK to export to your AIA agent's endpoint:
+Configure the SDK to export to your AIA agent's endpoint. Create an `instrumentation.ts` file:
 
 ```typescript
 import { NodeSDK } from '@opentelemetry/sdk-node';
@@ -33,8 +66,8 @@ import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentation
 
 const sdk = new NodeSDK({
   traceExporter: new OTLPTraceExporter({
-    // Point this to your deployed AIA agent or local instance
-    url: 'http://localhost:4318/v1/traces',
+    // Point this to your router service
+    url: 'http://localhost:3001/v1/traces',
   }),
   instrumentations: [getNodeAutoInstrumentations()],
 });
@@ -42,23 +75,50 @@ const sdk = new NodeSDK({
 sdk.start();
 ```
 
+Run your app with the instrumentation:
+
+<Tabs defaultValue="bun">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="bun">bun</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="bun">
+    ```bash
+    bun run -r ./instrumentation.ts server.ts
+    ```
+  </TabsContent>
+</Tabs>
+
 ### Next.js
 
-For Next.js App Router, you can use the experimental instrumentation hook or a custom `instrumentation.ts` file.
+For Next.js App Router, use the `instrumentation.ts` file in your project root (or `src/` directory).
 
-Ensure you set the exporter URL:
-
-```bash
-OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:4318"
+```typescript
+export async function register() {
+  if (process.env.NEXT_RUNTIME === 'nodejs') {
+    await import('./instrumentation.node');
+  }
+}
 ```
+
+Ensure you set the exporter URL in your environment:
+
+<Tabs defaultValue="bash">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="bash">bash</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="bash">
+    ```bash
+    OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:3001"
+    ```
+  </TabsContent>
+</Tabs>
 
 ## Data Privacy
 
 AIA only analyzes error traces. We recommend sanitizing sensitive data (PII, secrets) before exporting spans, although the agent is designed to ignore non-error data by default.
-
-## Verification
-
-To verify that traces are being received:
-
-1.  Run your application and trigger an error (page crash, API failure).
-2.  Check the AIA agent logs. You should see "Received span" or "Processing anomaly".

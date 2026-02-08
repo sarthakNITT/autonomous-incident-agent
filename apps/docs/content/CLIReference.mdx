@@ -1,54 +1,66 @@
-
 # CLI Reference
 
-The `aia` CLI allows you to interact with the Autonomous Incident Agent locally.
+The `aia` CLI allows you to start the agent, run diagnostics, and manage the system locally.
 
-## Installation
+## Global Options
 
-```bash
-npm install -g @aia/cli
-# or
-bun add -g @aia/cli
-```
+| Option | Description |
+| :--- | :--- |
+| `--config <path>` | Path to the configuration file (default: `aia.config.ts`). |
+| `--verbose` | Enable verbose logging for debugging. |
 
 ## Commands
 
+### `aia start`
+
+Starts all services defined in your configuration. This is the primary command to run the full agent stack.
+
+<Tabs defaultValue="bun">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="bun">bun</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="bun">
+    ```bash
+    bun run start
+    ```
+  </TabsContent>
+</Tabs>
+
+### `aia dev`
+
+Starts the agent in development mode with hot-reloading enabled for local development of the agent itself.
+
+<Tabs defaultValue="bun">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="bun">bun</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="bun">
+    ```bash
+    bun run dev
+    ```
+  </TabsContent>
+</Tabs>
+
 ### `aia init`
 
-Initializes a new configuration file in the current directory.
+Scaffolds a new configuration file and `.agent` directory in the current folder.
 
-**Options:**
-- `--force`: Overwrite existing config file.
-
-**Usage:**
-```bash
-aia init
-```
-
-### `aia run`
-
-Starts the agent in standalone mode.
-
-**Options:**
-- `--config <path>`: Path to config file (default: `aia.config.ts`).
-- `--port <number>`: Port to listen for OTLP traces (default: 4318).
-- `--verbose`: Enable debug logging.
-
-**Usage:**
-```bash
-aia run --config ./my-aia-config.ts --verbose
-```
-
-### `aia verify`
-
-Runs a suite of diagnostic tests to ensure your environment is correctly set up (credentials, network access, etc.).
-
-**Checks:**
-- R2 bucket accessibility.
-- GitHub token validity.
-- Docker availability (for repro service).
-
-**Usage:**
-```bash
-aia verify
-```
+<Tabs defaultValue="bun">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="bun">bun</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="bun">
+    ```bash
+    bunx aia-init
+    ```
+  </TabsContent>
+</Tabs>

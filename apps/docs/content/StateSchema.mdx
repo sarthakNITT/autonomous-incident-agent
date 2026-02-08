@@ -1,42 +1,62 @@
-
 # State Schema
 
-AIA persists incident state in a relational database (e.g., PostgreSQL or SQLite) to allow resuming interrupted runs and auditing actions.
+The `Incident` object represents the lifecycle of a detected failure. It is managed by the State Service and stored in the database.
 
-## Tables
+## Incident Lifecycle
 
-### Incidents
+An incident moves through the following statuses (`IncidentStatus`):
 
-Tracks high-level anomalies detected by the system.
+1.  **`detected`**: The anomaly has been ingested by the Router.
+2.  **`analyzing`**: Autopsy is currently investigating the root cause.
+3.  **`patching`**: The Agent is generating a fix.
+4.  **`validating`**: Repro is running tests against the patch.
+5.  **`resolved`**: A PR has been opened.
+6.  **`failed`**: The agent could not resolve the issue.
 
-| Field | Type | Description |
-| :--- | :--- | :--- |
-| `id` | UUID | Unique identifier. |
-| `trace_id` | String | OpenTelemetry trace ID causing the incident. |
-| `status` | Enum | `DETECTED`, `ANALYZING`, `FIXING`, `RESOLVED`. |
-| `created_at` | Timestamp | When the incident was first detected. |
-| `updated_at` | Timestamp | Last activity timestamp. |
+## Incident Object
 
-### Steps
+```typescript
+interface Incident {
+  id: string; // Unique UUID
+  status: "detected" | "analyzing" | "patching" | "validating" | "resolved" | "failed";
+  title: string;
+  created_at: string; // ISO Date
+  updated_at: string; // ISO Date
 
-Tracks individual actions taken by the agent (e.g., "Cloning repo", "Running tests").
+  // Artifact links
+  snapshot_id?: string;     // ID of the OTel trace
+  root_cause?: string;      // Markdown summary of the cause
+  patch_diff_key?: string;  // R2 key for the .diff file
+  pr_url?: string;          // GitHub PR link
+  validation_status?: boolean;
 
-| Field | Type | Description |
-| :--- | :--- | :--- |
-| `id` | UUID | Unique step identifier. |
-| `incident_id` | UUID | Foreign key to `Incidents`. |
-| `action` | String | Name of the action (e.g., `git.clone`). |
-| `status` | Enum | `PENDING`, `RUNNING`, `SUCCESS`, `FAILURE`. |
-| `payload` | JSON | Input arguments for the action. |
-| `result` | JSON | Output/result of the action. |
+  // Metadata
+  repo_name?: string;
+  file_path?: string; // The culprit file
+}
+```
 
-### Artifacts
+## API Requests
 
-Links generated files (patches, reports) to incidents.
+### Create Incident
 
-| Field | Type | Description |
-| :--- | :--- | :--- |
-| `id` | UUID | Unique artifact identifier. |
-| `incident_id` | UUID | Foreign key to `Incidents`. |
-| `type` | String | MIME type or custom type (e.g., `application/x-patch`). |
-| `storage_path` | String | Path in R2 bucket where file is stored. |
+Used by the Router to register a new detection.
+
+```json
+{
+  "title": "TypeError in /api/users",
+  "status": "detected"
+}
+```
+
+### Update Incident
+
+Used by the Agent to progress the state.
+
+```json
+{
+  "status": "resolved",
+  "pr_url": "https://github.com/my-org/my-repo/pull/123",
+  "validation_status": true
+}
+```

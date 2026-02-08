@@ -1,75 +1,156 @@
-
 # Installation
 
-Get started with Autonomous Incident Agent (AIA) by installing the core package and setting up your project.
+This guide covers the installation and setup of the Autonomous Incident Agent (AIA) using Bun and TypeScript.
 
 ## Prerequisites
 
-- **Node.js** v18+ or **Bun** v1.0+
-- A GitHub repository for your project
-- An R2 bucket (Cloudflare) for artifact storage due to current Vercel limits
+Before proceeding, ensure your environment meets the following requirements:
 
-## Step 1: Install the Package
+*   **Runtime**: [Bun](https://bun.sh) v1.0 or later.
+*   **Node.js**: v20 or later (if using Node-based tools).
+*   **Storage**: A Cloudflare R2 bucket for storing artifacts (autopsy reports, patches).
+*   **Version Control**: A GitHub repository where the Agent can open Pull Requests.
 
-Run the following command in your project root:
+## Installing Dependencies
+
+AIA is designed to be run as a workspace within your monorepo or as a standalone service.
+
+To install the necessary dependencies, run:
+
+<Tabs defaultValue="bun">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="npm">npm</TabsTrigger>
+      <TabsTrigger value="pnpm">pnpm</TabsTrigger>
+      <TabsTrigger value="yarn">yarn</TabsTrigger>
+      <TabsTrigger value="bun">bun</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="npm">
+    ```bash
+    npm install
+    ```
+  </TabsContent>
+  <TabsContent value="pnpm">
+    ```bash
+    pnpm install
+    ```
+  </TabsContent>
+  <TabsContent value="yarn">
+    ```bash
+    yarn install
+    ```
+  </TabsContent>
+  <TabsContent value="bun">
+    ```bash
+    bun install
+    ```
+  </TabsContent>
+</Tabs>
+
+If you are building the documentation or specific apps, you can verify the build with:
+
+<Tabs defaultValue="bun">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="npm">npm</TabsTrigger>
+      <TabsTrigger value="pnpm">pnpm</TabsTrigger>
+      <TabsTrigger value="yarn">yarn</TabsTrigger>
+      <TabsTrigger value="bun">bun</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="npm">
+    ```bash
+    npm run build --workspace=apps/docs
+    ```
+  </TabsContent>
+  <TabsContent value="pnpm">
+    ```bash
+    pnpm run build --filter=apps/docs
+    ```
+  </TabsContent>
+  <TabsContent value="yarn">
+    ```bash
+    yarn workspace apps/docs run build
+    ```
+  </TabsContent>
+  <TabsContent value="bun">
+    ```bash
+    bun run build --filter=apps/docs
+    ```
+  </TabsContent>
+</Tabs>
+
+## System Requirements
+
+### Hardware
+
+*   **CPU**: 2+ cores recommended for concurrent agent operations.
+*   **Memory**: 4GB+ RAM (Agent analysis can be memory intensive).
+*   **Disk**: Fast I/O is recommended for log processing and temporary workspace creation.
+
+### Network
+
+The Agent requires outbound access to:
+
+*   **GitHub API**: `api.github.com`
+*   **Cloudflare R2**: `S3 Compatible Endpoint`
+*   **LLM Provider**: Your configured AI provider API (e.g., OpenAI, Anthropic).
+
+## Verifying Installation
+
+To verify that the CLI and core services are installed correctly, you can check the version:
 
 ```bash
-bun add aia-agent
-# or
-npm install aia-agent
-pnpm add aia-agent
-yarn add aia-agent
+bun run --version
 ```
 
-## Step 2: Run the Installer
+And ensure the Typescript configuration is valid:
 
-We provide a CLI tool to scaffold the necessary configuration files and directory structure.
+<Tabs defaultValue="bun">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="npm">npm</TabsTrigger>
+      <TabsTrigger value="pnpm">pnpm</TabsTrigger>
+      <TabsTrigger value="yarn">yarn</TabsTrigger>
+      <TabsTrigger value="bun">bun</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="npm">
+    ```bash
+    npm run typecheck
+    ```
+  </TabsContent>
+  <TabsContent value="pnpm">
+    ```bash
+    pnpm run typecheck
+    ```
+  </TabsContent>
+  <TabsContent value="yarn">
+    ```bash
+    yarn run typecheck
+    ```
+  </TabsContent>
+  <TabsContent value="bun">
+    ```bash
+    bun run typecheck
+    ```
+  </TabsContent>
+</Tabs>
 
-```bash
-# Using bun
-bunx aia-init
+## Configuration
 
-# Using npx
-npx aia-init
-```
+After installation, you must configure the agent using `aia.config.ts`. See the [Configuration Reference](./ConfigReference.mdx) for details.
 
-This command will:
-1.  Create an `aia.config.ts` file in your root directory.
-2.  Set up the `.agent` directory structure for workflows and artifacts.
-3.  Ask for necessary API keys (GitHub, OpenAI/Anthropic, R2).
+## Troubleshooting
 
-## Folder Structure
+If you encounter issues during installation:
 
-After installation, your project should look like this:
+1.  Ensure `bun` is in your system PATH.
+2.  Check for write permissions in the directory (the agent creates a `.agent` folder).
+3.  Verify your network allows connections to npm/GitHub packages.
 
-```
-my-project/
-├── .agent/
-│   ├── workflows/       # Custom workflow definitions (.md)
-│   └── artifacts/       # Generated artifacts (diagrams, plans)
-├── aia.config.ts        # Main configuration file
-├── package.json
-└── ...
-```
-
-### `aia.config.ts`
-
-This is the heart of your AIA configuration. It defines:
-- **Project Name**: Unique identifier for your project.
-- **Model Configuration**: LLM provider and model selection.
-- **Storage**: R2 bucket credentials and settings.
-- **GitHub**: Token and repo details.
-
-```typescript
-import { defineConfig } from 'aia-agent/config';
-
-export default defineConfig({
-  project: 'my-awesome-app',
-  storage: {
-    type: 'r2',
-    bucket: process.env.R2_BUCKET_NAME,
-    // ...
-  },
-  // ...
-});
-```
+See [Troubleshooting](./Troubleshooting.mdx) for more solutions.

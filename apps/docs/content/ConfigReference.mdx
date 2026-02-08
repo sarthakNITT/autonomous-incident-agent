@@ -1,73 +1,93 @@
-
 # Configuration Reference
 
-The `aia.config.ts` (or `aia.config.yaml`) file controls the behavior of the Autonomous Incident Agent.
+The `aia.config.ts` file acts as the single source of truth for your agent's behavior. It manages service ports, storage credentials, and third-party integrations.
 
-## Schema
+## Configuration File
+
+The agent looks for `aia.config.ts` (or `.js`, `.json`, `.yaml`) in the project root.
 
 ```typescript
-export interface AIAConfig {
-  project: string;
-  storage: {
-    type: "r2";
-    bucket: string;
-    region?: string;
-    accountId?: string;
-    accessKeyId?: string;
-    secretAccessKey?: string;
-  };
-  github: {
-    owner: string;
-    repo: string;
-    token: string;
-    botUsername: string;
-  };
-  agent: {
-    model: "claude-3-opus" | "gpt-4-turbo";
-    maxIterations: number;
-    logLevel: "debug" | "info" | "warn" | "error";
-  };
+import { defineConfig } from 'aia-agent/config';
+
+export default defineConfig({
+  project_name: 'my-app',
+  environment: 'production',
+  // ...
+});
+```
+
+## Schema Reference
+
+The configuration object adheres to the `Config` interface from `@repo/types`.
+
+### Top-Level Fields
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `project_name` | `string` | Unique identifier for your project artifacts. |
+| `environment` | `string` | Deployment environment (e.g., `production`, `staging`). |
+
+### Services
+
+Configures the ports and base URLs for all internal microservices.
+
+```typescript
+services: {
+  router: { port: 3001, base_url: "http://localhost:3001" },
+  agent: { port: 3002, base_url: "http://localhost:3002" },
+  // ... other services
 }
 ```
 
-## Field Descriptions
+### Storage (R2)
 
-### Project
-- **project**: A unique string identifier for your project. Used for namespacing artifacts.
-
-### Storage
-- **type**: Currently only `"r2"` is supported.
-- **bucket**: The name of your Cloudflare R2 bucket.
-- **region**: Defaults to `auto`.
-- **accountId**: Your Cloudflare account ID.
-
-### GitHub
-- **owner**: Organization or user name.
-- **repo**: Repository name.
-- **token**: Personal Access Token (PAT) or GitHub App token.
-- **botUsername**: The username of the bot account (for commenting).
-
-### Agent
-- **model**: The underlying LLM to manipulate code.
-- **maxIterations**: Maximum number of attempts to fix a bug before giving up (default: 5).
-- **logLevel**: Verbosity of the agent's output.
-
-## Examples
-
-### Production (Environment Variables)
-
-Recommended for security.
+AIA strictly requires an S3-compatible store, currently optimized for Cloudflare R2.
 
 ```typescript
-export default {
-  project: "my-app",
-  storage: {
-    type: "r2",
-    bucket: process.env.R2_BUCKET,
-    accountId: process.env.R2_ACCOUNT_ID,
-    accessKeyId: process.env.R2_ACCESS_KEY_ID,
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
-  },
-  // ...
-};
+storage: {
+  provider: "r2",
+  bucket: process.env.R2_BUCKET,
+  access_key: process.env.R2_ACCESS_KEY_ID,
+  secret_key: process.env.R2_SECRET_ACCESS_KEY,
+  region: "auto",
+  endpoint: process.env.R2_ENDPOINT,
+}
+```
+
+### GitHub
+
+Configures the bot's identity and permissions.
+
+```typescript
+github: {
+  provider: "github",
+  token: process.env.GITHUB_TOKEN,
+  org: "my-org",
+  repo: "my-repo",
+  username: "aia-bot",
+}
+```
+
+## Environment Variables
+
+For security, we recommend using environment variables for sensitive credentials.
+
+| Variable | Description |
+| :--- | :--- |
+| `R2_BUCKET` | The name of your R2 bucket. |
+| `R2_ACCESS_KEY_ID` | R2 Access Key ID. |
+| `R2_SECRET_ACCESS_KEY` | R2 Secret Access Key. |
+| `R2_ENDPOINT` | The S3-compatible endpoint URL for your bucket. |
+| `GITHUB_TOKEN` | A Fine-Grained PAT or App Installation Token. |
+| `AIA_API_KEY` | API Key for the LLM provider (e.g., OpenAI, Anthropic). |
+
+## Database
+
+AIA supports SQLite (default) and PostgreSQL.
+
+```typescript
+database: {
+  provider: "sqlite",
+  path: "./aia.db"
+}
 ```

@@ -55,7 +55,7 @@ export function DocsNavbar() {
               <SearchDialog open={showSearch} onOpenChange={setShowSearch} />
             )}
           </div>
-          <nav className="flex items-center gap-1">
+          <nav className="flex items-center">
             <Link
               href="https://github.com/sarthakNITT/autonomous-incident-agent"
               target="_blank"

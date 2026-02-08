@@ -1,47 +1,42 @@
-
 # Troubleshooting
 
-This guide addresses common issues users may encounter when integrating or running the Autonomous Incident Agent (AIA).
+This guide addresses common issues encountered when running AIA.
 
-## Common Issues
+## Incident Detection
 
-### 1. Agent Not Receiving Events
+### Agent Not Receiving Events
 
-**Symptoms**: The application runs without errors, but the agent shows no activity in the logs.
+**Symptom**: Application errors occur, but no incident is created.
 
-**Possible Causes**:
-- **Incorrect Endpoint**: Ensure `OTEL_EXPORTER_OTLP_ENDPOINT` points to the correct URL (e.g., `http://localhost:4318` or your deployed agent service).
-- **Network Issues**: Check if the agent port is accessible from your application container.
-- **Trace Sampling**: If you're using a high sampling rate, some traces might be dropped. Ensure error traces are prioritized.
+**Checks**:
+1.  **Endpoint**: Ensure `OTEL_EXPORTER_OTLP_ENDPOINT` points to `http://localhost:3001` (Router) or `http://aia-agent:3001` (Docker).
+2.  **Sampling**: Check if your OTel SDK is sampling out the error (set `OTEL_TRACES_SAMPLER=always_on` for debugging).
+3.  **Logs**: Check `apps/router` logs. You should see `Span received: <traceId>`.
 
-### 2. PR Not Created
+### False Positives
 
-**Symptoms**: The agent detects an anomaly but fails to create a Pull Request.
+**Symptom**: AIA creates incidents for expected errors (e.g., 404s).
 
-**Possible Causes**:
-- **GitHub Token Permissions**: Verify your token has `Contents: Write` and `Pull Requests: Write` scopes.
-- **Branch Protection**: Ensure the bot account is allowed to push to protected branches or bypass restrictions.
-- **Existing PR**: The agent may skip creating a PR if one already exists for the same issue.
+**Fix**:
+-   Adjust the detection logic in `aia.config.ts` (if supported) or filter spans in your application before exporting.
 
-### 3. Validation Failures
+## Remediation
 
-**Symptoms**: The agent generates a fix, but CI tests fail.
+### Autopsy Failed
 
-**Possible Causes**:
-- **Flaky Tests**: Rerun the CI workflow to rule out flakiness.
-- **Missing Context**: The agent might lack sufficient context about your testing environment. try adding more documentation to your `.agent/` folder.
-- **Dependency Issues**: Ensure the agent has access to all necessary dependencies to run tests.
+**Symptom**: Incident stays in `ANALYZING` state forever.
 
-## Debugging
+**Checks**:
+1.  **LLM Key**: Verify `AIA_API_KEY` is valid.
+2.  **Git Access**: Ensure the agent can clone the repo to read source code. Check `apps/git-service` logs for authentication errors.
 
-To get more insight into what the agent is doing, enable verbose logging:
+### Patch Verification Failed
 
-```bash
-LOG_LEVEL=debug bun run start
-```
+**Symptom**: Incident moves to `FAILED` state with "Repro failed".
 
-This will output detailed logs about trace processing, analysis steps, and GitHub interactions.
+**Cause**:
+-   **Hallucinated Repro**: The agent generated a test that doesn't actually fail on the original code.
+-   **Broken Patch**: The patch caused a syntax error or failed the test.
 
-## Support
-
-If you're still facing issues, please open an issue in the [GitHub Repository](https://github.com/your-org/aia-agent/issues) or contact support.
+**Fix**:
+-   Check the `repro.ts` artifact in R2 to see what the agent tried to run.

@@ -1,71 +1,72 @@
-
 # Running the Agent
 
-This guide covers how to run the Autonomous Incident Agent (AIA) in different environments.
+This guide details how to run the AIA Agent service in production and development.
 
-## Local Development
+## Production (Bun)
 
-For testing and local development, you can run the agent directly on your machine.
+The most performant way to run the agent is using Bun.
 
-1.  **Clone the repository**:
-    ```bash
-    git clone https://github.com/your-org/aia-agent.git
-    cd aia-agent
-    ```
-
-2.  **Install dependencies**:
-    ```bash
-    bun install
-    ```
-
-3.  **Start the agent**:
+<Tabs defaultValue="bun">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="bun">bun</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="bun">
     ```bash
     bun run start
     ```
+  </TabsContent>
+</Tabs>
 
-The agent will start listening for OpenTelemetry traces on port `4318`.
+This command starts the `Agent`, `Router`, and `Autopsy` services according to your `aia.config.ts`.
 
-## Docker Deployment (Sidecar)
+### Environment Variables
 
-For production, we recommend deploying the agent as a sidecar container alongside your application.
+Ensure the following are set in your production environment:
 
-### Docker Compose
+*   `GITHUB_TOKEN`
+*   `R2_*` credentials
+*   `AIA_API_KEY` (for the LLM)
 
-Add the agent service to your `docker-compose.yml`:
+## Development
 
-```yaml
-version: '3.8'
+For contributing to AIA or debugging local issues:
 
-services:
-  app:
-    build: .
-    environment:
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://aia-agent:4318
-    depends_on:
-      - aia-agent
+<Tabs defaultValue="bun">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="bun">bun</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="bun">
+    ```bash
+    bun run dev
+    ```
+  </TabsContent>
+</Tabs>
 
-  aia-agent:
-    image: ghcr.io/your-org/aia-agent:latest
-    environment:
-      - GITHUB_TOKEN=${GITHUB_TOKEN}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}
-      - R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}
-    ports:
-      - "4318:4318" # OTLP HTTP receiver
-```
+This starts the services with hot-reloading enabled. Logs will be streamed to stdout in a human-readable format.
 
-## Verifying Detection
+## Docker
 
-To ensure the agent is running correctly:
+You can also run the agent as a Docker container.
 
-1.  **Check Logs**: Look for "AIA Agent started" in the container logs.
-2.  **Send a Test Trace**: Use `curl` to send a dummy error trace.
-
-```bash
-curl -X POST http://localhost:4318/v1/traces \
-  -H "Content-Type: application/json" \
-  -d '{ ... otel trace json ... }'
-```
-
-If the agent receives the trace, it will log "Received span" and begin analysis.
+<Tabs defaultValue="docker">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="docker">docker</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="docker">
+    ```bash
+    docker run -d \
+      --env-file .env \
+      -p 3001:3001 \
+      ghcr.io/check19-studios/aia-agent:latest
+    ```
+  </TabsContent>
+</Tabs>

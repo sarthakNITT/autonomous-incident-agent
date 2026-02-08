@@ -1,23 +1,34 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { sidebarItems } from "@/lib/docs-config";
 
 export function DocsTOC() {
+  const pathname = usePathname();
   const [headings, setHeadings] = React.useState<
     { id: string; title: string; depth: number }[]
   >([]);
   const [activeId, setActiveId] = React.useState<string>("");
 
+  // Find the active group
+  const activeGroup = sidebarItems.find((group) =>
+    group.items.some((item) => item.href === pathname),
+  );
+
   React.useEffect(() => {
-    const elements = Array.from(document.querySelectorAll("h2, h3, h4")).map(
+    const elements = Array.from(document.querySelectorAll("h2, h3")).map(
       (elem) => ({
         id: elem.id,
-        title: elem.textContent || "",
+        title: elem.textContent?.replace("#", "") || "",
         depth: Number(elem.tagName.substring(1)),
       }),
     );
     setHeadings(elements);
+    // Reset active ID on route change if no hash
+    setActiveId("");
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -36,32 +47,91 @@ export function DocsTOC() {
     });
 
     return () => observer.disconnect();
-  }, []);
+  }, [pathname]);
 
-  if (!headings.length) return null;
+  // Determine active parent (H2) if active item is H3
+  const activeIndex = headings.findIndex((h) => h.id === activeId);
+  let activeParentId = "";
+  if (activeIndex !== -1 && headings[activeIndex].depth === 3) {
+    for (let i = activeIndex - 1; i >= 0; i--) {
+      if (headings[i].depth === 2) {
+        activeParentId = headings[i].id;
+        break;
+      }
+    }
+  }
+
+  if (!activeGroup) return null;
 
   return (
-    <div className="space-y-2 px-10 pt-10 sticky top-[72px]">
+    <div className="space-y-2 px-10 pt-10 pb-10">
       <p className="font-medium text-sm text-foreground">On This Page</p>
-      <ul className="m-0 list-none space-y-[8px]">
-        {headings.map((item, index) => (
-          <li key={index} className="mt-0 pt-0">
-            <a
-              href={`#${item.id}`}
-              className={cn(
-                "inline-block no-underline transition-colors hover:text-foreground line-clamp-1 text-[12.5px] duration-160 ease-out",
-                item.id === activeId
-                  ? "font-medium text-foreground"
-                  : "text-foreground/10 hover:text-foreground",
-                item.depth === 3 && "pl-4",
-                item.depth === 4 && "pl-8",
-              )}
-            >
-              {item.title}
-            </a>
-          </li>
-        ))}
-      </ul>
+
+      <div className="pt-4">
+        <h4 className="mb-2 text-[13px] font-semibold text-foreground tracking-wide uppercase opacity-80">
+          {activeGroup.title}
+        </h4>
+        <div className="flex flex-col space-y-2">
+          {activeGroup.items.map((item) => {
+            const isActivePage = pathname === item.href;
+            return (
+              <React.Fragment key={item.href}>
+                <Link
+                  href={item.href}
+                  className={cn(
+                    "text-[13px] transition-colors hover:text-foreground",
+                    isActivePage
+                      ? "font-medium text-foreground"
+                      : "text-muted-foreground hover:text-foreground opacity-50",
+                  )}
+                >
+                  {item.title}
+                </Link>
+                {isActivePage && headings.length > 0 && (
+                  <div className="flex flex-col space-y-2 mt-2">
+                    {headings.map((heading) => {
+                      const isActive = heading.id === activeId;
+                      const isParentActive = heading.id === activeParentId;
+                      const showLine = isActive || isParentActive;
+
+                      return (
+                        <a
+                          key={heading.id}
+                          href={`#${heading.id}`}
+                          className={cn(
+                            "relative block text-[12.5px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                            // Base styles: default 50% opacity
+                            "text-muted-foreground hover:text-foreground line-clamp-1 duration-160 ease-out",
+                            isActive
+                              ? "opacity-100 font-medium text-foreground"
+                              : "opacity-50",
+
+                            // H2 Styles
+                            heading.depth === 2 &&
+                              "pl-4 border-l-2 border-transparent",
+                            heading.depth === 2 &&
+                              showLine &&
+                              "border-foreground",
+
+                            // H3 Styles
+                            heading.depth === 3 && "pl-6",
+                            // H3 Dot Indicator
+                            heading.depth === 3 &&
+                              isActive &&
+                              "before:absolute before:left-2 before:top-1.5 before:h-1.5 before:w-1.5 before:rounded-full before:bg-foreground",
+                          )}
+                        >
+                          {heading.title}
+                        </a>
+                      );
+                    })}
+                  </div>
+                )}
+              </React.Fragment>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

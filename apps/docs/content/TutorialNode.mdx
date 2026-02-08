@@ -1,26 +1,57 @@
-
 # Tutorial: Node.js Integration
 
-This guide demonstrates how to integrate the Autonomous Incident Agent into a standard Node.js Express application.
+This guide demonstrates how to integrate AIA into a standard Node.js/Express application.
 
 ## Prerequisites
 
-- An existing Node.js project.
-- A running instance of the AIA Agent (or a deployed URL).
+-   Existing Node.js project.
+-   Running AIA Agent.
 
 ## Step 1: Install Dependencies
 
-Install the OpenTelemetry SDK and auto-instrumentations.
-
-```bash
-npm install @opentelemetry/api @opentelemetry/sdk-node \
-  @opentelemetry/auto-instrumentations-node \
-  @opentelemetry/exporter-trace-otlp-http
-```
+<Tabs defaultValue="bun">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="npm">npm</TabsTrigger>
+      <TabsTrigger value="pnpm">pnpm</TabsTrigger>
+      <TabsTrigger value="yarn">yarn</TabsTrigger>
+      <TabsTrigger value="bun">bun</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="npm">
+    ```bash
+    npm install @opentelemetry/api @opentelemetry/sdk-node \
+      @opentelemetry/auto-instrumentations-node \
+      @opentelemetry/exporter-trace-otlp-http
+    ```
+  </TabsContent>
+  <TabsContent value="pnpm">
+    ```bash
+    pnpm add @opentelemetry/api @opentelemetry/sdk-node \
+      @opentelemetry/auto-instrumentations-node \
+      @opentelemetry/exporter-trace-otlp-http
+    ```
+  </TabsContent>
+  <TabsContent value="yarn">
+    ```bash
+    yarn add @opentelemetry/api @opentelemetry/sdk-node \
+      @opentelemetry/auto-instrumentations-node \
+      @opentelemetry/exporter-trace-otlp-http
+    ```
+  </TabsContent>
+  <TabsContent value="bun">
+    ```bash
+    bun add @opentelemetry/api @opentelemetry/sdk-node \
+      @opentelemetry/auto-instrumentations-node \
+      @opentelemetry/exporter-trace-otlp-http
+    ```
+  </TabsContent>
+</Tabs>
 
 ## Step 2: Configure Instrumentation
 
-Create a file named `instrumentation.ts` in your project root.
+Create `instrumentation.ts`:
 
 ```typescript
 import { NodeSDK } from '@opentelemetry/sdk-node';
@@ -29,7 +60,7 @@ import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentation
 
 const sdk = new NodeSDK({
   traceExporter: new OTLPTraceExporter({
-    url: 'http://localhost:4318/v1/traces',
+    url: 'http://localhost:3001/v1/traces',
   }),
   instrumentations: [getNodeAutoInstrumentations()],
 });
@@ -37,34 +68,37 @@ const sdk = new NodeSDK({
 sdk.start();
 ```
 
-## Step 3: Connect to Your App
+## Step 3: Connect to App
 
-Import the instrumentation at the very top of your entry point (e.g., `index.ts`).
+Import it at the **top** of your entry file:
 
 ```typescript
 import './instrumentation';
 import express from 'express';
 
 const app = express();
-const port = 3000;
-
-app.get('/', (req, res) => {
-  res.send('Hello World!');
-});
 
 app.get('/error', (req, res) => {
-  throw new Error('Test Incident Triggers Here');
+  throw new Error('Test Incident');
 });
 
-app.listen(port, () => {
-  console.log(`App listening on port ${port}`);
-});
+app.listen(3000);
 ```
 
-## Step 4: Simulate Failure
+## Step 4: Test
 
-Run your application and visit `http://localhost:3000/error`.
+Run and visit `/error`.
 
-The application will crash (or return a 500). The OpenTelemetry SDK will capture this exception and send a trace to the AIA Agent.
-
-Open the AIA Dashboard or check the logs to see the incident created.
+<Tabs defaultValue="bun">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="bun">bun</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="bun">
+    ```bash
+    bun run server.ts
+    ```
+  </TabsContent>
+</Tabs>

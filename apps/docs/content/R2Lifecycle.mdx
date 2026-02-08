@@ -1,24 +1,20 @@
+# R2 Lifecycle Policy
 
-# R2 Storage Lifecycle
+To manage costs and storage size, we enforce Time-To-Live (TTL) policies on the R2 bucket.
 
-AIA relies on Cloudflare R2 for storing transient and persistent artifacts. This document outlines how data is managed to balance performance and cost.
+## Retention Rules
 
-## Object Layout
+We categorize objects based on their path prefix and apply the following retention periods:
 
-We use a structured key naming convention:
+| Path Prefix | Retention | Description |
+| :--- | :--- | :--- |
+| `events/` | 7 Days | Raw traces are transient and only needed for immediate analysis. |
+| `autopsy/` | 30 Days | Analysis reports are kept for debugging and audit trails. |
+| `patches/` | 7 Days | Patches are fleeting; once merged or rejected, they are not needed. |
+| `reports/` | Indefinite | High-level PDF/Markdown summaries are permanent records. |
 
-- `runs/{run_id}/context.json`: Original context that triggered this run.
-- `runs/{run_id}/logs/`: Agent execution logs.
-- `artifacts/{artifact_id}/{filename}`: Generated files (e.g., diff patches, test scripts).
-- `cache/repo/{owner}/{repo}/{commit_sha}/`: Cached git checkouts for faster Autopsy.
+## Implementation
 
-## Artifact Ownership
+These rules are configured in the Cloudflare Dashboard under your bucket settings > **Lifecycle Rules**.
 
-Artifacts are owned by the `Agent` that created them. However, they are accessible by any service (e.g., `Repro Service`, `Autopsy Service`) given the correct IAM permissions.
-
-## Cleanup Strategy
-
-Since R2 is object storage, old data accumulates. We implement a Time-To-Live (TTL) using R2 Lifecycle rules:
-- **Temporary artifacts**: Deleted after 7 days.
-- **Run logs**: Deleted after 30 days.
-- **Important incident reports**: Retained indefinitely (unless manually deleted).
+We recommend creating a rule named `AIA Cleanup` with the above prefixes.

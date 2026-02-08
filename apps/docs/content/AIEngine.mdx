@@ -1,30 +1,32 @@
-
 # AI Engine
 
-The core intelligence of AIA is powered by Large Language Models (LLMs), primarily leveraging You.com's search and reasoning capabilities alongside precise code navigation.
+The AI Engine is the "brain" of AIA available at `apps/agent`. It uses Large Language Models (LLMs) to reason about code and failure states.
 
-## Reasoning Process
+## Capabilities
 
-The AI Engine does not simply "guess" code. It follows a structured chain-of-thought:
+### 1. Root Cause Analysis (RCA)
 
-1.  **Context Gathering**: It first understands the error by reading the stack trace and the immediate surrounding code.
-2.  **Hypothesis Generation**: It formulates multiple theories about why the error occurred (e.g., null reference, type mismatch, logic error).
-3.  **Validation**: It looks for evidence in the code to support these theories.
+The engine analyzes stack traces and source code to determine *why* an error occurred. It doesn't just look at the line number; it reads the surrounding context (AST) to understand the logic flow.
 
-## AST-Based Locator
+### 2. Test Generation
 
-To ensure patches are applied correctly, AIA uses an Abstract Syntax Tree (AST) locator instead of line numbers.
+Before fixing a bug, the engine writes a reproduction script (`repro.ts`). This ensures that the bug is observable and that the fix is valid.
 
--   **Why?**: Line numbers change as code is modified. AST nodes (FunctionDeclaration, ClassMethod) are structural and stable.
--   **How**:
-    - The LLM identifies the target function or block.
-    - The `Autopsy Service` parses the file into an AST.
-    - It locates the exact node and replaces only the relevant subtree.
+### 3. AST-Aware Patching
 
-## Patch Generation
+AIA uses Abstract Syntax Trees (AST) to modify code. Instead of "replace line 10", it says "replace the `FunctionDeclaration` named `getUser`". This makes patches robust against stale file versions.
 
-When generating a fix, the engine produces two things:
-1.  **The Fix**: The actual code change.
-2.  **The Test**: A standalone script or unit test that reproduces the bug.
+## Configuration
 
-This "Test-Driven Repair" approach ensures that every fix is verified before it ever reaches a human reviewer.
+The engine is configured in `aia.config.ts`:
+
+```typescript
+ai: {
+  provider: "you.com", // or "mock"
+  model: "research-pro",
+  maxIterations: 5
+}
+```
+
+*   **`provider`**: The backend LLM service.
+*   **`maxIterations`**: How many times the agent will retry a fix if the reproduction script fails.
