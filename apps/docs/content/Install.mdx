@@ -103,9 +103,19 @@ The Agent requires outbound access to:
 
 To verify that the CLI and core services are installed correctly, you can check the version:
 
-```bash
-bun run --version
-```
+<Tabs defaultValue="bun">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="bun">bun</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="bun">
+    ```bash
+    bun run --version
+    ```
+  </TabsContent>
+</Tabs>
 
 And ensure the Typescript configuration is valid:
 

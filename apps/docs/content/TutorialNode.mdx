@@ -53,37 +53,63 @@ This guide demonstrates how to integrate AIA into a standard Node.js/Express app
 
 Create `instrumentation.ts`:
 
-```typescript
-import { NodeSDK } from '@opentelemetry/sdk-node';
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
-import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
+<Tabs defaultValue="terminal">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="terminal">Terminal</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="terminal">
+    ```typescript
+    import { NodeSDK } from '@opentelemetry/sdk-node';
+    import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
+    import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 
-const sdk = new NodeSDK({
-  traceExporter: new OTLPTraceExporter({
-    url: 'http://localhost:3001/v1/traces',
-  }),
-  instrumentations: [getNodeAutoInstrumentations()],
-});
+    const sdk = new NodeSDK({
+      traceExporter: new OTLPTraceExporter({
+        url: 'http://localhost:3001/v1/traces',
+      }),
+      instrumentations: [getNodeAutoInstrumentations()],
+    });
 
-sdk.start();
-```
+    sdk.start();
+    ```
+  </TabsContent>
+</Tabs>
 
 ## Step 3: Connect to App
 
 Import it at the **top** of your entry file:
 
-```typescript
-import './instrumentation';
-import express from 'express';
+<Tabs defaultValue="terminal">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="terminal">Terminal</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="terminal">
+    ```typescript
+    import './instrumentation';
+    import express from 'express';
+    // ... imports
 
-const app = express();
+    const app = express();
 
-app.get('/error', (req, res) => {
-  throw new Error('Test Incident');
-});
+    app.get('/error', (req, res) => {
+      // Intentional error
+      const user = undefined;
+      console.log(user.name);
+      res.send('ok');
+    });
 
-app.listen(3000);
-```
+    app.listen(3000, () => {
+      console.log('Server running on port 3000');
+    });
+    ```
+  </TabsContent>
+</Tabs>
 
 ## Step 4: Test
 

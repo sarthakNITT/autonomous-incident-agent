@@ -20,13 +20,23 @@ AIA uses Abstract Syntax Trees (AST) to modify code. Instead of "replace line 10
 
 The engine is configured in `aia.config.ts`:
 
-```typescript
-ai: {
-  provider: "you.com", // or "mock"
-  model: "research-pro",
-  maxIterations: 5
-}
-```
+<Tabs defaultValue="terminal">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="terminal">Terminal</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="terminal">
+    ```typescript
+    ai: {
+      provider: "you.com", // or "mock"
+      model: "research-pro",
+      maxIterations: 5
+    }
+    ```
+  </TabsContent>
+</Tabs>
 
 *   **`provider`**: The backend LLM service.
 *   **`maxIterations`**: How many times the agent will retry a fix if the reproduction script fails.

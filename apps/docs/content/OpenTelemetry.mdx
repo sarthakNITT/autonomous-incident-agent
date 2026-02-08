@@ -59,21 +59,31 @@ Install the necessary packages:
 
 Configure the SDK to export to your AIA agent's endpoint. Create an `instrumentation.ts` file:
 
-```typescript
-import { NodeSDK } from '@opentelemetry/sdk-node';
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
-import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
+<Tabs defaultValue="terminal">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="terminal">Terminal</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="terminal">
+    ```typescript
+    import { NodeSDK } from '@opentelemetry/sdk-node';
+    import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
+    import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 
-const sdk = new NodeSDK({
-  traceExporter: new OTLPTraceExporter({
-    // Point this to your router service
-    url: 'http://localhost:3001/v1/traces',
-  }),
-  instrumentations: [getNodeAutoInstrumentations()],
-});
+    const sdk = new NodeSDK({
+      traceExporter: new OTLPTraceExporter({
+        // Point this to your router service
+        url: 'http://localhost:3001/v1/traces',
+      }),
+      instrumentations: [getNodeAutoInstrumentations()],
+    });
 
-sdk.start();
-```
+    sdk.start();
+    ```
+  </TabsContent>
+</Tabs>
 
 Run your app with the instrumentation:
 
@@ -95,13 +105,23 @@ Run your app with the instrumentation:
 
 For Next.js App Router, use the `instrumentation.ts` file in your project root (or `src/` directory).
 
-```typescript
-export async function register() {
-  if (process.env.NEXT_RUNTIME === 'nodejs') {
-    await import('./instrumentation.node');
-  }
-}
-```
+<Tabs defaultValue="terminal">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="terminal">Terminal</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="terminal">
+    ```typescript
+    export async function register() {
+      if (process.env.NEXT_RUNTIME === 'nodejs') {
+        await import('./instrumentation.node');
+      }
+    }
+    ```
+  </TabsContent>
+</Tabs>
 
 Ensure you set the exporter URL in your environment:
 

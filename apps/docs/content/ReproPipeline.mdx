@@ -50,12 +50,22 @@ You can manually trigger a reproduction run for debugging purposes via HTTP:
 
 A reproduction script is a standalone test file that mimics the conditions of the detected error.
 
-```typescript
-import { mainHandler } from "./src/main";
+<Tabs defaultValue="terminal">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="terminal">Terminal</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="terminal">
+    ```typescript
+    import { mainHandler } from "./src/main";
 
-test("reproduce null pointer in mainHandler", async () => {
-  const badInput = { user: null };
-  // Expect this to throw
-  expect(async () => await mainHandler(badInput)).toThrow();
-});
-```
+    test("reproduce null pointer in mainHandler", async () => {
+      const badInput = { user: null };
+      // Expect this to throw
+      expect(async () => await mainHandler(badInput)).toThrow();
+    });
+    ```
+  </TabsContent>
+</Tabs>

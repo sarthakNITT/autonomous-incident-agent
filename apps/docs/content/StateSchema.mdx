@@ -15,26 +15,36 @@ An incident moves through the following statuses (`IncidentStatus`):
 
 ## Incident Object
 
-```typescript
-interface Incident {
-  id: string; // Unique UUID
-  status: "detected" | "analyzing" | "patching" | "validating" | "resolved" | "failed";
-  title: string;
-  created_at: string; // ISO Date
-  updated_at: string; // ISO Date
+<Tabs defaultValue="terminal">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="terminal">Terminal</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="terminal">
+    ```typescript
+    interface Incident {
+      id: string; // Unique UUID
+      status: "detected" | "analyzing" | "patching" | "validating" | "resolved" | "failed";
+      title: string;
+      created_at: string; // ISO Date
+      updated_at: string; // ISO Date
 
-  // Artifact links
-  snapshot_id?: string;     // ID of the OTel trace
-  root_cause?: string;      // Markdown summary of the cause
-  patch_diff_key?: string;  // R2 key for the .diff file
-  pr_url?: string;          // GitHub PR link
-  validation_status?: boolean;
+      // Artifact links
+      snapshot_id?: string;     // ID of the OTel trace
+      root_cause?: string;      // Markdown summary of the cause
+      patch_diff_key?: string;  // R2 key for the .diff file
+      pr_url?: string;          // GitHub PR link
+      validation_status?: boolean;
 
-  // Metadata
-  repo_name?: string;
-  file_path?: string; // The culprit file
-}
-```
+      // Metadata
+      repo_name?: string;
+      file_path?: string; // The culprit file
+    }
+    ```
+  </TabsContent>
+</Tabs>
 
 ## API Requests
 
@@ -42,21 +52,41 @@ interface Incident {
 
 Used by the Router to register a new detection.
 
-```json
-{
-  "title": "TypeError in /api/users",
-  "status": "detected"
-}
-```
+<Tabs defaultValue="terminal">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="terminal">Terminal</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="terminal">
+    ```json
+    {
+      "title": "TypeError in /api/users",
+      "status": "detected"
+    }
+    ```
+  </TabsContent>
+</Tabs>
 
 ### Update Incident
 
 Used by the Agent to progress the state.
 
-```json
-{
-  "status": "resolved",
-  "pr_url": "https://github.com/my-org/my-repo/pull/123",
-  "validation_status": true
-}
-```
+<Tabs defaultValue="terminal">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="terminal">Terminal</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="terminal">
+    ```json
+    {
+      "status": "resolved",
+      "pr_url": "https://github.com/my-org/my-repo/pull/123",
+      "validation_status": true
+    }
+    ```
+  </TabsContent>
+</Tabs>

@@ -48,45 +48,97 @@ This guide covers setting up AIA with a Next.js App Router project using Bun.
 
 Update `next.config.js` to enable the experimental hook:
 
-```javascript
-const nextConfig = {
-  experimental: {
-    instrumentationHook: true,
-  },
-};
-module.exports = nextConfig;
-```
+<Tabs defaultValue="terminal">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="terminal">Terminal</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="terminal">
+    ```javascript
+    const nextConfig = {
+      experimental: {
+        instrumentationHook: true,
+      },
+    };
+    module.exports = nextConfig;
+    ```
+  </TabsContent>
+</Tabs>
 
 ## Step 3: Create Instrumentation File
 
 Create `instrumentation.ts` in your project root (or `src/`):
 
-```typescript
-export async function register() {
-  if (process.env.NEXT_RUNTIME === 'nodejs') {
-    await import('./instrumentation.node');
-  }
-}
-```
+<Tabs defaultValue="terminal">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="terminal">Terminal</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="terminal">
+    ```typescript
+    export async function register() {
+      if (process.env.NEXT_RUNTIME === 'nodejs') {
+        await import('./instrumentation.node');
+      }
+    }
+    ```
+  </TabsContent>
+</Tabs>
+
+Create `app/page.tsx`:
+
+<Tabs defaultValue="terminal">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="terminal">Terminal</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="terminal">
+    ```tsx
+    export default function Page() {
+      return (
+        <button onClick={() => { throw new Error("Button clicked"); }}>
+          Click me
+        </button>
+      );
+    }
+    ```
+  </TabsContent>
+</Tabs>
 
 ## Step 4: Node SDK Setup
 
 Create `instrumentation.node.ts`:
 
-```typescript
-import { NodeSDK } from '@opentelemetry/sdk-node';
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
-import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
+<Tabs defaultValue="terminal">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="terminal">Terminal</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="terminal">
+    ```typescript
+    import { NodeSDK } from '@opentelemetry/sdk-node';
+    import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
+    import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 
-const sdk = new NodeSDK({
-  traceExporter: new OTLPTraceExporter({
-    url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:3001/v1/traces',
-  }),
-  instrumentations: [getNodeAutoInstrumentations()],
-});
+    const sdk = new NodeSDK({
+      traceExporter: new OTLPTraceExporter({
+        url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:3001/v1/traces',
+      }),
+      instrumentations: [getNodeAutoInstrumentations()],
+    });
 
-sdk.start();
-```
+    sdk.start();
+    ```
+  </TabsContent>
+</Tabs>
 
 ## Step 5: Verify
 

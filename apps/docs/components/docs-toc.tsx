@@ -95,7 +95,7 @@ export function DocsTOC() {
                       const showLine = isActive || isParentActive;
 
                       return (
-                        <a
+                        <Link
                           key={heading.id}
                           href={`#${heading.id}`}
                           className={cn(
@@ -122,7 +122,7 @@ export function DocsTOC() {
                           )}
                         >
                           {heading.title}
-                        </a>
+                        </Link>
                       );
                     })}
                   </div>

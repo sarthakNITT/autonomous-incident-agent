@@ -47,10 +47,20 @@ Add these to your environment variables:
 
 And ensuring your `aia.config.ts` maps them correctly:
 
-```typescript
-storage: {
-  provider: "r2",
-  bucket: process.env.R2_BUCKET,
-  // ...
-}
-```
+<Tabs defaultValue="terminal">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="terminal">Terminal</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="terminal">
+    ```typescript
+    storage: {
+      provider: "r2",
+      bucket: process.env.R2_BUCKET,
+      // ...
+    }
+    ```
+  </TabsContent>
+</Tabs>

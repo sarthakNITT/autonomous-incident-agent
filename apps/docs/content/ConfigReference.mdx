@@ -6,15 +6,25 @@ The `aia.config.ts` file acts as the single source of truth for your agent's beh
 
 The agent looks for `aia.config.ts` (or `.js`, `.json`, `.yaml`) in the project root.
 
-```typescript
-import { defineConfig } from 'aia-agent/config';
+<Tabs defaultValue="terminal">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="terminal">Terminal</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="terminal">
+    ```typescript
+    import { defineConfig } from 'aia-agent/config';
 
-export default defineConfig({
-  project_name: 'my-app',
-  environment: 'production',
-  // ...
-});
-```
+    export default defineConfig({
+      project_name: 'my-app',
+      environment: 'production',
+      // ...
+    });
+    ```
+  </TabsContent>
+</Tabs>
 
 ## Schema Reference
 
@@ -31,42 +41,72 @@ The configuration object adheres to the `Config` interface from `@repo/types`.
 
 Configures the ports and base URLs for all internal microservices.
 
-```typescript
-services: {
-  router: { port: 3001, base_url: "http://localhost:3001" },
-  agent: { port: 3002, base_url: "http://localhost:3002" },
-  // ... other services
-}
-```
+<Tabs defaultValue="terminal">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="terminal">Terminal</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="terminal">
+    ```typescript
+    services: {
+      router: { port: 3001, base_url: "http://localhost:3001" },
+      agent: { port: 3002, base_url: "http://localhost:3002" },
+      // ... other services
+    }
+    ```
+  </TabsContent>
+</Tabs>
 
 ### Storage (R2)
 
 AIA strictly requires an S3-compatible store, currently optimized for Cloudflare R2.
 
-```typescript
-storage: {
-  provider: "r2",
-  bucket: process.env.R2_BUCKET,
-  access_key: process.env.R2_ACCESS_KEY_ID,
-  secret_key: process.env.R2_SECRET_ACCESS_KEY,
-  region: "auto",
-  endpoint: process.env.R2_ENDPOINT,
-}
-```
+<Tabs defaultValue="terminal">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="terminal">Terminal</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="terminal">
+    ```typescript
+    storage: {
+      provider: "r2",
+      bucket: process.env.R2_BUCKET,
+      access_key: process.env.R2_ACCESS_KEY_ID,
+      secret_key: process.env.R2_SECRET_ACCESS_KEY,
+      region: "auto",
+      endpoint: process.env.R2_ENDPOINT,
+    }
+    ```
+  </TabsContent>
+</Tabs>
 
 ### GitHub
 
 Configures the bot's identity and permissions.
 
-```typescript
-github: {
-  provider: "github",
-  token: process.env.GITHUB_TOKEN,
-  org: "my-org",
-  repo: "my-repo",
-  username: "aia-bot",
-}
-```
+<Tabs defaultValue="terminal">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="terminal">Terminal</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="terminal">
+    ```typescript
+    github: {
+      provider: "github",
+      token: process.env.GITHUB_TOKEN,
+      org: "my-org",
+      repo: "my-repo",
+      username: "aia-bot",
+    }
+    ```
+  </TabsContent>
+</Tabs>
 
 ## Environment Variables
 
@@ -85,9 +125,19 @@ For security, we recommend using environment variables for sensitive credentials
 
 AIA supports SQLite (default) and PostgreSQL.
 
-```typescript
-database: {
-  provider: "sqlite",
-  path: "./aia.db"
-}
-```
+<Tabs defaultValue="terminal">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="terminal">Terminal</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="terminal">
+    ```typescript
+    database: {
+      provider: "sqlite",
+      path: "./aia.db"
+    }
+    ```
+  </TabsContent>
+</Tabs>

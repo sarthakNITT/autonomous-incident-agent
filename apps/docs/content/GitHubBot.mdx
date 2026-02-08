@@ -48,13 +48,23 @@ Add the token to your environment variables or `aia.config.ts`:
 
 And in your config:
 
-```typescript
-github: {
-  // ...
-  token: process.env.GITHUB_TOKEN,
-  username: "aia-bot-account",
-}
-```
+<Tabs defaultValue="terminal">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="terminal">Terminal</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="terminal">
+    ```typescript
+    github: {
+      // ...
+      token: process.env.GITHUB_TOKEN,
+      username: "aia-bot-account",
+    }
+    ```
+  </TabsContent>
+</Tabs>
 
 ## Security Best Practices
 
