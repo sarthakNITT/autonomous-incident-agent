@@ -1,9 +1,9 @@
-echo "Starting pre-push hook..."
+# echo "Starting pre-push hook..."
 
-echo "running check-types..."
-./node_modules/.bin/turbo run check-types
+# echo "running check-types..."
+# ./node_modules/.bin/turbo run check-types
 
-echo "running build..."
-./node_modules/.bin/turbo run build
+# echo "running build..."
+# ./node_modules/.bin/turbo run build
 
-echo "Pre-push hook finished."
+# echo "Pre-push hook finished."

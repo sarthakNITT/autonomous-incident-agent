@@ -6,9 +6,19 @@ The Autonomous Incident Agent (AIA) is a production-grade system that automatica
 
 If you have already configured your environment, you can start the full AIA stack with a single command:
 
-```bash
-bun run start
-```
+<Tabs defaultValue="bun">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="bun">bun</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="bun">
+    ```bash
+    bun run start
+    ```
+  </TabsContent>
+</Tabs>
 
 This will launch all services, including the Agent, Router, Autopsy, and Dashboard.
 
