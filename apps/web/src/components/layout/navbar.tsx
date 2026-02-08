@@ -15,12 +15,22 @@ export function Navbar() {
               AIA
             </Link>
             <div className="hidden md:flex md:gap-6">
-              <Link
-                href="/docs"
+              <a
+                href="http://localhost:3003/docs/getting-started"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 Docs
-              </Link>
+              </a>
+              <a
+                href="http://localhost:3000"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Dashboard
+              </a>
             </div>
           </div>
 
@@ -38,12 +48,22 @@ export function Navbar() {
             </SheetTrigger>
             <SheetContent side="right">
               <div className="flex flex-col gap-4 mt-8">
-                <Link
-                  href="/docs"
+                <a
+                  href="http://localhost:3003/docs/getting-started"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Docs
-                </Link>
+                </a>
+                <a
+                  href="http://localhost:3000"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Dashboard
+                </a>
                 <Button asChild variant="outline" className="w-full">
                   <Link href="/sign-in">Sign In</Link>
                 </Button>

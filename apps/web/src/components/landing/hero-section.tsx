@@ -2,8 +2,10 @@
 
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+
+const DASHBOARD_URL =
+  process.env.NEXT_PUBLIC_DASHBOARD_URL || "http://localhost:3000";
 
 export function HeroSection() {
   return (
@@ -36,12 +38,18 @@ export function HeroSection() {
             className="mt-10 flex items-center justify-center gap-x-6"
           >
             <Button asChild size="lg">
-              <Link href="/sign-in">
+              <a href={DASHBOARD_URL} target="_blank" rel="noopener noreferrer">
                 Get Started <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
+              </a>
             </Button>
             <Button asChild variant="outline" size="lg">
-              <Link href="/docs">Learn More</Link>
+              <a
+                href="http://localhost:3003/docs/getting-started"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Learn More
+              </a>
             </Button>
           </motion.div>
         </div>

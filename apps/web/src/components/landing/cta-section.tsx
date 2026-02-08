@@ -2,7 +2,9 @@
 
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
+
+const DASHBOARD_URL =
+  process.env.NEXT_PUBLIC_DASHBOARD_URL || "http://localhost:3000";
 
 export function CTASection() {
   return (
@@ -24,10 +26,18 @@ export function CTASection() {
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">
             <Button asChild size="lg">
-              <Link href="/sign-in">Get Started</Link>
+              <a href={DASHBOARD_URL} target="_blank" rel="noopener noreferrer">
+                Get Started
+              </a>
             </Button>
             <Button asChild variant="outline" size="lg">
-              <Link href="/docs">View Documentation</Link>
+              <a
+                href="http://localhost:3003/docs/getting-started"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                View Documentation
+              </a>
             </Button>
           </div>
         </motion.div>
