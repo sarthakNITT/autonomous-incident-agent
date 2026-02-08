@@ -1,7 +1,7 @@
 import type { Incident } from "@repo/types";
 
 export function IncidentsPage(incidents: Incident[]) {
-    return `
+  return `
     <html>
         <head>
             <title>AIA Dashboard</title>
@@ -29,14 +29,18 @@ export function IncidentsPage(incidents: Incident[]) {
                     </tr>
                 </thead>
                 <tbody>
-                    ${incidents.map(i => `
+                    ${incidents
+                      .map(
+                        (i) => `
                     <tr onclick="window.location='/incidents/${i.id}'">
                         <td>${i.id.substring(0, 8)}</td>
                         <td>${i.title}</td>
                         <td>${new Date(i.created_at).toLocaleString()}</td>
                         <td><span class="status ${i.status}">${i.status}</span></td>
                     </tr>
-                    `).join("")}
+                    `,
+                      )
+                      .join("")}
                 </tbody>
             </table>
         </body>

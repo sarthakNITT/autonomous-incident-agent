@@ -2,8 +2,12 @@ import type { Incident } from "@repo/types";
 import { Timeline } from "../components/Timeline";
 import { Approval } from "../components/Approval";
 
-export function IncidentDetailPage(incident: Incident, patchContent: string | null, logs: string | null) {
-    return `
+export function IncidentDetailPage(
+  incident: Incident,
+  patchContent: string | null,
+  logs: string | null,
+) {
+  return `
     <html>
         <head>
             <title>Incident ${incident.id}</title>
@@ -36,19 +40,27 @@ export function IncidentDetailPage(incident: Incident, patchContent: string | nu
                 <p><strong>Status:</strong> ${incident.status}</p>
             </div>
 
-            ${patchContent ? `
+            ${
+              patchContent
+                ? `
             <div class="section">
                 <h3>Proposed Patch</h3>
                 <pre>${patchContent}</pre>
             </div>
-            ` : ""}
+            `
+                : ""
+            }
 
-            ${logs ? `
+            ${
+              logs
+                ? `
             <div class="section">
                 <h3>Validation Logs</h3>
                 <pre>${logs}</pre>
             </div>
-            ` : ""}
+            `
+                : ""
+            }
 
             <div class="section">
                 <h3>Actions</h3>
