@@ -12,26 +12,30 @@ async function main() {
   console.log("=== AIA Automated Installer ===\n");
   console.log("This script will generate a 'aia.config.yaml' for you.");
 
-  const project_name = await prompt("Project Name [aia-demo]:") || "aia-demo";
-  const bucket = await prompt("R2 Bucket Name:") || "my-bucket";
-  const access_key = await prompt("R2 Access Key:") || "";
-  const secret_key = await prompt("R2 Secret Key:") || "";
-  const endpoint = await prompt("R2 Endpoint:") || "";
-  const github_token = await prompt("GitHub Token:") || "";
-  const ai_key = await prompt("You.com API Key:") || "";
+  const project_name = (await prompt("Project Name [aia-demo]:")) || "aia-demo";
+  const bucket = (await prompt("R2 Bucket Name:")) || "my-bucket";
+  const access_key = (await prompt("R2 Access Key:")) || "";
+  const secret_key = (await prompt("R2 Secret Key:")) || "";
+  const endpoint = (await prompt("R2 Endpoint:")) || "";
+  const github_token = (await prompt("GitHub Token:")) || "";
+  const ai_key = (await prompt("You.com API Key:")) || "";
 
   const configContent = `
 project_name: "${project_name}"
 cluster_env: "prod"
 
 services:
+  dashboard: { port: 3000, base_url: "http://localhost:3000" }
   router: { port: 3001, base_url: "http://localhost:3001" }
   autopsy: { port: 3002, base_url: "http://localhost:3002" }
+  state: { port: 3003, base_url: "http://localhost:3003" }
   git: { port: 3004, base_url: "http://localhost:3004" }
   repro: { port: 3005, base_url: "http://localhost:3005" }
-  state: { port: 3006, base_url: "http://localhost:3006" }
-  web: { port: 3007, base_url: "http://localhost:3007" }
-  docs: { port: 3008, base_url: "http://localhost:3008" }
+  web: { port: 3006, base_url: "http://localhost:3006" }
+  docs: { port: 3007, base_url: "http://localhost:3007" }
+  sample_app: { port: 3008, base_url: "http://localhost:3008" }
+  web_backup: { port: 3009, base_url: "http://localhost:3009" }
+  agent: { port: 4318, base_url: "http://localhost:4318" }
 
 paths:
   repo_root: "${process.cwd()}"
@@ -74,7 +78,9 @@ database:
 
   console.log(`\n✅ Configuration written to ${targetPath}`);
   console.log("\nNext Steps:");
-  console.log("1. Run 'bun run apps/docs/src/server.ts' to view documentation.");
+  console.log(
+    "1. Run 'bun run apps/docs/src/server.ts' to view documentation.",
+  );
   console.log("2. Start services as needed.");
 }
 

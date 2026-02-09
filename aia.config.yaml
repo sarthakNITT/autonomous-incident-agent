@@ -2,15 +2,17 @@ project_name: "aia-demo"
 cluster_env: "prod"
 
 services:
+  dashboard: { port: 3000, base_url: "http://localhost:3000" }
   router: { port: 3001, base_url: "http://localhost:3001" }
   autopsy: { port: 3002, base_url: "http://localhost:3002" }
+  state: { port: 3003, base_url: "http://localhost:3003" }
   git: { port: 3004, base_url: "http://localhost:3004" }
   repro: { port: 3005, base_url: "http://localhost:3005" }
-  state: { port: 3006, base_url: "http://localhost:3006" }
-  web: { port: 3007, base_url: "http://localhost:3007" }
-  docs: { port: 3008, base_url: "http://localhost:3008" }
-  dashboard: { port: 3000, base_url: "http://localhost:3000" }
-  sample_app: { port: 3009, base_url: "http://localhost:3009" }
+  web: { port: 3006, base_url: "http://localhost:3006" }
+  docs: { port: 3007, base_url: "http://localhost:3007" }
+  sample_app: { port: 3008, base_url: "http://localhost:3008" }
+  web_backup: { port: 3009, base_url: "http://localhost:3009" }
+  agent: { port: 4318, base_url: "http://localhost:4318" }
 
 paths:
   repo_root: "/Users/sarthakkarode/autonomus-incident-agent"

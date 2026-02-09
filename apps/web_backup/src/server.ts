@@ -5,7 +5,7 @@ import { R2Client } from "@repo/storage";
 import type { Incident } from "@repo/types";
 
 const config = loadConfig();
-const PORT = config.services.web.port;
+const PORT = config.services.web_backup.port;
 const storage = new R2Client(config.storage);
 
 const server = Bun.serve({
