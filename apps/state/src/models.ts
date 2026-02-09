@@ -1,54 +1,88 @@
-import { getDb } from "./db";
-import { IncidentStatus, type Incident, type CreateIncidentRequest, type UpdateIncidentRequest } from "@repo/types";
+import { getPrisma } from "./db";
+import {
+  IncidentStatus,
+  type Incident,
+  type CreateIncidentRequest,
+  type UpdateIncidentRequest,
+} from "@repo/types";
 
 export class IncidentModel {
-    static create(req: CreateIncidentRequest): Incident {
-        const db = getDb();
-        const id = req.id || crypto.randomUUID();
-        const now = new Date().toISOString();
-        const status = req.status || IncidentStatus.DETECTED;
+  static async create(req: CreateIncidentRequest): Promise<Incident> {
+    const prisma = getPrisma();
+    const id = req.id || crypto.randomUUID();
+    const status = req.status || IncidentStatus.DETECTED;
 
-        db.run(`
-            INSERT INTO incidents (id, title, status, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?)
-        `, [id, req.title, status, now, now]);
+    const incident = await prisma.incident.create({
+      data: {
+        id,
+        title: req.title,
+        status,
+      },
+    });
 
-        return this.get(id);
-    }
+    return this.mapToIncident(incident);
+  }
 
-    static update(id: string, req: UpdateIncidentRequest): Incident {
-        const db = getDb();
-        const fields = [];
-        const values = [];
+  static async update(
+    id: string,
+    req: UpdateIncidentRequest,
+  ): Promise<Incident> {
+    const prisma = getPrisma();
 
-        if (req.status) { fields.push("status = ?"); values.push(req.status); }
-        if (req.root_cause) { fields.push("root_cause = ?"); values.push(req.root_cause); }
-        if (req.patch_diff_key) { fields.push("patch_diff_key = ?"); values.push(req.patch_diff_key); }
-        if (req.pr_url) { fields.push("pr_url = ?"); values.push(req.pr_url); }
-        if (req.validation_status !== undefined) { fields.push("validation_status = ?"); values.push(req.validation_status); }
-        if (req.snapshot_id) { fields.push("snapshot_id = ?"); values.push(req.snapshot_id); }
-        if (req.file_path) { fields.push("file_path = ?"); values.push(req.file_path); }
+    const updateData: any = {
+      updatedAt: new Date(),
+    };
 
-        fields.push("updated_at = ?");
-        values.push(new Date().toISOString());
+    if (req.status) updateData.status = req.status;
+    if (req.root_cause) updateData.rootCause = req.root_cause;
+    if (req.patch_diff_key) updateData.patchDiffKey = req.patch_diff_key;
+    if (req.pr_url) updateData.prUrl = req.pr_url;
+    if (req.validation_status !== undefined)
+      updateData.validationStatus = req.validation_status;
+    if (req.snapshot_id) updateData.snapshotId = req.snapshot_id;
+    if (req.file_path) updateData.filePath = req.file_path;
 
-        values.push(id);
+    const incident = await prisma.incident.update({
+      where: { id },
+      data: updateData,
+    });
 
-        const sql = `UPDATE incidents SET ${fields.join(", ")} WHERE id = ?`;
-        db.run(sql, values);
+    return this.mapToIncident(incident);
+  }
 
-        return this.get(id);
-    }
+  static async get(id: string): Promise<Incident> {
+    const prisma = getPrisma();
+    const incident = await prisma.incident.findUnique({
+      where: { id },
+    });
 
-    static get(id: string): Incident {
-        const db = getDb();
-        const row = db.query("SELECT * FROM incidents WHERE id = ?").get(id) as any;
-        if (!row) throw new Error(`Incident ${id} not found`);
-        return row as Incident;
-    }
+    if (!incident) throw new Error(`Incident ${id} not found`);
+    return this.mapToIncident(incident);
+  }
 
-    static list(): Incident[] {
-        const db = getDb();
-        return db.query("SELECT * FROM incidents ORDER BY created_at DESC").all() as Incident[];
-    }
+  static async list(): Promise<Incident[]> {
+    const prisma = getPrisma();
+    const incidents = await prisma.incident.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+
+    return incidents.map(this.mapToIncident);
+  }
+
+  private static mapToIncident(incident: any): Incident {
+    return {
+      id: incident.id,
+      title: incident.title,
+      status: incident.status,
+      created_at: incident.createdAt.toISOString(),
+      updated_at: incident.updatedAt.toISOString(),
+      snapshot_id: incident.snapshotId,
+      root_cause: incident.rootCause,
+      patch_diff_key: incident.patchDiffKey,
+      pr_url: incident.prUrl,
+      validation_status: incident.validationStatus,
+      repo_name: incident.repoName,
+      file_path: incident.filePath,
+    };
+  }
 }

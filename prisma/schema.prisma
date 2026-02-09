@@ -1,0 +1,28 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Incident {
+  id                String   @id @default(uuid())
+  title             String
+  status            String
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  snapshotId        String?  @map("snapshot_id")
+  rootCause         String?  @map("root_cause")
+  patchDiffKey      String?  @map("patch_diff_key")
+  prUrl             String?  @map("pr_url")
+  validationStatus  Boolean? @map("validation_status")
+  repoName          String?  @map("repo_name")
+  filePath          String?  @map("file_path")
+
+  @@map("incidents")
+}

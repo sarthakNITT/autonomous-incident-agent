@@ -136,8 +136,9 @@ export function loadConfig(): Config {
 
   if (!config.database) {
     config.database = {
-      provider: "sqlite",
-      path: join(process.cwd(), "aira.db"),
+      provider: "postgres",
+      url: process.env.DATABASE_URL || "",
+      path: "",
     };
   }
 
