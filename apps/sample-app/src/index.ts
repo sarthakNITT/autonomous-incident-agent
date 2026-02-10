@@ -1,10 +1,15 @@
 import type { ScenarioPayload, TriggerResponse } from "@repo/types";
 import { loadConfig } from "../../../shared/config_loader";
+import { SimpleOTELTracer } from "./otel-tracer";
 
 const config = loadConfig();
 const PORT = config.services.sample_app.port;
 
+// Initialize OpenTelemetry tracer
+const tracer = new SimpleOTELTracer("sample-app");
+
 console.log(`Starting sample-app on port ${PORT}...`);
+console.log(`OTEL Agent endpoint: ${config.services.agent.base_url}`);
 
 const server = Bun.serve({
   port: PORT,
@@ -46,9 +51,18 @@ const server = Bun.serve({
             headers: { "Content-Type": "application/json" },
           });
         })
-        .catch((err) => {
+        .catch(async (err) => {
           console.log("Unhandled error processing request:");
           console.log(err);
+
+          // Send error to agent via OpenTelemetry
+          await tracer.recordError(err, {
+            method: req.method,
+            route: url.pathname,
+            statusCode: 500,
+          });
+          console.log("[OTEL] Error sent to agent for analysis");
+
           if (
             (err as Error).message ===
             "SeededDemoFailure: deterministic bug for AIA demo"
