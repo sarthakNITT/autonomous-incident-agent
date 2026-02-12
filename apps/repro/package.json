@@ -1,16 +1,17 @@
 {
-    "name": "repro-service",
-    "version": "1.0.0",
-    "scripts": {
-        "start": "bun run src/server.ts",
-        "dev": "bun run --watch src/server.ts"
-    },
-    "dependencies": {
-        "@repo/types": "workspace:*",
-        "@repo/storage": "workspace:*",
-        "bun": "latest"
-    },
-    "devDependencies": {
-        "@types/bun": "latest"
-    }
+  "name": "repro-service",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "bun run src/server.ts",
+    "dev": "bun run --watch src/server.ts",
+    "build": "bun build ./src/server.ts --outdir ./dist --target bun"
+  },
+  "dependencies": {
+    "@repo/types": "workspace:*",
+    "@repo/storage": "workspace:*",
+    "bun": "latest"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
 }

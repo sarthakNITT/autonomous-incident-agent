@@ -1,17 +1,18 @@
 {
-    "name": "agent",
-    "version": "0.1.0",
-    "private": true,
-    "scripts": {
-        "start": "bun run src/index.ts",
-        "dev": "bun run --watch src/index.ts"
-    },
-    "dependencies": {
-        "@repo/types": "workspace:*",
-        "@repo/storage": "workspace:*",
-        "bun": "latest"
-    },
-    "devDependencies": {
-        "bun-types": "latest"
-    }
+  "name": "agent",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "dev": "bun run --watch src/index.ts",
+    "build": "bun build ./src/index.ts --outdir ./dist --target bun"
+  },
+  "dependencies": {
+    "@repo/types": "workspace:*",
+    "@repo/storage": "workspace:*",
+    "bun": "latest"
+  },
+  "devDependencies": {
+    "bun-types": "latest"
+  }
 }

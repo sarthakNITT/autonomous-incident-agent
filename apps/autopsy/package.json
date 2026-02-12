@@ -1,18 +1,19 @@
 {
-    "name": "autopsy",
-    "version": "0.1.0",
-    "private": true,
-    "scripts": {
-        "start": "bun run src/index.ts",
-        "dev": "bun run --watch src/index.ts"
-    },
-    "dependencies": {
-        "@repo/types": "workspace:*",
-        "@repo/storage": "workspace:*",
-        "bun": "latest",
-        "diff": "^5.1.0"
-    },
-    "devDependencies": {
-        "bun-types": "latest"
-    }
+  "name": "autopsy",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "dev": "bun run --watch src/index.ts",
+    "build": "bun build ./src/index.ts --outdir ./dist --target bun"
+  },
+  "dependencies": {
+    "@repo/types": "workspace:*",
+    "@repo/storage": "workspace:*",
+    "bun": "latest",
+    "diff": "^5.1.0"
+  },
+  "devDependencies": {
+    "bun-types": "latest"
+  }
 }

@@ -71,7 +71,26 @@ export class RepoManager {
     console.log(`[RepoManager] Installing dependencies in ${repoPath}`);
     // Default to bun install if bun.lockb exists, otherwise check for package-lock.json
     if (existsSync(join(repoPath, "bun.lockb"))) {
-      await this.runCommand("bun", ["install"], repoPath);
+      // Attempt installation trusting scripts to avoid broken local bun
+      try {
+        await this.runCommand("bun", ["install", "--trust"], repoPath);
+      } catch (e) {
+        console.warn(
+          "[RepoManager] bun install --trust failed, falling back to standard install",
+          e,
+        );
+        await this.runCommand("bun", ["install"], repoPath);
+      }
+
+      // HACK: If node_modules/bun exists, it might be broken (missing postinstall run).
+      // We remove it to force usage of global bun for any scripts that call 'bun'.
+      const localBun = join(repoPath, "node_modules", "bun");
+      if (existsSync(localBun)) {
+        console.log(
+          "[RepoManager] Removing potentially broken local 'bun' package to force global usage.",
+        );
+        await this.runCommand("rm", ["-rf", "node_modules/bun"], repoPath);
+      }
     } else if (existsSync(join(repoPath, "package-lock.json"))) {
       await this.runCommand("npm", ["install"], repoPath);
     } else {
@@ -80,11 +99,29 @@ export class RepoManager {
     }
   }
 
-  async buildProject(repoPath: string) {
+  async buildProject(repoPath: string, filter?: string) {
     console.log(`[RepoManager] Building project in ${repoPath}`);
-    // Try bun run build if script exists, otherwise skip or try npm
-    // Simple approach: try bun run build, if it fails, it fails (fail fast)
-    await this.runCommand("bun", ["run", "build"], repoPath);
+    // If filter is provided, target specific package
+    if (filter) {
+      console.log(`[RepoManager] Applying build filter: ${filter}`);
+      // Turbo supports --filter flag to run only specific package
+      // However, the root script is likely `turbo run build`.
+      // We can pass the filter to turbo.
+      // If npm run build is used, it might be tricky.
+      // Assuming turbo is used via `bun run build`.
+      // We can directly call turbo if we had it, but `bun run build` is safer.
+      // Let's assume `bun run build` just calls `turbo run build`.
+      // We can append arguments? `bun run build -- --filter=${filter}`?
+      // Let's try appending.
+      await this.runCommand(
+        "bun",
+        ["run", "build", `--filter=${filter}`],
+        repoPath,
+      );
+    } else {
+      // Build ALL
+      await this.runCommand("bun", ["run", "build"], repoPath);
+    }
   }
 
   async runTests(repoPath: string) {

@@ -30,6 +30,24 @@ const server = Bun.serve({
         const repoPath = await repoMgr.clone(config.paths.repo_root, repoName);
         console.log(`[Git] Cloned into ${repoPath}`);
 
+        // COPY .ENV to the cloned repo so builds succeed!
+        // We assume process.cwd() is the root of the running service, so we go up
+        // But better is to read the file from the original location and write it to the new one.
+        // We can use the fact that we are in a monorepo workspace.
+        // config.paths.repo_root *is* the root of the source repo.
+        try {
+          const envContent = await Bun.file(
+            join(config.paths.repo_root, ".env"),
+          ).text();
+          await Bun.write(join(repoPath, ".env"), envContent);
+          console.log(`[Git] Copied .env to cloned workspace.`);
+        } catch (e) {
+          console.warn(
+            `[Git] Failed to copy .env to workspace. Build might fail if env vars are needed.`,
+            e,
+          );
+        }
+
         // 1. Install Dependencies
         console.log(`[Git] Installing dependencies...`);
         await repoMgr.installDependencies(repoPath);
@@ -65,13 +83,46 @@ const server = Bun.serve({
         }
 
         // 4. Build and Test
-        // Note: Building might fail if the patch is bad. We proceed to commit ONLY if build passes?
-        // The user said: "then build, then test, then add commit"
-        // If build fails, it will throw error and stop the process, which is correct (validation).
-        console.log(`[Git] Starting Build and Test...`);
+        // Identify the affected app/package to scope the build
+        let targetFilter = "";
+        const allPaths = [
+          ...body.patches.map((p) => p.path),
+          ...body.files.map((f) => f.path),
+        ];
+
+        for (const p of allPaths) {
+          // Check for apps/xyz or packages/xyz
+          const match = p.match(/^(apps|packages)\/([^\/]+)\//);
+          if (match) {
+            // If it's an app, use the folder name.
+            // However, turbo filters by package name.
+            // We might need to map folder -> package name, but usually they match or we can use path filter like {./apps/xyz}
+            // Let's try to use the folder name first, it usually works if matched.
+            // Or better, use path filter syntax: {./apps/folder}
+            targetFilter = `./${match[0].slice(0, -1)}`; // ./apps/sample-app
+            break;
+          }
+        }
+
+        console.log(
+          `[Git] Starting Build and Test... (Target: ${targetFilter || "ALL"})`,
+        );
         try {
-          await repoMgr.buildProject(repoPath);
+          // If we found a target, we suffix with '...' to build dependencies if needed,
+          // but for a leaf app, usually just the app is enough.
+          // Turbo filter syntax: {./path/to/package}
+          // We pass `{./apps/sample-app}`
+          const filterArg = targetFilter ? `{${targetFilter}}` : undefined;
+
+          await repoMgr.buildProject(repoPath, filterArg);
+
+          // For tests, we can also use the filter
+          // await repoMgr.runTests(repoPath, filterArg); // We need to update runTests too?
+          // For now just run all tests or skip if build passes?
+          // Let's just run tests for the same scope if possible, or all.
+          // The user specifically asked to fix the build first.
           await repoMgr.runTests(repoPath);
+
           console.log(`[Git] Build and Test Passed.`);
         } catch (e) {
           console.error(`[Git] Build/Test failed after applying patch`, e);

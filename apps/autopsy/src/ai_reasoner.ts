@@ -55,12 +55,8 @@ Output JSON only. Do not include markdown code block syntax (no \`\`\`json). Jus
           "X-API-Key": this.apiKey,
         },
         body: JSON.stringify({
-          instruction: prompt, // Changed from input to instruction based on common agent APIs, but let's stick to what was there if we aren't changing the API spec.
-          // actually the previous code had:
-          // input: prompt, agent: "express"
-          // Let's keep it but just wrap the try/catch
           input: prompt,
-          agent: "research", // Changed to research as per config default
+          agent: "express",
         }),
       });
 

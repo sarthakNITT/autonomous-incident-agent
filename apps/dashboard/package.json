@@ -1,18 +1,19 @@
 {
-    "name": "dashboard",
-    "version": "1.0.0",
-    "scripts": {
-        "start": "bun run src/index.ts",
-        "dev": "bun run --watch src/index.ts",
-        "export": "bun run src/export.ts"
-    },
-    "dependencies": {
-        "@repo/types": "workspace:*",
-        "@repo/storage": "workspace:*",
-        "pdfkit": "^0.13.0"
-    },
-    "devDependencies": {
-        "@types/pdfkit": "^0.13.3",
-        "@types/node": "^20.0.0"
-    }
+  "name": "dashboard",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "dev": "bun run --watch src/index.ts",
+    "export": "bun run src/export.ts",
+    "build": "bun build ./src/index.ts --outdir ./dist --target bun"
+  },
+  "dependencies": {
+    "@repo/types": "workspace:*",
+    "@repo/storage": "workspace:*",
+    "pdfkit": "^0.13.0"
+  },
+  "devDependencies": {
+    "@types/pdfkit": "^0.13.3",
+    "@types/node": "^20.0.0"
+  }
 }

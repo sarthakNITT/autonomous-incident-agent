@@ -9,9 +9,33 @@ const detectionConfig = { latencyThresholdMs: 2000 };
 const detectors = new Detectors(detectionConfig);
 const storage = new R2Client(config.storage);
 
+// Deduplication Cache
+const incidentCache = new Map<string, number>();
+const DEDUPE_WINDOW_MS = 30000; // 30 seconds
+
 console.log("Starting Autonomous Observability Agent (OTel Receiver)...");
 
 const onIncident = async (result: DetectorResult) => {
+  // Simple dedupe key based on the error content
+  const dedupeKey = `${result.type}:${result.reason}`;
+  const now = Date.now();
+
+  if (incidentCache.has(dedupeKey)) {
+    const lastSeen = incidentCache.get(dedupeKey) || 0;
+    if (now - lastSeen < DEDUPE_WINDOW_MS) {
+      console.log(`[Agent] Skipping duplicate incident: ${result.reason}`);
+      return;
+    }
+  }
+  incidentCache.set(dedupeKey, now);
+
+  // Clean up cache occasionally
+  if (incidentCache.size > 100) {
+    for (const [key, time] of incidentCache) {
+      if (now - time > DEDUPE_WINDOW_MS) incidentCache.delete(key);
+    }
+  }
+
   console.log(`[Agent] DETECTED INCIDENT: ${result.type} - ${result.reason}`);
 
   const event: IncidentEvent = {
