@@ -13,6 +13,9 @@ const server = Bun.serve({
       try {
         const body = await req.json();
         const { incident_id, commit_hash, repo_path } = body;
+        console.log(
+          `[Repro] Received validation request. Incident: ${incident_id}, Commit: ${commit_hash}`,
+        );
 
         validateIncident(incident_id, commit_hash, repo_path).catch(
           console.error,

@@ -12,26 +12,39 @@ const server = Bun.serve({
 
     try {
       if (req.method === "GET" && url.pathname === "/incidents") {
+        console.log(`[State] GET /incidents - Listing incidents`);
         const incidents = await IncidentModel.list();
         return returnResponse(incidents);
       }
 
       if (req.method === "POST" && url.pathname === "/incidents") {
         const body = (await req.json()) as CreateIncidentRequest;
+        console.log(
+          `[State] POST /incidents - Creating incident`,
+          JSON.stringify(body),
+        );
         const incident = await IncidentModel.create(body);
         return returnResponse(incident);
       }
 
       if (url.pathname.startsWith("/incidents/")) {
-        const id = url.pathname.split("/")[2];
+        const parts = url.pathname.split("/");
+        // url is /incidents/:id or /incidents/:id/update
+        // parts[0] = "", parts[1] = "incidents", parts[2] = id
+        const id = parts[2];
 
-        if (req.method === "GET") {
+        if (req.method === "GET" && parts.length === 3) {
+          console.log(`[State] GET /incidents/${id} - Fetching incident`);
           const incident = await IncidentModel.get(id);
           return returnResponse(incident);
         }
 
         if (req.method === "POST" && url.pathname.endsWith("/update")) {
           const body = (await req.json()) as UpdateIncidentRequest;
+          console.log(
+            `[State] POST /incidents/${id}/update - Updating incident`,
+            JSON.stringify(body),
+          );
           const incident = await IncidentModel.update(id, body);
           return returnResponse(incident);
         }

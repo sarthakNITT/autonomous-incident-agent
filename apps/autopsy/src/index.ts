@@ -74,7 +74,11 @@ const server = Bun.serve({
             snapshot.event.error_details?.message || "Unknown error",
         };
 
+        console.log("[Autopsy] Sending request to AI Reasoner...");
         const aiResponse = await reasoner.analyze(request);
+        console.log(
+          `[Autopsy] AI Response Received. Confidence: ${aiResponse.confidence}`,
+        );
 
         const result: AutopsyResult = {
           root_cause_text: aiResponse.root_cause,
@@ -114,6 +118,9 @@ const server = Bun.serve({
 
         const gitServiceUrl = `${config.services.git.base_url}/pr`;
         try {
+          console.log(
+            `[Autopsy] Triggering Git Service PR creation: ${gitServiceUrl}`,
+          );
           const prReq = {
             incident_id: incidentId,
             title: `Fix: ${result.root_cause_text.substring(0, 50)}`,

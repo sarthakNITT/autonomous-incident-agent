@@ -28,11 +28,14 @@ const server = Bun.serve({
         const branchName = `aia/incident-${body.incident_id}`;
         const repoName = `repo-${body.incident_id}`;
         const repoPath = await repoMgr.clone(config.paths.repo_root, repoName);
+        console.log(`[Git] Cloned into ${repoPath}`);
 
         // 1. Install Dependencies
+        console.log(`[Git] Installing dependencies...`);
         await repoMgr.installDependencies(repoPath);
 
         // 2. Checkout Branch
+        console.log(`[Git] Checking out branch: ${branchName}`);
         await repoMgr.configUser(
           repoPath,
           config.github.username,
@@ -41,6 +44,7 @@ const server = Bun.serve({
         await repoMgr.checkout(repoPath, branchName, true);
 
         // 3. Apply Patches
+        console.log(`[Git] Applying patches...`);
         for (const patch of body.patches) {
           try {
             await repoMgr.applyPatch(repoPath, patch.content);
@@ -64,23 +68,28 @@ const server = Bun.serve({
         // Note: Building might fail if the patch is bad. We proceed to commit ONLY if build passes?
         // The user said: "then build, then test, then add commit"
         // If build fails, it will throw error and stop the process, which is correct (validation).
+        console.log(`[Git] Starting Build and Test...`);
         try {
           await repoMgr.buildProject(repoPath);
           await repoMgr.runTests(repoPath);
+          console.log(`[Git] Build and Test Passed.`);
         } catch (e) {
           console.error(`[Git] Build/Test failed after applying patch`, e);
           throw new Error(`Build or Test failed: ${e}`);
         }
 
         // 5. Commit and Push
+        console.log(`[Git] Committing changes...`);
         await repoMgr.add(repoPath, ["."]);
         await repoMgr.commit(
           repoPath,
           `fix: resolve incident ${body.incident_id}\n\n${body.title}`,
         );
 
+        console.log(`[Git] Pushing changes to remote...`);
         await repoMgr.push(repoPath, branchName);
 
+        console.log(`[Git] Creating Pull Request...`);
         const pr = await github.createPullRequest(
           body.title,
           body.body,
