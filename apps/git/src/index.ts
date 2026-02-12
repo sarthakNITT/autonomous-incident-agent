@@ -29,6 +29,10 @@ const server = Bun.serve({
         const repoName = `repo-${body.incident_id}`;
         const repoPath = await repoMgr.clone(config.paths.repo_root, repoName);
 
+        // 1. Install Dependencies
+        await repoMgr.installDependencies(repoPath);
+
+        // 2. Checkout Branch
         await repoMgr.configUser(
           repoPath,
           config.github.username,
@@ -36,6 +40,7 @@ const server = Bun.serve({
         );
         await repoMgr.checkout(repoPath, branchName, true);
 
+        // 3. Apply Patches
         for (const patch of body.patches) {
           try {
             await repoMgr.applyPatch(repoPath, patch.content);
@@ -55,15 +60,26 @@ const server = Bun.serve({
           await Bun.write(fullPath, file.content);
         }
 
+        // 4. Build and Test
+        // Note: Building might fail if the patch is bad. We proceed to commit ONLY if build passes?
+        // The user said: "then build, then test, then add commit"
+        // If build fails, it will throw error and stop the process, which is correct (validation).
+        try {
+          await repoMgr.buildProject(repoPath);
+          await repoMgr.runTests(repoPath);
+        } catch (e) {
+          console.error(`[Git] Build/Test failed after applying patch`, e);
+          throw new Error(`Build or Test failed: ${e}`);
+        }
+
+        // 5. Commit and Push
         await repoMgr.add(repoPath, ["."]);
         await repoMgr.commit(
           repoPath,
           `fix: resolve incident ${body.incident_id}\n\n${body.title}`,
         );
 
-        if (config.github.provider !== "mock") {
-          await repoMgr.push(repoPath, branchName);
-        }
+        await repoMgr.push(repoPath, branchName);
 
         const pr = await github.createPullRequest(
           body.title,

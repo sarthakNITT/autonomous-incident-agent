@@ -28,21 +28,21 @@ paths:
 storage:
   provider: "r2"
   bucket: "aia"
-  access_key: "be01b936c19ed592ac1d18b1d6bdb778"
-  secret_key: "93a47586b74fbdfbed23e4edf55e7d989c8a18411373b7e69de03ab561dfb26c"
+  access_key: "PLACEHOLDER"
+  secret_key: "PLACEHOLDER"
   region: "auto"
-  endpoint: "https://b840b10593148f24b661927eafd1315f.r2.cloudflarestorage.com"
+  endpoint: "https://<ACCOUNT_ID>.r2.cloudflarestorage.com"
 
 github:
   provider: "github"
-  token: "mock-token"
-  owner: "sarthakNITT"
-  repo: "autonomous-incident-agent"
+  token: "PLACEHOLDER"
+  owner: "PLACEHOLDER"
+  repo: "PLACEHOLDER"
   base_branch: "main"
 
 ai:
-  provider: "mock"
-  api_key: "mock-key"
+  provider: "you.com"
+  api_key: "PLACEHOLDER"
   model: "research"
 
 database:

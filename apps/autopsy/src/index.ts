@@ -11,11 +11,7 @@ const REPO_DIR = config.paths.repo_root;
 
 const storage = new R2Client(config.storage);
 const locator = new AstLocator(REPO_DIR);
-const aiConfig = config.ai || {
-  api_key: "PLACEHOLDER",
-  model: "mock",
-  provider: "mock",
-};
+const aiConfig = config.ai;
 const reasoner = new YouComReasoner(aiConfig.api_key, aiConfig.model);
 
 const server = Bun.serve({

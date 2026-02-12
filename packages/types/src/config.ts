@@ -32,7 +32,7 @@ export interface Config {
     agent: { port: number; base_url: string };
   };
   storage: {
-    provider: "r2" | "mock";
+    provider: "r2";
     bucket: string;
     access_key: string;
     secret_key: string;
@@ -45,7 +45,7 @@ export interface Config {
     url?: string;
   };
   ai: {
-    provider: "you.com" | "mock";
+    provider: "you.com" | "openai" | "anthropic";
     api_key: string;
     model: string;
   };

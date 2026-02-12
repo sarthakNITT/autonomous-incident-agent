@@ -68,15 +68,51 @@ export function loadConfig(): Config {
   }
 
   if (process.env.YOU_API_KEY) {
-    if (!config.ai)
+    if (!config.ai) {
+      // Initialize if missing, but we will set real values
       config.ai = { provider: "you.com", api_key: "", model: "research" };
+    }
     console.log(
       `[ConfigLoader] Using YOU_API_KEY from env (Masked: ${process.env.YOU_API_KEY.substring(0, 5)}...)`,
     );
     config.ai.api_key = process.env.YOU_API_KEY;
     config.ai.provider = "you.com";
-  } else {
-    console.warn(`[ConfigLoader] YOU_API_KEY not found in process.env`);
+  }
+
+  if (process.env.GITHUB_TOKEN) {
+    if (!config.github) {
+      config.github = {
+        provider: "github",
+        token: "",
+        base_branch: "main",
+        org: "mock-org", // These should ideally come from env too or config file
+        repo: "mock-repo",
+        username: "aia-bot",
+        email: "bot@aia.local",
+      };
+    }
+    console.log(
+      `[ConfigLoader] Using GITHUB_TOKEN from env (Masked: ${process.env.GITHUB_TOKEN.substring(0, 5)}...)`,
+    );
+    config.github.token = process.env.GITHUB_TOKEN;
+    config.github.provider = "github";
+  }
+
+  if (process.env.R2_ACCESS_KEY_ID && process.env.R2_SECRET_ACCESS_KEY) {
+    if (!config.storage) {
+      config.storage = {
+        provider: "r2",
+        bucket: process.env.R2_BUCKET_NAME || "aia",
+        access_key: "",
+        secret_key: "",
+        region: "auto",
+        endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+      };
+    }
+    config.storage.provider = "r2";
+    config.storage.access_key = process.env.R2_ACCESS_KEY_ID;
+    config.storage.secret_key = process.env.R2_SECRET_ACCESS_KEY;
+    config.storage.endpoint = `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`;
   }
 
   if (!isDocker) {
@@ -91,11 +127,25 @@ export function loadConfig(): Config {
     config.paths.reports = resolve(rootDir, config.paths.reports);
 
     if (!config.storage) {
-      throw new Error("Storage configuration missing in aia.config.yaml");
+      throw new Error(
+        "Storage configuration missing in aia.config.yaml or .env",
+      );
     }
 
-    if (!config.ai) {
-      config.ai = { provider: "mock", api_key: "PLACEHOLDER", model: "mock" };
+    if (
+      !config.ai ||
+      !config.ai.api_key ||
+      config.ai.api_key === "PLACEHOLDER"
+    ) {
+      // If we don't have a valid key, we cannot function in non-mock mode.
+      // However, we must not default to mock.
+      // We can throw if strictly required, or just leave it empty and let the service fail.
+      // Given "I don't want any kind of mock mode", we should probably enforce it.
+      if (!process.env.YOU_API_KEY) {
+        throw new Error(
+          "AI Configuration (YOU_API_KEY) missing. Mock mode is disabled.",
+        );
+      }
     }
   } else {
     config.paths.repo_root = "/app";
@@ -107,26 +157,28 @@ export function loadConfig(): Config {
     config.paths.reports = "/app/dashboard/reports";
 
     if (!config.storage) {
-      throw new Error("Storage configuration missing in aia.config.yaml");
+      throw new Error("Storage configuration missing.");
     }
-    if (!config.ai) {
-      config.ai = { provider: "mock", api_key: "PLACEHOLDER", model: "mock" };
+    if (!config.ai || !config.ai.api_key) {
+      throw new Error(
+        "AI Configuration missing in Docker environment. Mock mode is disabled.",
+      );
     }
   }
 
   if (process.env.PORT) {
   }
 
-  if (!config.github) {
-    config.github = {
-      provider: "mock",
-      token: "PLACEHOLDER",
-      org: "mock-org",
-      repo: "mock-repo",
-      base_branch: "main",
-      username: "aia-bot",
-      email: "bot@aia.local",
-    };
+  if (
+    !config.github ||
+    !config.github.token ||
+    config.github.token === "PLACEHOLDER"
+  ) {
+    if (!process.env.GITHUB_TOKEN) {
+      throw new Error(
+        "GitHub Configuration (GITHUB_TOKEN) missing. Mock mode is disabled.",
+      );
+    }
   }
 
   if (!config.services.git) {

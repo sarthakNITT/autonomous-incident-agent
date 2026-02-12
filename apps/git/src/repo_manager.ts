@@ -67,6 +67,50 @@ export class RepoManager {
     await this.runGit(["push", "-u", remote, branch], repoPath);
   }
 
+  async installDependencies(repoPath: string) {
+    console.log(`[RepoManager] Installing dependencies in ${repoPath}`);
+    // Default to bun install if bun.lockb exists, otherwise check for package-lock.json
+    if (existsSync(join(repoPath, "bun.lockb"))) {
+      await this.runCommand("bun", ["install"], repoPath);
+    } else if (existsSync(join(repoPath, "package-lock.json"))) {
+      await this.runCommand("npm", ["install"], repoPath);
+    } else {
+      // Default to bun install
+      await this.runCommand("bun", ["install"], repoPath);
+    }
+  }
+
+  async buildProject(repoPath: string) {
+    console.log(`[RepoManager] Building project in ${repoPath}`);
+    // Try bun run build if script exists, otherwise skip or try npm
+    // Simple approach: try bun run build, if it fails, it fails (fail fast)
+    await this.runCommand("bun", ["run", "build"], repoPath);
+  }
+
+  async runTests(repoPath: string) {
+    console.log(`[RepoManager] Running tests in ${repoPath}`);
+    await this.runCommand("bun", ["run", "test"], repoPath);
+  }
+
+  private async runCommand(
+    command: string,
+    args: string[],
+    cwd: string,
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const proc = spawn(command, args, { cwd, stdio: "inherit" });
+      proc.on("close", (code) => {
+        if (code === 0) resolve();
+        else
+          reject(
+            new Error(
+              `${command} command failed: ${command} ${args.join(" ")} (code ${code})`,
+            ),
+          );
+      });
+    });
+  }
+
   private async runGit(args: string[], cwd: string): Promise<void> {
     return new Promise((resolve, reject) => {
       const proc = spawn("git", args, { cwd, stdio: "inherit" });

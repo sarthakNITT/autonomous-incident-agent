@@ -13,12 +13,6 @@ export class R2Client implements StorageClient {
   constructor(config: StorageConfig) {
     this.bucket = config.bucket;
 
-    if (config.provider === "mock") {
-      console.warn(
-        "R2Client: Using MOCK provider. Operations will be no-ops or simulated.",
-      );
-    }
-
     this.client = new S3Client({
       region: config.region,
       endpoint: config.endpoint,
