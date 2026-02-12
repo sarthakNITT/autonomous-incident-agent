@@ -91,6 +91,8 @@ const server = Bun.serve({
           file_path: aiResponse.patch.file_path,
           line_range: "0-0",
           commit_hash: snapshot.repo_git_ref.commit || "unknown",
+          fix_prompt: aiResponse.fix_prompt,
+          manual_steps: aiResponse.manual_steps,
         };
 
         const resultKey = `incidents/${incidentId}/autopsy.json`;

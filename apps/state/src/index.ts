@@ -29,8 +29,6 @@ const server = Bun.serve({
 
       if (url.pathname.startsWith("/incidents/")) {
         const parts = url.pathname.split("/");
-        // url is /incidents/:id or /incidents/:id/update
-        // parts[0] = "", parts[1] = "incidents", parts[2] = id
         const id = parts[2];
 
         if (req.method === "GET" && parts.length === 3) {

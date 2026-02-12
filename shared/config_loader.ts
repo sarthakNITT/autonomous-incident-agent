@@ -69,7 +69,6 @@ export function loadConfig(): Config {
 
   if (process.env.YOU_API_KEY) {
     if (!config.ai) {
-      // Initialize if missing, but we will set real values
       config.ai = { provider: "you.com", api_key: "", model: "research" };
     }
     console.log(
@@ -85,7 +84,7 @@ export function loadConfig(): Config {
         provider: "github",
         token: "",
         base_branch: "main",
-        org: "mock-org", // These should ideally come from env too or config file
+        org: "mock-org",
         repo: "mock-repo",
         username: "aia-bot",
         email: "bot@aia.local",
@@ -137,10 +136,6 @@ export function loadConfig(): Config {
       !config.ai.api_key ||
       config.ai.api_key === "PLACEHOLDER"
     ) {
-      // If we don't have a valid key, we cannot function in non-mock mode.
-      // However, we must not default to mock.
-      // We can throw if strictly required, or just leave it empty and let the service fail.
-      // Given "I don't want any kind of mock mode", we should probably enforce it.
       if (!process.env.YOU_API_KEY) {
         throw new Error(
           "AI Configuration (YOU_API_KEY) missing. Mock mode is disabled.",

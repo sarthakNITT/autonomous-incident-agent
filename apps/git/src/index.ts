@@ -29,12 +29,6 @@ const server = Bun.serve({
         const repoName = `repo-${body.incident_id}`;
         const repoPath = await repoMgr.clone(config.paths.repo_root, repoName);
         console.log(`[Git] Cloned into ${repoPath}`);
-
-        // COPY .ENV to the cloned repo so builds succeed!
-        // We assume process.cwd() is the root of the running service, so we go up
-        // But better is to read the file from the original location and write it to the new one.
-        // We can use the fact that we are in a monorepo workspace.
-        // config.paths.repo_root *is* the root of the source repo.
         try {
           const envContent = await Bun.file(
             join(config.paths.repo_root, ".env"),
@@ -48,11 +42,9 @@ const server = Bun.serve({
           );
         }
 
-        // 1. Install Dependencies
         console.log(`[Git] Installing dependencies...`);
         await repoMgr.installDependencies(repoPath);
 
-        // 2. Checkout Branch
         console.log(`[Git] Checking out branch: ${branchName}`);
         await repoMgr.configUser(
           repoPath,
@@ -61,7 +53,6 @@ const server = Bun.serve({
         );
         await repoMgr.checkout(repoPath, branchName, true);
 
-        // 3. Apply Patches
         console.log(`[Git] Applying patches...`);
         for (const patch of body.patches) {
           try {
@@ -82,7 +73,6 @@ const server = Bun.serve({
           await Bun.write(fullPath, file.content);
         }
 
-        // 4. Commit and Push
         console.log(`[Git] Committing changes...`);
         await repoMgr.add(repoPath, ["."]);
         await repoMgr.commit(

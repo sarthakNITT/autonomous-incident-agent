@@ -14,7 +14,6 @@ export class YouComReasoner {
     const contextStr = req.file_context
       .map((f) => `File: ${f.path}\nContent:\n${f.content}`)
       .join("\n---\n");
-    // ... prompt construction ...
     const prompt = `
 You are an expert software engineer. Analyze the following stacktrace and code context to identify the root cause of the error.
 Error Message: ${req.error_message}
@@ -33,13 +32,27 @@ Task:
    - Ensure typical git diff header format (@@ -start,count +start,count @@).
 3. Provide a deterministic test case (TypeScript) to reproduce and verify the fix.
 4. Estimate confidence score (0-1).
+5. Provide a "fix_prompt" (string): A comprehensive, detailed prompt that includes:
+   - The exact file path and line numbers where changes are needed
+   - The complete error context and root cause
+   - Specific code that needs to be changed (before and after)
+   - Any additional context needed for an AI to make the exact fix
+   This should be a complete, self-contained prompt ready to paste into an AI coding assistant.
+6. Provide "manual_steps" (array of strings): Detailed step-by-step instructions including:
+   - Exact file paths to open
+   - Specific line numbers to navigate to
+   - Precise code changes to make (with before/after examples)
+   - Any testing or verification steps
+   Each step should be actionable and specific.
 
 Output JSON only. Do not include markdown code block syntax (no \`\`\`json). Just the raw JSON object string.
 {
   "root_cause": "string",
   "patch": { "file_path": "${req.file_context[0]?.path || "string"}", "diff": "string (multiline diff)" },
   "test_code": "string",
-  "confidence": number
+  "confidence": number,
+  "fix_prompt": "string (detailed, multi-line prompt with file paths, line numbers, and exact changes)",
+  "manual_steps": ["Step 1: Open file X at line Y...", "Step 2: Change code from A to B...", "Step 3: Test by..."]
 }
 `;
 
@@ -73,12 +86,8 @@ Output JSON only. Do not include markdown code block syntax (no \`\`\`json). Jus
         JSON.stringify(data).substring(0, 200),
       );
 
-      // ... extraction logic ...
       let textFn = "";
-      // The structure of You.com API response varies.
-      // Usually it's in data.output or data.message
       if (data.output && Array.isArray(data.output)) {
-        // ... logic from before ...
         const answer = data.output.find(
           (o: any) => o.type === "message.answer",
         );
@@ -88,12 +97,9 @@ Output JSON only. Do not include markdown code block syntax (no \`\`\`json). Jus
       }
 
       if (!textFn) {
-        // Try to inspect the whole object if we missed it
         textFn = JSON.stringify(data);
-        // throw new Error("No answer text found in You.com response");
       }
 
-      // Clean up markdown code blocks if present
       let cleanJson = textFn
         .replace(/```json/g, "")
         .replace(/```/g, "")
@@ -102,7 +108,6 @@ Output JSON only. Do not include markdown code block syntax (no \`\`\`json). Jus
       try {
         return JSON.parse(cleanJson);
       } catch (e) {
-        // Fallback regex search
         const jsonMatch = textFn.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           return JSON.parse(jsonMatch[0]);
