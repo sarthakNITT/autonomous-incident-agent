@@ -6,7 +6,6 @@ import { sidebarItems } from "@/lib/docs-config";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 
-// Helper to flatten the sidebar items
 function getFlattenedItems() {
   return sidebarItems.flatMap((group) => group.items);
 }

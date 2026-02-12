@@ -60,7 +60,7 @@ const server = Bun.serve({
     if (req.method === "POST" && url.pathname.startsWith("/api/incidents/")) {
       const parts = url.pathname.split("/");
       const id = parts[3];
-      const action = parts[4]; // approve or reject
+      const action = parts[4];
 
       const status = action === "approve" ? "resolved" : "failed";
 

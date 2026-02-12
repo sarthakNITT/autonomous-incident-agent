@@ -41,8 +41,8 @@ export interface Config {
   };
   database: {
     provider: "sqlite" | "postgres";
-    path: string; // for sqlite
-    url?: string; // for postgres
+    path: string;
+    url?: string;
   };
   ai: {
     provider: "you.com" | "mock";

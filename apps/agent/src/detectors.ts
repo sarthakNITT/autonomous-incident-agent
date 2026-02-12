@@ -11,7 +11,6 @@ export class Detectors {
   checkSpan(span: OtelSpan): DetectorResult[] {
     const results: DetectorResult[] = [];
 
-    // Handle both array and object formats for attributes
     const getAttr = (key: string) => {
       if (Array.isArray(span.attributes)) {
         return span.attributes.find((a) => a.key === key)?.value;
@@ -61,7 +60,6 @@ export class Detectors {
     if (span.events) {
       for (const evt of span.events) {
         if (evt.name === "exception") {
-          // Handle both array and object formats for event attributes
           let msg = "Unknown Exception";
           let type = "Error";
 

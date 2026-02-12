@@ -55,7 +55,6 @@ const server = Bun.serve({
           console.log("Unhandled error processing request:");
           console.log(err);
 
-          // Send error to agent via OpenTelemetry
           await tracer.recordError(err, {
             method: req.method,
             route: url.pathname,

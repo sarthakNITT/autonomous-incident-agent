@@ -13,7 +13,6 @@ export function DocsTOC() {
   >([]);
   const [activeId, setActiveId] = React.useState<string>("");
 
-  // Find the active group
   const activeGroup = sidebarItems.find((group) =>
     group.items.some((item) => item.href === pathname),
   );
@@ -27,7 +26,6 @@ export function DocsTOC() {
       }),
     );
     setHeadings(elements);
-    // Reset active ID on route change if no hash
     setActiveId("");
 
     const observer = new IntersectionObserver(
@@ -49,7 +47,6 @@ export function DocsTOC() {
     return () => observer.disconnect();
   }, [pathname]);
 
-  // Determine active parent (H2) if active item is H3
   const activeIndex = headings.findIndex((h) => h.id === activeId);
   let activeParentId = "";
   if (activeIndex !== -1 && headings[activeIndex].depth === 3) {
@@ -100,22 +97,18 @@ export function DocsTOC() {
                           href={`#${heading.id}`}
                           className={cn(
                             "relative block text-[12.5px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                            // Base styles: default 50% opacity
                             "text-muted-foreground hover:text-foreground line-clamp-1 duration-160 ease-out",
                             isActive
                               ? "opacity-100 font-medium text-foreground"
                               : "opacity-50",
 
-                            // H2 Styles
                             heading.depth === 2 &&
                               "pl-4 border-l-2 border-transparent",
                             heading.depth === 2 &&
                               showLine &&
                               "border-foreground",
 
-                            // H3 Styles
                             heading.depth === 3 && "pl-6",
-                            // H3 Dot Indicator
                             heading.depth === 3 &&
                               isActive &&
                               "before:absolute before:left-2 before:top-1.5 before:h-1.5 before:w-1.5 before:rounded-full before:bg-foreground",

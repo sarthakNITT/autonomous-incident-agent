@@ -119,11 +119,9 @@ export function TabsCopyButton({ className }: { className?: string }) {
       const container = e.currentTarget.closest(".group");
       if (!container) return;
 
-      // Find the active tab content within this group
       const activeContent = container.querySelector('[data-state="active"]');
       if (!activeContent) return;
 
-      // Try to find code element or just take text content
       const codeElement =
         activeContent.querySelector("code") ||
         activeContent.querySelector("pre");

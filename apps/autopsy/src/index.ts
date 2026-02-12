@@ -11,131 +11,154 @@ const REPO_DIR = config.paths.repo_root;
 
 const storage = new R2Client(config.storage);
 const locator = new AstLocator(REPO_DIR);
-const aiConfig = config.ai || { api_key: "PLACEHOLDER", model: "mock", provider: "mock" };
+const aiConfig = config.ai || {
+  api_key: "PLACEHOLDER",
+  model: "mock",
+  provider: "mock",
+};
 const reasoner = new YouComReasoner(aiConfig.api_key, aiConfig.model);
 
 const server = Bun.serve({
-    port: PORT,
-    async fetch(req) {
-        const url = new URL(req.url);
+  port: PORT,
+  async fetch(req) {
+    const url = new URL(req.url);
 
-        if (req.method === "POST" && url.pathname === "/analyze") {
-            try {
-                const body = await req.json() as any;
-                const snapshotId = body.snapshot_id; // Changed from snapshot_key to snapshot_id
+    if (req.method === "POST" && url.pathname === "/analyze") {
+      try {
+        const body = (await req.json()) as any;
+        const snapshotKey = body.snapshot_key;
+        const incidentId = body.incident_id;
 
-                if (!snapshotId) {
-                    return new Response("Missing snapshot_id", { status: 400 });
-                }
-
-                const incidentId = snapshotId.replace("snap-", "");
-
-                // Update State: ANALYZING
-                fetch(`${config.services.state.base_url}/incidents/${incidentId}/update`, {
-                    method: "POST", headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ status: "analyzing" })
-                }).catch(() => { });
-
-                console.log(`[Autopsy] Analyzing snapshot: ${snapshotId}`);
-
-                const snapshot = await storage.downloadJSON<RouterSnapshot>(snapshotId); // Using snapshotId
-                // const incidentId = snapshot.event.id; // This line is now redundant as incidentId is derived from snapshotId
-                const stacktrace = snapshot.event.stacktrace || "";
-
-                console.log(`[Autopsy] Snapshot Loaded. Incident: ${incidentId}`);
-
-                const locations = await locator.locateSource(stacktrace);
-                const fileContext = [];
-                for (const loc of locations) {
-                    console.log(`[Autopsy] Located source: ${loc.relPath}:${loc.line}`);
-                    const content = await locator.readContext(loc.path, loc.line);
-                    fileContext.push({
-                        path: loc.relPath,
-                        content: content,
-                        line_range: `${loc.line - 5}-${loc.line + 5}`
-                    });
-                }
-
-                if (fileContext.length === 0) {
-                    console.warn("[Autopsy] Could not locate source files from stacktrace.");
-                }
-
-                const request = {
-                    stacktrace: stacktrace,
-                    file_context: fileContext,
-                    error_message: snapshot.event.error_details?.message || "Unknown error"
-                };
-
-                const aiResponse = await reasoner.analyze(request);
-
-                const result: AutopsyResult = {
-                    root_cause_text: aiResponse.root_cause,
-                    confidence: aiResponse.confidence,
-                    suggested_patch: {
-                        file_path: aiResponse.patch.file_path,
-                        language: "typescript",
-                        patch_diff: aiResponse.patch.diff
-                    },
-                    file_path: aiResponse.patch.file_path,
-                    line_range: "0-0",
-                    commit_hash: snapshot.repo_git_ref.commit || "unknown"
-                };
-
-                const resultKey = `incidents/${incidentId}/autopsy.json`;
-                const patchKey = `incidents/${incidentId}/patch.diff`;
-
-                await storage.uploadJSON(resultKey, result);
-                await storage.uploadText(patchKey, result.suggested_patch.patch_diff);
-
-                // Update State: PATCHING
-                fetch(`${config.services.state.base_url}/incidents/${incidentId}/update`, {
-                    method: "POST", headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        status: "patching",
-                        root_cause: result.root_cause_text,
-                        patch_diff_key: patchKey,
-                        file_path: result.file_path,
-                        snapshot_id: snapshotId
-                    })
-                }).catch(() => { });
-
-                console.log(`[Autopsy] Completed. Result: ${resultKey}`);
-
-                const gitServiceUrl = `${config.services.git.base_url}/pr`;
-                try {
-                    const prReq = {
-                        incident_id: incidentId,
-                        title: `Fix: ${result.root_cause_text.substring(0, 50)}`,
-                        body: `## Root Cause\n${result.root_cause_text}\n\n## Fix\nApplied patch automatically.`,
-                        patches: [{ path: "patch.diff", content: result.suggested_patch.patch_diff }],
-                        files: []
-                    };
-
-                    fetch(gitServiceUrl, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(prReq)
-                    }).catch(err => console.error("Failed to trigger Git service async", err));
-                } catch (e) {
-                    console.error("Failed to prepare PR request", e);
-                }
-
-                return new Response(JSON.stringify({
-                    status: "analyzed",
-                    result_key: resultKey,
-                    patch_key: patchKey
-                }), {
-                    headers: { "Content-Type": "application/json" }
-                });
-
-            } catch (e) {
-                console.error("Analysis failed", e);
-                return new Response(`Internal Server Error: ${e}`, { status: 500 });
-            }
+        if (!snapshotKey || !incidentId) {
+          return new Response("Missing snapshot_key or incident_id", {
+            status: 400,
+          });
         }
 
-        return new Response("Not Found", { status: 404 });
-    },
+        fetch(
+          `${config.services.state.base_url}/incidents/${incidentId}/update`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: "analyzing" }),
+          },
+        ).catch(() => {});
+
+        console.log(`[Autopsy] Analyzing snapshot: ${snapshotKey}`);
+
+        const snapshot =
+          await storage.downloadJSON<RouterSnapshot>(snapshotKey);
+        const stacktrace = snapshot.event.stacktrace || "";
+
+        console.log(`[Autopsy] Snapshot Loaded. Incident: ${incidentId}`);
+
+        const locations = await locator.locateSource(stacktrace);
+        const fileContext = [];
+        for (const loc of locations) {
+          console.log(`[Autopsy] Located source: ${loc.relPath}:${loc.line}`);
+          const content = await locator.readContext(loc.path, loc.line);
+          fileContext.push({
+            path: loc.relPath,
+            content: content,
+            line_range: `${loc.line - 5}-${loc.line + 5}`,
+          });
+        }
+
+        if (fileContext.length === 0) {
+          console.warn(
+            "[Autopsy] Could not locate source files from stacktrace.",
+          );
+        }
+
+        const request = {
+          stacktrace: stacktrace,
+          file_context: fileContext,
+          error_message:
+            snapshot.event.error_details?.message || "Unknown error",
+        };
+
+        const aiResponse = await reasoner.analyze(request);
+
+        const result: AutopsyResult = {
+          root_cause_text: aiResponse.root_cause,
+          confidence: aiResponse.confidence,
+          suggested_patch: {
+            file_path: aiResponse.patch.file_path,
+            language: "typescript",
+            patch_diff: aiResponse.patch.diff,
+          },
+          file_path: aiResponse.patch.file_path,
+          line_range: "0-0",
+          commit_hash: snapshot.repo_git_ref.commit || "unknown",
+        };
+
+        const resultKey = `incidents/${incidentId}/autopsy.json`;
+        const patchKey = `incidents/${incidentId}/patch.diff`;
+
+        await storage.uploadJSON(resultKey, result);
+        await storage.uploadText(patchKey, result.suggested_patch.patch_diff);
+
+        fetch(
+          `${config.services.state.base_url}/incidents/${incidentId}/update`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              status: "patching",
+              root_cause: result.root_cause_text,
+              patch_diff_key: patchKey,
+              file_path: result.file_path,
+              snapshot_id: snapshot.snapshot_id,
+            }),
+          },
+        ).catch(() => {});
+
+        console.log(`[Autopsy] Completed. Result: ${resultKey}`);
+
+        const gitServiceUrl = `${config.services.git.base_url}/pr`;
+        try {
+          const prReq = {
+            incident_id: incidentId,
+            title: `Fix: ${result.root_cause_text.substring(0, 50)}`,
+            body: `## Root Cause\n${result.root_cause_text}\n\n## Fix\nApplied patch automatically.`,
+            patches: [
+              {
+                path: "patch.diff",
+                content: result.suggested_patch.patch_diff,
+              },
+            ],
+            files: [],
+          };
+
+          fetch(gitServiceUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(prReq),
+          }).catch((err) =>
+            console.error("Failed to trigger Git service async", err),
+          );
+        } catch (e) {
+          console.error("Failed to prepare PR request", e);
+        }
+
+        return new Response(
+          JSON.stringify({
+            status: "analyzed",
+            result_key: resultKey,
+            patch_key: patchKey,
+          }),
+          {
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+      } catch (e) {
+        console.error("Analysis failed", e);
+        return new Response(`Internal Server Error: ${e}`, { status: 500 });
+      }
+    }
+
+    return new Response("Not Found", { status: 404 });
+  },
 });
 
 console.log(`Autopsy AI Service listening on http://localhost:${PORT}`);

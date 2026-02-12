@@ -47,7 +47,7 @@ export class SimpleOTELTracer {
 
     const span: SpanData = {
       name: spanData.name || "http.request",
-      kind: 2, // SPAN_KIND_SERVER
+      kind: 2,
       traceId,
       spanId,
       startTimeUnixNano: spanData.startTimeUnixNano || now,
@@ -110,7 +110,7 @@ export class SimpleOTELTracer {
         ...context,
       },
       status: {
-        code: 2, // STATUS_CODE_ERROR
+        code: 2,
         message: error.message,
       },
       events: [

@@ -1,0 +1,579 @@
+$ turbo run dev --concurrency 15
+• turbo 2.8.3
+• Packages in scope: @repo/eslint-config, @repo/storage, @repo/types, @repo/typescript-config, @repo/ui, agent, autopsy, dashboard, docs-site, git-service, repro-service, router, sample-app, state-service, web, web-client
+• Running dev in 16 packages
+• Remote caching disabled
+web:dev: cache bypass, force executing 57ac094d28304821
+git-service:dev: cache bypass, force executing 529f6972c368d649
+docs-site:dev: cache bypass, force executing 8664d7c4640585e1
+web-client:dev: cache bypass, force executing 7da390259f6eecd4
+agent:dev: cache bypass, force executing c2fbe66700eaf162
+router:dev: cache bypass, force executing 10e423309aa8e100
+dashboard:dev: cache bypass, force executing df200724e185ac85
+repro-service:dev: cache bypass, force executing 3fafd43b329016f2
+autopsy:dev: cache bypass, force executing d39201780ad118c1
+state-service:dev: cache bypass, force executing e1faefcac4aad211
+docs-site:dev: $ next dev -p ${DOCS_PORT:-3007}
+git-service:dev: $ bun run --watch src/index.ts
+web:dev: $ next dev -p ${WEB_PORT:-3006}
+web-client:dev: $ bun run --watch src/server.ts
+agent:dev: $ bun run --watch src/index.ts
+sample-app:dev: cache bypass, force executing 5347c12cc45b4e82
+router:dev: $ bun run --watch src/index.ts
+dashboard:dev: $ bun run --watch src/index.ts
+repro-service:dev: $ bun run --watch src/server.ts
+autopsy:dev: $ bun run --watch src/index.ts
+state-service:dev: $ bun run --watch src/index.ts
+sample-app:dev: $ bun run --watch src/index.ts
+state-service:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+state-service:dev: State Service listening on http://localhost:3003
+sample-app:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+sample-app:dev: Starting sample-app on port 3008...
+sample-app:dev: OTEL Agent endpoint: http://localhost:4318
+sample-app:dev: Server listening on http://localhost:3008
+web-client:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+agent:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+web-client:dev: Web Dashboard listening on http://localhost:3009
+autopsy:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+agent:dev: Starting Autonomous Observability Agent (OTel Receiver)...
+git-service:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+autopsy:dev: Autopsy AI Service listening on http://localhost:3002
+agent:dev: Agent OTLP Receiver listening on http://localhost:4318
+agent:dev: Send traces to http://localhost:4318/v1/traces
+router:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+git-service:dev: Git Service listening on http://localhost:3004
+router:dev: Router listening on http://localhost:3001
+repro-service:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+repro-service:dev: Repro Service listening on http://localhost:3005
+dashboard:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+dashboard:dev: Dashboard listening on http://localhost:3000
+docs-site:dev: ▲ Next.js 16.1.6 (Turbopack)
+docs-site:dev: - Local:         http://localhost:3007
+docs-site:dev: - Network:       http://172.20.10.2:3007
+docs-site:dev: 
+docs-site:dev: ✓ Starting...
+web:dev: ▲ Next.js 16.1.6 (Turbopack)
+web:dev: - Local:         http://localhost:3006
+web:dev: - Network:       http://172.20.10.2:3006
+web:dev: 
+web:dev: ✓ Starting...
+web:dev: ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+docs-site:dev: ✓ Ready in 775ms
+web:dev: ✓ Ready in 822ms
+sample-app:dev: Triggering intentional failure scenario...
+sample-app:dev: Error: SeededDemoFailure: deterministic bug for AIA demo
+sample-app:dev:     at <anonymous> (/Users/sarthakkarode/autonomus-incident-agent/apps/sample-app/src/index.ts:42:31)
+sample-app:dev: Unhandled error processing request:
+sample-app:dev: 37 |             throw new Error("Request Timeout - CPU Limit Exceeded");
+sample-app:dev: 38 |           }
+sample-app:dev: 39 | 
+sample-app:dev: 40 |           if (payload?.action === "cause_error") {
+sample-app:dev: 41 |             console.log("Triggering intentional failure scenario...");
+sample-app:dev: 42 |             const error = new Error(
+sample-app:dev:                                    ^
+sample-app:dev: error: SeededDemoFailure: deterministic bug for AIA demo
+sample-app:dev:       at /Users/sarthakkarode/autonomus-incident-agent/apps/sample-app/src/index.ts:42:31
+sample-app:dev: 
+agent:dev: [Agent] DETECTED INCIDENT: http_error - HTTP 500 Error: error.handler
+agent:dev: [Agent] Helper Event Uploaded to R2: incidents/65cf5123-617a-4a59-bbc3-acb0b4434d33/event.json
+router:dev: [Router] Received incident: 65cf5123-617a-4a59-bbc3-acb0b4434d33
+router:dev: [Router] Snapshot uploaded to R2: incidents/65cf5123-617a-4a59-bbc3-acb0b4434d33/snapshot.json
+state-service:dev: State Service Error 24 | `))}toString(){return this.lines.join(`
+state-service:dev: 25 | `)}};var hd={red:ce,gray:Hr,dim:Ce,bold:W,underline:Y,highlightSource:e=>e.highlight()},yd={red:e=>e,gray:e=>e,dim:e=>e,bold:e=>e,underline:e=>e,highlightSource:e=>e};function bd({message:e,originalMethod:r,isPanic:t,callArguments:n}){return{functionName:`prisma.${r}()`,message:e,isPanic:t??!1,callArguments:n}}function Ed({callsite:e,message:r,originalMethod:t,isPanic:n,callArguments:i},o){let s=bd({message:r,originalMethod:t,isPanic:n,callArguments:i});if(!e||typeof window<"u"||process.env.NODE_ENV==="production")return s;let a=e.getLocation();if(!a||!a.lineNumber||!a.columnNumber)return s;let l=Math.max(1,a.lineNumber-3),u=Pn.read(a.fileName)?.slice(l,a.lineNumber),c=u?.lineAt(a.lineNumber);if(u&&c){let p=xd(c),d=wd(c);if(!d)return s;s.functionName=`${d.code})`,s.location=a,n||(u=u.mapLineAt(a.lineNumber,h=>h.slice(0,d.openingBraceIndex))),u=o.highlightSource(u);let f=String(u.lastLineNumber).length;if(s.contextLines=u.mapLines((h,g)=>o.gray(String(g).padStart(f))+" "+h).mapLines(h=>o.dim(h)).prependSymbolA
+state-service:dev: 26 | `)}function Pd(e){let r=[e.fileName];return e.lineNumber&&r.push(String(e.lineNumber)),e.columnNumber&&r.push(String(e.columnNumber)),r.join(":")}function Tn(e){let r=e.showColors?hd:yd,t;return t=Ed(e,r),vd(t,r)}var la=O(Ki());function na(e,r,t){let n=ia(e),i=Td(n),o=Rd(i);o?Sn(o,r,t):r.addErrorMessage(()=>"Unknown error")}function ia(e){return e.errors.flatMap(r=>r.kind==="Union"?ia(r):[r])}function Td(e){let r=new Map,t=[];for(let n of e){if(n.kind!=="InvalidArgumentType"){t.push(n);continue}let i=`${n.selectionPath.join(".")}:${n.argumentPath.join(".")}`,o=r.get(i);o?r.set(i,{...n,argument:{...n.argument,typeNames:Sd(o.argument.typeNames,n.argument.typeNames)}}):r.set(i,n)}return t.push(...r.values()),t}function Sd(e,r){return[...new Set(e.concat(r))]}function Rd(e){return ji(e,(r,t)=>{let n=ra(r),i=ra(t);return n!==i?n-i:ta(r)-ta(t)})}function ra(e){let r=0;return Array.isArray(e.selectionPath)&&(r+=e.selectionPath.length),Array.isArray(e.argumentPath)&&(r+=e.argumentPath.length),r}function ta(e){switch(
+state-service:dev: 27 | `)}getCurrentLineLength(){return this.currentLine.length}indentedCurrentLine(){let r=this.currentLine.padStart(this.currentLine.length+2*this.currentIndent);return this.marginSymbol?this.marginSymbol+r.slice(1):r}};oa();var Rn=class{constructor(r){this.value=r}write(r){r.write(this.value)}markAsError(){this.value.markAsError()}};var An=e=>e,Cn={bold:An,red:An,green:An,dim:An,enabled:!1},aa={bold:W,red:ce,green:qe,dim:Ce,enabled:!0},Cr={write(e){e.writeLine(",")}};var Pe=class{constructor(r){this.contents=r}isUnderlined=!1;color=r=>r;underline(){return this.isUnderlined=!0,this}setColor(r){return this.color=r,this}write(r){let t=r.getCurrentLineLength();r.write(this.color(this.contents)),this.isUnderlined&&r.afterNextNewline(()=>{r.write(" ".repeat(t)).writeLine(this.color("~".repeat(this.contents.length)))})}};var ze=class{hasError=!1;markAsError(){return this.hasError=!0,this}};var Ir=class extends ze{items=[];addItem(r){return this.items.push(new Rn(r)),this}getField(r){return this.items[r]}getPrintWidth(){
+state-service:dev: 28 | Note that ${s.bold("include")} statements only accept relation fields.`,a})}function Id(e,r,t){let n=r.arguments.getDeepSubSelectionValue(e.selectionPath)?.asObject();if(n){let i=n.getField("omit")?.value.asObject();if(i){Dd(e,r,i);return}if(n.hasField("select")){Od(e,r);return}}if(t?.[We(e.outputType.name)]){kd(e,r);return}r.addErrorMessage(()=>`Unknown field at "${e.selectionPath.join(".")} selection"`)}function Dd(e,r,t){t.removeAllFields();for(let n of e.outputType.fields)t.addSuggestion(new le(n.name,"false"));r.addErrorMessage(n=>`The ${n.red("omit")} statement includes every field of the model ${n.bold(e.outputType.name)}. At least one field must be included in the result`)}function Od(e,r){let t=e.outputType,n=r.arguments.getDeepSelectionParent(e.selectionPath)?.value,i=n?.isEmpty()??!1;n&&(n.removeAllFields(),pa(n,t)),r.addErrorMessage(o=>i?`The ${o.red("`select`")} statement for type ${o.bold(t.name)} must not be empty. ${dt(o)}`:`The ${o.red("`select`")} statement for type ${o.bold(t.name)} needs $
+state-service:dev: 29 | `)}};function _r(e){return new Zi(ga(e))}function ga(e){let r=new Dr;for(let[t,n]of Object.entries(e)){let i=new kn(t,ha(n));r.addField(i)}return r}function ha(e){if(typeof e=="string")return new Q(JSON.stringify(e));if(typeof e=="number"||typeof e=="boolean")return new Q(String(e));if(typeof e=="bigint")return new Q(`${e}n`);if(e===null)return new Q("null");if(e===void 0)return new Q("undefined");if(Sr(e))return new Q(`new Prisma.Decimal("${e.toFixed()}")`);if(e instanceof Uint8Array)return Buffer.isBuffer(e)?new Q(`Buffer.alloc(${e.byteLength})`):new Q(`new Uint8Array(${e.byteLength})`);if(e instanceof Date){let r=mn(e)?e.toISOString():"Invalid Date";return new Q(`new Date("${r}")`)}return e instanceof Me?new Q(`Prisma.${e._getName()}`):kr(e)?new Q(`prisma.${We(e.modelName)}.$fields.${e.name}`):Array.isArray(e)?Kd(e):typeof e=="object"?ga(e):new Q(Object.prototype.toString.call(e))}function Kd(e){let r=new Ir;for(let t of e)r.addItem(ha(t));return r}function _n(e,r){let t=r==="pretty"?aa:Cn,n=e.renderAllMes
+state-service:dev: 
+state-service:dev: PrismaClientValidationError: 
+state-service:dev: Invalid `prisma.incident.create()` invocation in
+state-service:dev: /Users/sarthakkarode/autonomus-incident-agent/apps/state/src/models.ts:15:44
+state-service:dev: 
+state-service:dev:   12 const id = req.id || crypto.randomUUID();
+state-service:dev:   13 const status = req.status || IncidentStatus.DETECTED;
+state-service:dev:   14 
+state-service:dev: → 15 const incident = await prisma.incident.create({
+state-service:dev:        data: {
+state-service:dev:          id: "65cf5123-617a-4a59-bbc3-acb0b4434d33",
+state-service:dev:          status: "detected",
+state-service:dev:      +   title: String
+state-service:dev:        }
+state-service:dev:      })
+state-service:dev: 
+state-service:dev: Argument `title` is missing.
+state-service:dev:  clientVersion: "6.19.2",
+state-service:dev: 
+state-service:dev:       at Nn (/Users/sarthakkarode/autonomus-incident-agent/node_modules/@prisma/client/runtime/library.js:29:1363)
+state-service:dev:       at handleRequestError (/Users/sarthakkarode/autonomus-incident-agent/node_modules/@prisma/client/runtime/library.js:121:6911)
+state-service:dev:       at handleAndLogRequestError (/Users/sarthakkarode/autonomus-incident-agent/node_modules/@prisma/client/runtime/library.js:121:6593)
+state-service:dev:       at request (/Users/sarthakkarode/autonomus-incident-agent/node_modules/@prisma/client/runtime/library.js:121:6300)
+state-service:dev: 
+router:dev: [Router] Incident persisted to state service
+autopsy:dev: [Autopsy] Analyzing snapshot: incidents/65cf5123-617a-4a59-bbc3-acb0b4434d33/snapshot.json
+agent:dev: [Agent] Sent to Router: http://localhost:3001/ingest
+router:dev: [Router] Triggering Autopsy analysis for snapshot: incidents/65cf5123-617a-4a59-bbc3-acb0b4434d33/snapshot.json
+agent:dev: [Agent] DETECTED INCIDENT: exception - Uncaught Exception: Error: SeededDemoFailure: deterministic bug for AIA demo
+agent:dev: [Agent] Helper Event Uploaded to R2: incidents/6173e7f0-0bc3-4c24-9531-0fb200e25c73/event.json
+router:dev: [Router] Received incident: 6173e7f0-0bc3-4c24-9531-0fb200e25c73
+autopsy:dev: [Autopsy] Snapshot Loaded. Incident: 65cf5123-617a-4a59-bbc3-acb0b4434d33
+autopsy:dev: [Autopsy] Could not locate source files from stacktrace.
+autopsy:dev: No You.com API key provided. Returning mock AI response.
+state-service:dev: State Service Error 116 | 
+state-service:dev: 117 | Example:
+state-service:dev: 118 |   await prisma.$executeRawUnsafe(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)
+state-service:dev: 119 | 
+state-service:dev: 120 | More Information: https://pris.ly/d/execute-raw
+state-service:dev: 121 | `)}var So=({clientMethod:e,activeProvider:r})=>t=>{let n="",i;if(Vn(t))n=t.sql,i={values:Wr(t.values),__prismaRawParameters__:!0};else if(Array.isArray(t)){let[o,...s]=t;n=o,i={values:Wr(s||[]),__prismaRawParameters__:!0}}else switch(r){case"sqlite":case"mysql":{n=t.sql,i={values:Wr(t.values),__prismaRawParameters__:!0};break}case"cockroachdb":case"postgresql":case"postgres":{n=t.text,i={values:Wr(t.values),__prismaRawParameters__:!0};break}case"sqlserver":{n=Vl(t),i={values:Wr(t.values),__prismaRawParameters__:!0};break}default:throw new Error(`The ${r} provider does not support ${e}`)}return i?.values?Ql(`prisma.${e}(${n}, ${i.values})`):Ql(`prisma.${e}(${n})`),{query:n,parameters:i}},Wl={requestArgsToMiddlewareArgs(e){return[e.strings,...e.values]},middlewareArgsToRequestArgs(e){let[r,...t]=e;return new ie(r,t)}},Jl={requestArgsToMiddlewareArgs(e){return[e]},middlewareArgsToRequestArgs(e){return e[0]}};function Ro(e){return function(t,n){let i,o=(s=e)=>{try{return s===void 0||s?.kind==="itx"?i??=Kl(t(s)):K
+state-service:dev: 
+state-service:dev: PrismaClientKnownRequestError: 
+state-service:dev: Invalid `prisma.incident.update()` invocation in
+state-service:dev: /Users/sarthakkarode/autonomus-incident-agent/apps/state/src/models.ts:45:44
+state-service:dev: 
+state-service:dev:   42 if (req.snapshot_id) updateData.snapshotId = req.snapshot_id;
+state-service:dev:   43 if (req.file_path) updateData.filePath = req.file_path;
+state-service:dev:   44 
+state-service:dev: → 45 const incident = await prisma.incident.update(
+state-service:dev: An operation failed because it depends on one or more records that were required but not found. No record was found for an update.
+state-service:dev:        meta: {
+state-service:dev:   modelName: "Incident",
+state-service:dev:   cause: "No record was found for an update.",
+state-service:dev: },
+state-service:dev:  clientVersion: "6.19.2",
+state-service:dev:        code: "P2025"
+state-service:dev: 
+state-service:dev:       at handleRequestError (/Users/sarthakkarode/autonomus-incident-agent/node_modules/@prisma/client/runtime/library.js:121:7268)
+state-service:dev:       at handleAndLogRequestError (/Users/sarthakkarode/autonomus-incident-agent/node_modules/@prisma/client/runtime/library.js:121:6593)
+state-service:dev:       at request (/Users/sarthakkarode/autonomus-incident-agent/node_modules/@prisma/client/runtime/library.js:121:6300)
+state-service:dev: 
+router:dev: [Router] Snapshot uploaded to R2: incidents/6173e7f0-0bc3-4c24-9531-0fb200e25c73/snapshot.json
+state-service:dev: State Service Error 24 | `))}toString(){return this.lines.join(`
+state-service:dev: 25 | `)}};var hd={red:ce,gray:Hr,dim:Ce,bold:W,underline:Y,highlightSource:e=>e.highlight()},yd={red:e=>e,gray:e=>e,dim:e=>e,bold:e=>e,underline:e=>e,highlightSource:e=>e};function bd({message:e,originalMethod:r,isPanic:t,callArguments:n}){return{functionName:`prisma.${r}()`,message:e,isPanic:t??!1,callArguments:n}}function Ed({callsite:e,message:r,originalMethod:t,isPanic:n,callArguments:i},o){let s=bd({message:r,originalMethod:t,isPanic:n,callArguments:i});if(!e||typeof window<"u"||process.env.NODE_ENV==="production")return s;let a=e.getLocation();if(!a||!a.lineNumber||!a.columnNumber)return s;let l=Math.max(1,a.lineNumber-3),u=Pn.read(a.fileName)?.slice(l,a.lineNumber),c=u?.lineAt(a.lineNumber);if(u&&c){let p=xd(c),d=wd(c);if(!d)return s;s.functionName=`${d.code})`,s.location=a,n||(u=u.mapLineAt(a.lineNumber,h=>h.slice(0,d.openingBraceIndex))),u=o.highlightSource(u);let f=String(u.lastLineNumber).length;if(s.contextLines=u.mapLines((h,g)=>o.gray(String(g).padStart(f))+" "+h).mapLines(h=>o.dim(h)).prependSymbolA
+state-service:dev: 26 | `)}function Pd(e){let r=[e.fileName];return e.lineNumber&&r.push(String(e.lineNumber)),e.columnNumber&&r.push(String(e.columnNumber)),r.join(":")}function Tn(e){let r=e.showColors?hd:yd,t;return t=Ed(e,r),vd(t,r)}var la=O(Ki());function na(e,r,t){let n=ia(e),i=Td(n),o=Rd(i);o?Sn(o,r,t):r.addErrorMessage(()=>"Unknown error")}function ia(e){return e.errors.flatMap(r=>r.kind==="Union"?ia(r):[r])}function Td(e){let r=new Map,t=[];for(let n of e){if(n.kind!=="InvalidArgumentType"){t.push(n);continue}let i=`${n.selectionPath.join(".")}:${n.argumentPath.join(".")}`,o=r.get(i);o?r.set(i,{...n,argument:{...n.argument,typeNames:Sd(o.argument.typeNames,n.argument.typeNames)}}):r.set(i,n)}return t.push(...r.values()),t}function Sd(e,r){return[...new Set(e.concat(r))]}function Rd(e){return ji(e,(r,t)=>{let n=ra(r),i=ra(t);return n!==i?n-i:ta(r)-ta(t)})}function ra(e){let r=0;return Array.isArray(e.selectionPath)&&(r+=e.selectionPath.length),Array.isArray(e.argumentPath)&&(r+=e.argumentPath.length),r}function ta(e){switch(
+state-service:dev: 27 | `)}getCurrentLineLength(){return this.currentLine.length}indentedCurrentLine(){let r=this.currentLine.padStart(this.currentLine.length+2*this.currentIndent);return this.marginSymbol?this.marginSymbol+r.slice(1):r}};oa();var Rn=class{constructor(r){this.value=r}write(r){r.write(this.value)}markAsError(){this.value.markAsError()}};var An=e=>e,Cn={bold:An,red:An,green:An,dim:An,enabled:!1},aa={bold:W,red:ce,green:qe,dim:Ce,enabled:!0},Cr={write(e){e.writeLine(",")}};var Pe=class{constructor(r){this.contents=r}isUnderlined=!1;color=r=>r;underline(){return this.isUnderlined=!0,this}setColor(r){return this.color=r,this}write(r){let t=r.getCurrentLineLength();r.write(this.color(this.contents)),this.isUnderlined&&r.afterNextNewline(()=>{r.write(" ".repeat(t)).writeLine(this.color("~".repeat(this.contents.length)))})}};var ze=class{hasError=!1;markAsError(){return this.hasError=!0,this}};var Ir=class extends ze{items=[];addItem(r){return this.items.push(new Rn(r)),this}getField(r){return this.items[r]}getPrintWidth(){
+state-service:dev: 28 | Note that ${s.bold("include")} statements only accept relation fields.`,a})}function Id(e,r,t){let n=r.arguments.getDeepSubSelectionValue(e.selectionPath)?.asObject();if(n){let i=n.getField("omit")?.value.asObject();if(i){Dd(e,r,i);return}if(n.hasField("select")){Od(e,r);return}}if(t?.[We(e.outputType.name)]){kd(e,r);return}r.addErrorMessage(()=>`Unknown field at "${e.selectionPath.join(".")} selection"`)}function Dd(e,r,t){t.removeAllFields();for(let n of e.outputType.fields)t.addSuggestion(new le(n.name,"false"));r.addErrorMessage(n=>`The ${n.red("omit")} statement includes every field of the model ${n.bold(e.outputType.name)}. At least one field must be included in the result`)}function Od(e,r){let t=e.outputType,n=r.arguments.getDeepSelectionParent(e.selectionPath)?.value,i=n?.isEmpty()??!1;n&&(n.removeAllFields(),pa(n,t)),r.addErrorMessage(o=>i?`The ${o.red("`select`")} statement for type ${o.bold(t.name)} must not be empty. ${dt(o)}`:`The ${o.red("`select`")} statement for type ${o.bold(t.name)} needs $
+state-service:dev: 29 | `)}};function _r(e){return new Zi(ga(e))}function ga(e){let r=new Dr;for(let[t,n]of Object.entries(e)){let i=new kn(t,ha(n));r.addField(i)}return r}function ha(e){if(typeof e=="string")return new Q(JSON.stringify(e));if(typeof e=="number"||typeof e=="boolean")return new Q(String(e));if(typeof e=="bigint")return new Q(`${e}n`);if(e===null)return new Q("null");if(e===void 0)return new Q("undefined");if(Sr(e))return new Q(`new Prisma.Decimal("${e.toFixed()}")`);if(e instanceof Uint8Array)return Buffer.isBuffer(e)?new Q(`Buffer.alloc(${e.byteLength})`):new Q(`new Uint8Array(${e.byteLength})`);if(e instanceof Date){let r=mn(e)?e.toISOString():"Invalid Date";return new Q(`new Date("${r}")`)}return e instanceof Me?new Q(`Prisma.${e._getName()}`):kr(e)?new Q(`prisma.${We(e.modelName)}.$fields.${e.name}`):Array.isArray(e)?Kd(e):typeof e=="object"?ga(e):new Q(Object.prototype.toString.call(e))}function Kd(e){let r=new Ir;for(let t of e)r.addItem(ha(t));return r}function _n(e,r){let t=r==="pretty"?aa:Cn,n=e.renderAllMes
+state-service:dev: 
+state-service:dev: PrismaClientValidationError: 
+state-service:dev: Invalid `prisma.incident.create()` invocation in
+state-service:dev: /Users/sarthakkarode/autonomus-incident-agent/apps/state/src/models.ts:15:44
+state-service:dev: 
+state-service:dev:   12 const id = req.id || crypto.randomUUID();
+state-service:dev:   13 const status = req.status || IncidentStatus.DETECTED;
+state-service:dev:   14 
+state-service:dev: → 15 const incident = await prisma.incident.create({
+state-service:dev:        data: {
+state-service:dev:          id: "6173e7f0-0bc3-4c24-9531-0fb200e25c73",
+state-service:dev:          status: "detected",
+state-service:dev:      +   title: String
+state-service:dev:        }
+state-service:dev:      })
+state-service:dev: 
+state-service:dev: Argument `title` is missing.
+state-service:dev:  clientVersion: "6.19.2",
+state-service:dev: 
+state-service:dev:       at Nn (/Users/sarthakkarode/autonomus-incident-agent/node_modules/@prisma/client/runtime/library.js:29:1363)
+state-service:dev:       at handleRequestError (/Users/sarthakkarode/autonomus-incident-agent/node_modules/@prisma/client/runtime/library.js:121:6911)
+state-service:dev:       at handleAndLogRequestError (/Users/sarthakkarode/autonomus-incident-agent/node_modules/@prisma/client/runtime/library.js:121:6593)
+state-service:dev:       at request (/Users/sarthakkarode/autonomus-incident-agent/node_modules/@prisma/client/runtime/library.js:121:6300)
+state-service:dev: 
+router:dev: [Router] Incident persisted to state service
+router:dev: [Router] Triggering Autopsy analysis for snapshot: incidents/6173e7f0-0bc3-4c24-9531-0fb200e25c73/snapshot.json
+agent:dev: [Agent] Sent to Router: http://localhost:3001/ingest
+autopsy:dev: [Autopsy] Analyzing snapshot: incidents/6173e7f0-0bc3-4c24-9531-0fb200e25c73/snapshot.json
+sample-app:dev: [OTEL] Trace sent to agent: error.handler
+sample-app:dev: [OTEL] Error sent to agent for analysis
+autopsy:dev: Are you using a Stream of unknown length as the Body of a PutObject request? Consider using Upload instead from @aws-sdk/lib-storage.
+autopsy:dev: [Autopsy] Completed. Result: incidents/65cf5123-617a-4a59-bbc3-acb0b4434d33/autopsy.json
+state-service:dev: State Service Error 116 | 
+state-service:dev: 117 | Example:
+state-service:dev: 118 |   await prisma.$executeRawUnsafe(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)
+state-service:dev: 119 | 
+state-service:dev: 120 | More Information: https://pris.ly/d/execute-raw
+state-service:dev: 121 | `)}var So=({clientMethod:e,activeProvider:r})=>t=>{let n="",i;if(Vn(t))n=t.sql,i={values:Wr(t.values),__prismaRawParameters__:!0};else if(Array.isArray(t)){let[o,...s]=t;n=o,i={values:Wr(s||[]),__prismaRawParameters__:!0}}else switch(r){case"sqlite":case"mysql":{n=t.sql,i={values:Wr(t.values),__prismaRawParameters__:!0};break}case"cockroachdb":case"postgresql":case"postgres":{n=t.text,i={values:Wr(t.values),__prismaRawParameters__:!0};break}case"sqlserver":{n=Vl(t),i={values:Wr(t.values),__prismaRawParameters__:!0};break}default:throw new Error(`The ${r} provider does not support ${e}`)}return i?.values?Ql(`prisma.${e}(${n}, ${i.values})`):Ql(`prisma.${e}(${n})`),{query:n,parameters:i}},Wl={requestArgsToMiddlewareArgs(e){return[e.strings,...e.values]},middlewareArgsToRequestArgs(e){let[r,...t]=e;return new ie(r,t)}},Jl={requestArgsToMiddlewareArgs(e){return[e]},middlewareArgsToRequestArgs(e){return e[0]}};function Ro(e){return function(t,n){let i,o=(s=e)=>{try{return s===void 0||s?.kind==="itx"?i??=Kl(t(s)):K
+state-service:dev: 
+state-service:dev: PrismaClientKnownRequestError: 
+state-service:dev: Invalid `prisma.incident.update()` invocation in
+state-service:dev: /Users/sarthakkarode/autonomus-incident-agent/apps/state/src/models.ts:45:44
+state-service:dev: 
+state-service:dev:   42 if (req.snapshot_id) updateData.snapshotId = req.snapshot_id;
+state-service:dev:   43 if (req.file_path) updateData.filePath = req.file_path;
+state-service:dev:   44 
+state-service:dev: → 45 const incident = await prisma.incident.update(
+state-service:dev: An operation failed because it depends on one or more records that were required but not found. No record was found for an update.
+state-service:dev:        meta: {
+state-service:dev:   modelName: "Incident",
+state-service:dev:   cause: "No record was found for an update.",
+state-service:dev: },
+state-service:dev:  clientVersion: "6.19.2",
+state-service:dev:        code: "P2025"
+state-service:dev: 
+state-service:dev:       at handleRequestError (/Users/sarthakkarode/autonomus-incident-agent/node_modules/@prisma/client/runtime/library.js:121:7268)
+state-service:dev:       at handleAndLogRequestError (/Users/sarthakkarode/autonomus-incident-agent/node_modules/@prisma/client/runtime/library.js:121:6593)
+state-service:dev:       at request (/Users/sarthakkarode/autonomus-incident-agent/node_modules/@prisma/client/runtime/library.js:121:6300)
+state-service:dev: 
+git-service:dev: [Git] Received PR Request for incident 65cf5123-617a-4a59-bbc3-acb0b4434d33
+git-service:dev: fatal: repository '/Users/sarthakkarode/autonomus-incident-agent/apps/git/Users/sarthakkarode/autonomus-incident-agent' does not exist
+git-service:dev: Git Service Error 64 |     private async runGit(args: string[], cwd: string): Promise<void> {
+git-service:dev: 65 |         return new Promise((resolve, reject) => {
+git-service:dev: 66 |             const proc = spawn("git", args, { cwd, stdio: "inherit" });
+git-service:dev: 67 |             proc.on("close", (code) => {
+git-service:dev: 68 |                 if (code === 0) resolve();
+git-service:dev: 69 |                 else reject(new Error(`Git command failed: git ${args.join(" ")} (code ${code})`));
+git-service:dev:                                      ^
+git-service:dev: error: Git command failed: git clone /Users/sarthakkarode/autonomus-incident-agent/apps/git/Users/sarthakkarode/autonomus-incident-agent repo-65cf5123-617a-4a59-bbc3-acb0b4434d33 (code 128)
+git-service:dev:       at <anonymous> (/Users/sarthakkarode/autonomus-incident-agent/apps/git/src/repo_manager.ts:69:33)
+git-service:dev:       at emit (node:events:98:22)
+git-service:dev:       at #maybeClose (node:child_process:766:16)
+git-service:dev:       at #handleOnExit (node:child_process:520:72)
+git-service:dev: 
+autopsy:dev: [Autopsy] Snapshot Loaded. Incident: 6173e7f0-0bc3-4c24-9531-0fb200e25c73
+autopsy:dev: [Autopsy] Could not locate source files from stacktrace.
+autopsy:dev: No You.com API key provided. Returning mock AI response.
+autopsy:dev: Are you using a Stream of unknown length as the Body of a PutObject request? Consider using Upload instead from @aws-sdk/lib-storage.
+autopsy:dev: [Autopsy] Completed. Result: incidents/6173e7f0-0bc3-4c24-9531-0fb200e25c73/autopsy.json
+git-service:dev: [Git] Received PR Request for incident 6173e7f0-0bc3-4c24-9531-0fb200e25c73
+git-service:dev: fatal: repository '/Users/sarthakkarode/autonomus-incident-agent/apps/git/Users/sarthakkarode/autonomus-incident-agent' does not exist
+git-service:dev: Git Service Error 64 |     private async runGit(args: string[], cwd: string): Promise<void> {
+git-service:dev: 65 |         return new Promise((resolve, reject) => {
+git-service:dev: 66 |             const proc = spawn("git", args, { cwd, stdio: "inherit" });
+git-service:dev: 67 |             proc.on("close", (code) => {
+git-service:dev: 68 |                 if (code === 0) resolve();
+git-service:dev: 69 |                 else reject(new Error(`Git command failed: git ${args.join(" ")} (code ${code})`));
+git-service:dev:                                      ^
+git-service:dev: error: Git command failed: git clone /Users/sarthakkarode/autonomus-incident-agent/apps/git/Users/sarthakkarode/autonomus-incident-agent repo-6173e7f0-0bc3-4c24-9531-0fb200e25c73 (code 128)
+git-service:dev:       at <anonymous> (/Users/sarthakkarode/autonomus-incident-agent/apps/git/src/repo_manager.ts:69:33)
+git-service:dev:       at emit (node:events:98:22)
+git-service:dev:       at #maybeClose (node:child_process:766:16)
+git-service:dev:       at #handleOnExit (node:child_process:520:72)
+git-service:dev: 
+state-service:dev: State Service Error 116 | 
+state-service:dev: 117 | Example:
+state-service:dev: 118 |   await prisma.$executeRawUnsafe(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)
+state-service:dev: 119 | 
+state-service:dev: 120 | More Information: https://pris.ly/d/execute-raw
+state-service:dev: 121 | `)}var So=({clientMethod:e,activeProvider:r})=>t=>{let n="",i;if(Vn(t))n=t.sql,i={values:Wr(t.values),__prismaRawParameters__:!0};else if(Array.isArray(t)){let[o,...s]=t;n=o,i={values:Wr(s||[]),__prismaRawParameters__:!0}}else switch(r){case"sqlite":case"mysql":{n=t.sql,i={values:Wr(t.values),__prismaRawParameters__:!0};break}case"cockroachdb":case"postgresql":case"postgres":{n=t.text,i={values:Wr(t.values),__prismaRawParameters__:!0};break}case"sqlserver":{n=Vl(t),i={values:Wr(t.values),__prismaRawParameters__:!0};break}default:throw new Error(`The ${r} provider does not support ${e}`)}return i?.values?Ql(`prisma.${e}(${n}, ${i.values})`):Ql(`prisma.${e}(${n})`),{query:n,parameters:i}},Wl={requestArgsToMiddlewareArgs(e){return[e.strings,...e.values]},middlewareArgsToRequestArgs(e){let[r,...t]=e;return new ie(r,t)}},Jl={requestArgsToMiddlewareArgs(e){return[e]},middlewareArgsToRequestArgs(e){return e[0]}};function Ro(e){return function(t,n){let i,o=(s=e)=>{try{return s===void 0||s?.kind==="itx"?i??=Kl(t(s)):K
+state-service:dev: 
+state-service:dev: PrismaClientKnownRequestError: 
+state-service:dev: Invalid `prisma.incident.update()` invocation in
+state-service:dev: /Users/sarthakkarode/autonomus-incident-agent/apps/state/src/models.ts:45:44
+state-service:dev: 
+state-service:dev:   42 if (req.snapshot_id) updateData.snapshotId = req.snapshot_id;
+state-service:dev:   43 if (req.file_path) updateData.filePath = req.file_path;
+state-service:dev:   44 
+state-service:dev: → 45 const incident = await prisma.incident.update(
+state-service:dev: An operation failed because it depends on one or more records that were required but not found. No record was found for an update.
+state-service:dev:        meta: {
+state-service:dev:   modelName: "Incident",
+state-service:dev:   cause: "No record was found for an update.",
+state-service:dev: },
+state-service:dev:  clientVersion: "6.19.2",
+state-service:dev:        code: "P2025"
+state-service:dev: 
+state-service:dev:       at handleRequestError (/Users/sarthakkarode/autonomus-incident-agent/node_modules/@prisma/client/runtime/library.js:121:7268)
+state-service:dev:       at handleAndLogRequestError (/Users/sarthakkarode/autonomus-incident-agent/node_modules/@prisma/client/runtime/library.js:121:6593)
+state-service:dev:       at request (/Users/sarthakkarode/autonomus-incident-agent/node_modules/@prisma/client/runtime/library.js:121:6300)
+state-service:dev: 
+state-service:dev: State Service Error 116 | 
+state-service:dev: 117 | Example:
+state-service:dev: 118 |   await prisma.$executeRawUnsafe(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)
+state-service:dev: 119 | 
+state-service:dev: 120 | More Information: https://pris.ly/d/execute-raw
+state-service:dev: 121 | `)}var So=({clientMethod:e,activeProvider:r})=>t=>{let n="",i;if(Vn(t))n=t.sql,i={values:Wr(t.values),__prismaRawParameters__:!0};else if(Array.isArray(t)){let[o,...s]=t;n=o,i={values:Wr(s||[]),__prismaRawParameters__:!0}}else switch(r){case"sqlite":case"mysql":{n=t.sql,i={values:Wr(t.values),__prismaRawParameters__:!0};break}case"cockroachdb":case"postgresql":case"postgres":{n=t.text,i={values:Wr(t.values),__prismaRawParameters__:!0};break}case"sqlserver":{n=Vl(t),i={values:Wr(t.values),__prismaRawParameters__:!0};break}default:throw new Error(`The ${r} provider does not support ${e}`)}return i?.values?Ql(`prisma.${e}(${n}, ${i.values})`):Ql(`prisma.${e}(${n})`),{query:n,parameters:i}},Wl={requestArgsToMiddlewareArgs(e){return[e.strings,...e.values]},middlewareArgsToRequestArgs(e){let[r,...t]=e;return new ie(r,t)}},Jl={requestArgsToMiddlewareArgs(e){return[e]},middlewareArgsToRequestArgs(e){return e[0]}};function Ro(e){return function(t,n){let i,o=(s=e)=>{try{return s===void 0||s?.kind==="itx"?i??=Kl(t(s)):K
+state-service:dev: 
+state-service:dev: PrismaClientKnownRequestError: 
+state-service:dev: Invalid `prisma.incident.update()` invocation in
+state-service:dev: /Users/sarthakkarode/autonomus-incident-agent/apps/state/src/models.ts:45:44
+state-service:dev: 
+state-service:dev:   42 if (req.snapshot_id) updateData.snapshotId = req.snapshot_id;
+state-service:dev:   43 if (req.file_path) updateData.filePath = req.file_path;
+state-service:dev:   44 
+state-service:dev: → 45 const incident = await prisma.incident.update(
+state-service:dev: An operation failed because it depends on one or more records that were required but not found. No record was found for an update.
+state-service:dev:        meta: {
+state-service:dev:   modelName: "Incident",
+state-service:dev:   cause: "No record was found for an update.",
+state-service:dev: },
+state-service:dev:  clientVersion: "6.19.2",
+state-service:dev:        code: "P2025"
+state-service:dev: 
+state-service:dev:       at handleRequestError (/Users/sarthakkarode/autonomus-incident-agent/node_modules/@prisma/client/runtime/library.js:121:7268)
+state-service:dev:       at handleAndLogRequestError (/Users/sarthakkarode/autonomus-incident-agent/node_modules/@prisma/client/runtime/library.js:121:6593)
+state-service:dev:       at request (/Users/sarthakkarode/autonomus-incident-agent/node_modules/@prisma/client/runtime/library.js:121:6300)
+state-service:dev: 
+router:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+router:dev: Router listening on http://localhost:3001
+sample-app:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+sample-app:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+sample-app:dev: Starting sample-app on port 3008...
+sample-app:dev: OTEL Agent endpoint: http://localhost:4318
+state-service:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+state-service:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+sample-app:dev: Server listening on http://localhost:3008
+state-service:dev: State Service listening on http://localhost:3003
+autopsy:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+web-client:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+agent:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+router:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+web-client:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+autopsy:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+router:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+agent:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+agent:dev: Starting Autonomous Observability Agent (OTel Receiver)...
+web-client:dev: Web Dashboard listening on http://localhost:3009
+agent:dev: Agent OTLP Receiver listening on http://localhost:4318
+agent:dev: Send traces to http://localhost:4318/v1/traces
+autopsy:dev: Autopsy AI Service listening on http://localhost:3002
+router:dev: Router listening on http://localhost:3001
+git-service:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+git-service:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+git-service:dev: Git Service listening on http://localhost:3004
+repro-service:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+repro-service:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+repro-service:dev: Repro Service listening on http://localhost:3005
+dashboard:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+dashboard:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+dashboard:dev: Dashboard listening on http://localhost:3000
+sample-app:dev: Triggering intentional failure scenario...
+sample-app:dev: Error: SeededDemoFailure: deterministic bug for AIA demo
+sample-app:dev:     at <anonymous> (/Users/sarthakkarode/autonomus-incident-agent/apps/sample-app/src/index.ts:42:31)
+sample-app:dev: Unhandled error processing request:
+sample-app:dev: 37 |             throw new Error("Request Timeout - CPU Limit Exceeded");
+sample-app:dev: 38 |           }
+sample-app:dev: 39 | 
+sample-app:dev: 40 |           if (payload?.action === "cause_error") {
+sample-app:dev: 41 |             console.log("Triggering intentional failure scenario...");
+sample-app:dev: 42 |             const error = new Error(
+sample-app:dev:                                    ^
+sample-app:dev: error: SeededDemoFailure: deterministic bug for AIA demo
+sample-app:dev:       at /Users/sarthakkarode/autonomus-incident-agent/apps/sample-app/src/index.ts:42:31
+sample-app:dev: 
+agent:dev: [Agent] DETECTED INCIDENT: http_error - HTTP 500 Error: error.handler
+agent:dev: [Agent] Helper Event Uploaded to R2: incidents/53ec14f5-fe35-4606-9c39-c507274e2809/event.json
+router:dev: [Router] Received incident: 53ec14f5-fe35-4606-9c39-c507274e2809
+router:dev: [Router] Snapshot uploaded to R2: incidents/53ec14f5-fe35-4606-9c39-c507274e2809/snapshot.json
+router:dev: [Router] Incident persisted to state service
+router:dev: [Router] Triggering Autopsy analysis for snapshot: incidents/53ec14f5-fe35-4606-9c39-c507274e2809/snapshot.json
+agent:dev: [Agent] Sent to Router: http://localhost:3001/ingest
+agent:dev: [Agent] DETECTED INCIDENT: exception - Uncaught Exception: Error: SeededDemoFailure: deterministic bug for AIA demo
+autopsy:dev: [Autopsy] Analyzing snapshot: incidents/53ec14f5-fe35-4606-9c39-c507274e2809/snapshot.json
+agent:dev: [Agent] Helper Event Uploaded to R2: incidents/5371893c-c8f1-4cc7-90d6-8045cf5d14ae/event.json
+router:dev: [Router] Received incident: 5371893c-c8f1-4cc7-90d6-8045cf5d14ae
+autopsy:dev: [Autopsy] Snapshot Loaded. Incident: 53ec14f5-fe35-4606-9c39-c507274e2809
+autopsy:dev: [Autopsy] Could not locate source files from stacktrace.
+autopsy:dev: No You.com API key provided. Returning mock AI response.
+autopsy:dev: Are you using a Stream of unknown length as the Body of a PutObject request? Consider using Upload instead from @aws-sdk/lib-storage.
+autopsy:dev: [Autopsy] Completed. Result: incidents/53ec14f5-fe35-4606-9c39-c507274e2809/autopsy.json
+git-service:dev: [Git] Received PR Request for incident 53ec14f5-fe35-4606-9c39-c507274e2809
+git-service:dev: Cloning into 'repo-53ec14f5-fe35-4606-9c39-c507274e2809'...
+router:dev: [Router] Snapshot uploaded to R2: incidents/5371893c-c8f1-4cc7-90d6-8045cf5d14ae/snapshot.json
+git-service:dev: done.
+router:dev: [Router] Incident persisted to state service
+router:dev: [Router] Triggering Autopsy analysis for snapshot: incidents/5371893c-c8f1-4cc7-90d6-8045cf5d14ae/snapshot.json
+agent:dev: [Agent] Sent to Router: http://localhost:3001/ingest
+autopsy:dev: [Autopsy] Analyzing snapshot: incidents/5371893c-c8f1-4cc7-90d6-8045cf5d14ae/snapshot.json
+sample-app:dev: [OTEL] Trace sent to agent: error.handler
+sample-app:dev: [OTEL] Error sent to agent for analysis
+git-service:dev: Switched to a new branch 'aia/incident-53ec14f5-fe35-4606-9c39-c507274e2809'
+git-service:dev: error: No valid patches in input (allow with "--allow-empty")
+git-service:dev: Apply patch failed, trying 3-way merge or check
+git-service:dev: Git Service Error 64 |     private async runGit(args: string[], cwd: string): Promise<void> {
+git-service:dev: 65 |         return new Promise((resolve, reject) => {
+git-service:dev: 66 |             const proc = spawn("git", args, { cwd, stdio: "inherit" });
+git-service:dev: 67 |             proc.on("close", (code) => {
+git-service:dev: 68 |                 if (code === 0) resolve();
+git-service:dev: 69 |                 else reject(new Error(`Git command failed: git ${args.join(" ")} (code ${code})`));
+git-service:dev:                                      ^
+git-service:dev: error: Git command failed: git apply temp.patch (code 128)
+git-service:dev:       at <anonymous> (/Users/sarthakkarode/autonomus-incident-agent/apps/git/src/repo_manager.ts:69:33)
+git-service:dev:       at emit (node:events:98:22)
+git-service:dev:       at #maybeClose (node:child_process:766:16)
+git-service:dev:       at #handleOnExit (node:child_process:520:72)
+git-service:dev: 
+autopsy:dev: [Autopsy] Could not locate source files from stacktrace.
+autopsy:dev: [Autopsy] Snapshot Loaded. Incident: 5371893c-c8f1-4cc7-90d6-8045cf5d14ae
+autopsy:dev: No You.com API key provided. Returning mock AI response.
+autopsy:dev: Are you using a Stream of unknown length as the Body of a PutObject request? Consider using Upload instead from @aws-sdk/lib-storage.
+autopsy:dev: [Autopsy] Completed. Result: incidents/5371893c-c8f1-4cc7-90d6-8045cf5d14ae/autopsy.json
+git-service:dev: [Git] Received PR Request for incident 5371893c-c8f1-4cc7-90d6-8045cf5d14ae
+git-service:dev: Cloning into 'repo-5371893c-c8f1-4cc7-90d6-8045cf5d14ae'...
+git-service:dev: done.
+git-service:dev: Switched to a new branch 'aia/incident-5371893c-c8f1-4cc7-90d6-8045cf5d14ae'
+git-service:dev: error: No valid patches in input (allow with "--allow-empty")
+git-service:dev: Apply patch failed, trying 3-way merge or check
+git-service:dev: Git Service Error 64 |     private async runGit(args: string[], cwd: string): Promise<void> {
+git-service:dev: 65 |         return new Promise((resolve, reject) => {
+git-service:dev: 66 |             const proc = spawn("git", args, { cwd, stdio: "inherit" });
+git-service:dev: 67 |             proc.on("close", (code) => {
+git-service:dev: 68 |                 if (code === 0) resolve();
+git-service:dev: 69 |                 else reject(new Error(`Git command failed: git ${args.join(" ")} (code ${code})`));
+git-service:dev:                                      ^
+git-service:dev: error: Git command failed: git apply temp.patch (code 128)
+git-service:dev:       at <anonymous> (/Users/sarthakkarode/autonomus-incident-agent/apps/git/src/repo_manager.ts:69:33)
+git-service:dev:       at emit (node:events:98:22)
+git-service:dev:       at #maybeClose (node:child_process:766:16)
+git-service:dev:       at #handleOnExit (node:child_process:520:72)
+git-service:dev: 
+sample-app:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+sample-app:dev: [ConfigLoader] YOU_API_KEY not found in process.env
+sample-app:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+sample-app:dev: Starting sample-app on port 3008...
+sample-app:dev: OTEL Agent endpoint: http://localhost:4318
+state-service:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+state-service:dev: [ConfigLoader] Using YOU_API_KEY from env (Masked: ydc-s...)
+state-service:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+sample-app:dev: Server listening on http://localhost:3008
+state-service:dev: State Service listening on http://localhost:3003
+agent:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+autopsy:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+web-client:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+router:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+agent:dev: [ConfigLoader] YOU_API_KEY not found in process.env
+agent:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+web-client:dev: [ConfigLoader] YOU_API_KEY not found in process.env
+web-client:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+autopsy:dev: [ConfigLoader] YOU_API_KEY not found in process.env
+router:dev: [ConfigLoader] YOU_API_KEY not found in process.env
+router:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+autopsy:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+agent:dev: Starting Autonomous Observability Agent (OTel Receiver)...
+agent:dev: Agent OTLP Receiver listening on http://localhost:4318
+agent:dev: Send traces to http://localhost:4318/v1/traces
+router:dev: Router listening on http://localhost:3001
+web-client:dev: Web Dashboard listening on http://localhost:3009
+autopsy:dev: Autopsy AI Service listening on http://localhost:3002
+git-service:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+git-service:dev: [ConfigLoader] YOU_API_KEY not found in process.env
+git-service:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+git-service:dev: Git Service listening on http://localhost:3004
+repro-service:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+repro-service:dev: [ConfigLoader] YOU_API_KEY not found in process.env
+repro-service:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+repro-service:dev: Repro Service listening on http://localhost:3005
+dashboard:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+dashboard:dev: [ConfigLoader] YOU_API_KEY not found in process.env
+dashboard:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+dashboard:dev: Dashboard listening on http://localhost:3000
+sample-app:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+sample-app:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+sample-app:dev: [ConfigLoader] Using YOU_API_KEY from env (Masked: ydc-s...)
+sample-app:dev: Starting sample-app on port 3008...
+sample-app:dev: OTEL Agent endpoint: http://localhost:4318
+sample-app:dev: Server listening on http://localhost:3008
+state-service:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+state-service:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+state-service:dev: [ConfigLoader] Using YOU_API_KEY from env (Masked: ydc-s...)
+state-service:dev: State Service listening on http://localhost:3003
+agent:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+autopsy:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+router:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+repro-service:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+web-client:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+git-service:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+agent:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+agent:dev: [ConfigLoader] Using YOU_API_KEY from env (Masked: ydc-s...)
+router:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+router:dev: [ConfigLoader] Using YOU_API_KEY from env (Masked: ydc-s...)
+web-client:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+web-client:dev: [ConfigLoader] Using YOU_API_KEY from env (Masked: ydc-s...)
+autopsy:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+autopsy:dev: [ConfigLoader] Using YOU_API_KEY from env (Masked: ydc-s...)
+repro-service:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+repro-service:dev: [ConfigLoader] Using YOU_API_KEY from env (Masked: ydc-s...)
+git-service:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+git-service:dev: [ConfigLoader] Using YOU_API_KEY from env (Masked: ydc-s...)
+agent:dev: Starting Autonomous Observability Agent (OTel Receiver)...
+web-client:dev: Web Dashboard listening on http://localhost:3009
+repro-service:dev: Repro Service listening on http://localhost:3005
+agent:dev: Agent OTLP Receiver listening on http://localhost:4318
+agent:dev: Send traces to http://localhost:4318/v1/traces
+autopsy:dev: Autopsy AI Service listening on http://localhost:3002
+router:dev: Router listening on http://localhost:3001
+git-service:dev: Git Service listening on http://localhost:3004
+dashboard:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+dashboard:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+dashboard:dev: [ConfigLoader] Using YOU_API_KEY from env (Masked: ydc-s...)
+dashboard:dev: Dashboard listening on http://localhost:3000
+sample-app:dev: Triggering intentional failure scenario...
+sample-app:dev: Error: SeededDemoFailure: deterministic bug for AIA demo
+sample-app:dev:     at <anonymous> (/Users/sarthakkarode/autonomus-incident-agent/apps/sample-app/src/index.ts:42:31)
+sample-app:dev: Unhandled error processing request:
+sample-app:dev: 37 |             throw new Error("Request Timeout - CPU Limit Exceeded");
+sample-app:dev: 38 |           }
+sample-app:dev: 39 | 
+sample-app:dev: 40 |           if (payload?.action === "cause_error") {
+sample-app:dev: 41 |             console.log("Triggering intentional failure scenario...");
+sample-app:dev: 42 |             const error = new Error(
+sample-app:dev:                                    ^
+sample-app:dev: error: SeededDemoFailure: deterministic bug for AIA demo
+sample-app:dev:       at /Users/sarthakkarode/autonomus-incident-agent/apps/sample-app/src/index.ts:42:31
+sample-app:dev: 
+agent:dev: [Agent] DETECTED INCIDENT: http_error - HTTP 500 Error: error.handler
+agent:dev: [Agent] Helper Event Uploaded to R2: incidents/c2c40dce-4d7d-4012-8c6d-626ca36ada3f/event.json
+router:dev: [Router] Received incident: c2c40dce-4d7d-4012-8c6d-626ca36ada3f
+router:dev: [Router] Snapshot uploaded to R2: incidents/c2c40dce-4d7d-4012-8c6d-626ca36ada3f/snapshot.json
+router:dev: [Router] Incident persisted to state service
+router:dev: [Router] Triggering Autopsy analysis for snapshot: incidents/c2c40dce-4d7d-4012-8c6d-626ca36ada3f/snapshot.json
+agent:dev: [Agent] Sent to Router: http://localhost:3001/ingest
+agent:dev: [Agent] DETECTED INCIDENT: exception - Uncaught Exception: Error: SeededDemoFailure: deterministic bug for AIA demo
+autopsy:dev: [Autopsy] Analyzing snapshot: incidents/c2c40dce-4d7d-4012-8c6d-626ca36ada3f/snapshot.json
+autopsy:dev: [Autopsy] Snapshot Loaded. Incident: c2c40dce-4d7d-4012-8c6d-626ca36ada3f
+autopsy:dev: [Autopsy] Could not locate source files from stacktrace.
+agent:dev: [Agent] Helper Event Uploaded to R2: incidents/d31d1a93-8447-431d-970c-a3e624ba91f3/event.json
+router:dev: [Router] Received incident: d31d1a93-8447-431d-970c-a3e624ba91f3
+router:dev: [Router] Snapshot uploaded to R2: incidents/d31d1a93-8447-431d-970c-a3e624ba91f3/snapshot.json
+router:dev: [Router] Incident persisted to state service
+router:dev: [Router] Triggering Autopsy analysis for snapshot: incidents/d31d1a93-8447-431d-970c-a3e624ba91f3/snapshot.json
+agent:dev: [Agent] Sent to Router: http://localhost:3001/ingest
+autopsy:dev: [Autopsy] Analyzing snapshot: incidents/d31d1a93-8447-431d-970c-a3e624ba91f3/snapshot.json
+sample-app:dev: [OTEL] Trace sent to agent: error.handler
+sample-app:dev: [OTEL] Error sent to agent for analysis
+autopsy:dev: [Autopsy] Snapshot Loaded. Incident: d31d1a93-8447-431d-970c-a3e624ba91f3
+autopsy:dev: [Autopsy] Could not locate source files from stacktrace.
+autopsy:dev: [Autopsy] Completed. Result: incidents/d31d1a93-8447-431d-970c-a3e624ba91f3/autopsy.json
+git-service:dev: [Git] Received PR Request for incident d31d1a93-8447-431d-970c-a3e624ba91f3
+git-service:dev: Cloning into 'repo-d31d1a93-8447-431d-970c-a3e624ba91f3'...
+git-service:dev: done.
+git-service:dev: Switched to a new branch 'aia/incident-d31d1a93-8447-431d-970c-a3e624ba91f3'
+git-service:dev: temp.patch:9: trailing whitespace.
+git-service:dev:   
+git-service:dev: error: corrupt patch at line 12
+git-service:dev: Apply patch failed, trying 3-way merge or check
+git-service:dev: Git Service Error 64 |     private async runGit(args: string[], cwd: string): Promise<void> {
+git-service:dev: 65 |         return new Promise((resolve, reject) => {
+git-service:dev: 66 |             const proc = spawn("git", args, { cwd, stdio: "inherit" });
+git-service:dev: 67 |             proc.on("close", (code) => {
+git-service:dev: 68 |                 if (code === 0) resolve();
+git-service:dev: 69 |                 else reject(new Error(`Git command failed: git ${args.join(" ")} (code ${code})`));
+git-service:dev:                                      ^
+git-service:dev: error: Git command failed: git apply temp.patch (code 128)
+git-service:dev:       at <anonymous> (/Users/sarthakkarode/autonomus-incident-agent/apps/git/src/repo_manager.ts:69:33)
+git-service:dev:       at emit (node:events:98:22)
+git-service:dev:       at #maybeClose (node:child_process:766:16)
+git-service:dev:       at #handleOnExit (node:child_process:520:72)
+git-service:dev: 
+autopsy:dev: [Autopsy] Completed. Result: incidents/c2c40dce-4d7d-4012-8c6d-626ca36ada3f/autopsy.json
+git-service:dev: [Git] Received PR Request for incident c2c40dce-4d7d-4012-8c6d-626ca36ada3f
+git-service:dev: Cloning into 'repo-c2c40dce-4d7d-4012-8c6d-626ca36ada3f'...
+git-service:dev: done.
+git-service:dev: Switched to a new branch 'aia/incident-c2c40dce-4d7d-4012-8c6d-626ca36ada3f'
+git-service:dev: error: corrupt patch at line 28
+git-service:dev: Apply patch failed, trying 3-way merge or check
+git-service:dev: Git Service Error 64 |     private async runGit(args: string[], cwd: string): Promise<void> {
+git-service:dev: 65 |         return new Promise((resolve, reject) => {
+git-service:dev: 66 |             const proc = spawn("git", args, { cwd, stdio: "inherit" });
+git-service:dev: 67 |             proc.on("close", (code) => {
+git-service:dev: 68 |                 if (code === 0) resolve();
+git-service:dev: 69 |                 else reject(new Error(`Git command failed: git ${args.join(" ")} (code ${code})`));
+git-service:dev:                                      ^
+git-service:dev: error: Git command failed: git apply temp.patch (code 128)
+git-service:dev:       at <anonymous> (/Users/sarthakkarode/autonomus-incident-agent/apps/git/src/repo_manager.ts:69:33)
+git-service:dev:       at emit (node:events:98:22)
+git-service:dev:       at #maybeClose (node:child_process:766:16)
+git-service:dev:       at #handleOnExit (node:child_process:520:72)
+git-service:dev: 
+git-service:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+git-service:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+git-service:dev: [ConfigLoader] Using YOU_API_KEY from env (Masked: ydc-s...)
+git-service:dev: Git Service listening on http://localhost:3004
+docs-site:dev: [?25h
+ ERROR  run failed: command  exited (1)

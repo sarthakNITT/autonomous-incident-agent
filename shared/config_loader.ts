@@ -1,6 +1,6 @@
 import { Config } from "@repo/types";
 import { readFileSync, existsSync } from "fs";
-import { join, isAbsolute } from "path";
+import { join, isAbsolute, dirname, resolve } from "path";
 import yaml from "js-yaml";
 
 let cachedConfig: Config | null = null;
@@ -44,18 +44,51 @@ export function loadConfig(): Config {
 
   const config = yaml.load(loadedContent) as Config;
 
-  const rootDir = process.cwd();
+  const rootDir = foundPath ? dirname(foundPath) : process.cwd();
+
+  const envPath = join(rootDir, ".env");
+  if (existsSync(envPath)) {
+    const envContent = readFileSync(envPath, "utf-8");
+    envContent.split("\n").forEach((line) => {
+      const match = line.match(/^\s*([\w_]+)\s*=\s*(.*)?\s*$/);
+      if (match) {
+        const key = match[1];
+        let value = match[2] || "";
+        if (value.startsWith('"') && value.endsWith('"'))
+          value = value.slice(1, -1);
+        if (value.startsWith("'") && value.endsWith("'"))
+          value = value.slice(1, -1);
+
+        if (!process.env[key]) {
+          process.env[key] = value;
+        }
+      }
+    });
+    console.log(`[ConfigLoader] Loaded and parsed .env from: ${envPath}`);
+  }
+
+  if (process.env.YOU_API_KEY) {
+    if (!config.ai)
+      config.ai = { provider: "you.com", api_key: "", model: "research" };
+    console.log(
+      `[ConfigLoader] Using YOU_API_KEY from env (Masked: ${process.env.YOU_API_KEY.substring(0, 5)}...)`,
+    );
+    config.ai.api_key = process.env.YOU_API_KEY;
+    config.ai.provider = "you.com";
+  } else {
+    console.warn(`[ConfigLoader] YOU_API_KEY not found in process.env`);
+  }
 
   if (!isDocker) {
-    config.paths.repo_root = join(rootDir, config.paths.repo_root);
-    config.paths.logs = join(rootDir, config.paths.logs);
-    config.paths.events = join(rootDir, config.paths.events);
-    config.paths.storage = join(rootDir, config.paths.storage);
-    config.paths.autopsy_output = join(rootDir, config.paths.autopsy_output);
-    config.paths.patches = join(rootDir, config.paths.patches);
-    config.paths.pr_description = join(rootDir, config.paths.pr_description);
-    config.paths.repro_logs = join(rootDir, config.paths.repro_logs);
-    config.paths.reports = join(rootDir, config.paths.reports);
+    config.paths.repo_root = resolve(rootDir, config.paths.repo_root);
+    config.paths.logs = resolve(rootDir, config.paths.logs);
+    config.paths.events = resolve(rootDir, config.paths.events);
+    config.paths.storage = resolve(rootDir, config.paths.storage);
+    config.paths.autopsy_output = resolve(rootDir, config.paths.autopsy_output);
+    config.paths.patches = resolve(rootDir, config.paths.patches);
+    config.paths.pr_description = resolve(rootDir, config.paths.pr_description);
+    config.paths.repro_logs = resolve(rootDir, config.paths.repro_logs);
+    config.paths.reports = resolve(rootDir, config.paths.reports);
 
     if (!config.storage) {
       throw new Error("Storage configuration missing in aia.config.yaml");
