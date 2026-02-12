@@ -1785,3 +1785,56 @@ git-service:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonom
 git-service:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
 git-service:dev: [ConfigLoader] Using YOU_API_KEY from env (Masked: ydc-s...)
 git-service:dev: Git Service listening on http://localhost:3004
+sample-app:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+sample-app:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+sample-app:dev: [ConfigLoader] Using YOU_API_KEY from env (Masked: ydc-s...)
+sample-app:dev: Starting sample-app on port 3008...
+sample-app:dev: OTEL Agent endpoint: http://localhost:4318
+sample-app:dev: Server listening on http://localhost:3008
+state-service:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+state-service:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+state-service:dev: [ConfigLoader] Using YOU_API_KEY from env (Masked: ydc-s...)
+state-service:dev: State Service listening on http://localhost:3003
+repro-service:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+agent:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+repro-service:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+repro-service:dev: [ConfigLoader] Using YOU_API_KEY from env (Masked: ydc-s...)
+agent:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+agent:dev: [ConfigLoader] Using YOU_API_KEY from env (Masked: ydc-s...)
+autopsy:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+agent:dev: Starting Autonomous Observability Agent (OTel Receiver)...
+agent:dev: Agent OTLP Receiver listening on http://localhost:4318
+agent:dev: Send traces to http://localhost:4318/v1/traces
+repro-service:dev: Repro Service listening on http://localhost:3005
+autopsy:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+autopsy:dev: [ConfigLoader] Using YOU_API_KEY from env (Masked: ydc-s...)
+git-service:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+git-service:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+git-service:dev: [ConfigLoader] Using YOU_API_KEY from env (Masked: ydc-s...)
+autopsy:dev: Autopsy AI Service listening on http://localhost:3002
+git-service:dev: Git Service listening on http://localhost:3004
+web-client:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+web-client:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+web-client:dev: [ConfigLoader] Using YOU_API_KEY from env (Masked: ydc-s...)
+router:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+router:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+router:dev: [ConfigLoader] Using YOU_API_KEY from env (Masked: ydc-s...)
+web-client:dev: Web Dashboard listening on http://localhost:3009
+router:dev: Router listening on http://localhost:3001
+dashboard:dev: [ConfigLoader] Loaded config from: /Users/sarthakkarode/autonomus-incident-agent/aia.config.yaml
+dashboard:dev: [ConfigLoader] Loaded and parsed .env from: /Users/sarthakkarode/autonomus-incident-agent/.env
+dashboard:dev: [ConfigLoader] Using YOU_API_KEY from env (Masked: ydc-s...)
+dashboard:dev: Dashboard listening on http://localhost:3000
+dashboard:dev: error: script "dev" was terminated by signal SIGTERM (Polite quit request)
+dashboard:dev: ERROR: command finished with error: command (/Users/sarthakkarode/autonomus-incident-agent/apps/dashboard) /Users/sarthakkarode/autonomus-incident-agent/node_modules/.bin/bun run dev was killed (exit code 137), likely due to running out of memory
+docs-site:dev: [?25h
+web:dev: [?25h
+dashboard#dev: command (/Users/sarthakkarode/autonomus-incident-agent/apps/dashboard) /Users/sarthakkarode/autonomus-incident-agent/node_modules/.bin/bun run dev exited (137)
+
+ Tasks:    0 successful, 11 total
+Cached:    0 cached, 11 total
+  Time:    20m10.903s 
+Failed:    dashboard#dev
+
+ ERROR  run failed: command  exited (137)
+error: script "dev" exited with code 137

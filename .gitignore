@@ -49,7 +49,3 @@ git_workspace/
 # Logs
 verification_logs.txt
 *.log
- 
-# Temporary Patches
-*.diff
-patches/
