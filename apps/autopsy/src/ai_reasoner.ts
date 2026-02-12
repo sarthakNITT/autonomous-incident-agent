@@ -31,14 +31,18 @@ ${contextStr}
 
 Task:
 1. Explain the root cause concisely.
-2. Provide a unified diff patch to fix the issue. The path in the diff should match the file path provided.
+2. Provide a valid Unified Diff patch to fix the issue.
+   - The patch MUST start with '--- a/{file_path}' and '+++ b/{file_path}'.
+   - The file path in the diff must match exactly: ${req.file_context[0]?.path || "unknown"}.
+   - Include at least 4-5 lines of context (unchanged lines) around the changes.
+   - Ensure typical git diff header format (@@ -start,count +start,count @@).
 3. Provide a deterministic test case (TypeScript) to reproduce and verify the fix.
 4. Estimate confidence score (0-1).
 
 Output JSON only:
 {
   "root_cause": "string",
-  "patch": { "file_path": "string", "diff": "string" },
+  "patch": { "file_path": "${req.file_context[0]?.path || "string"}", "diff": "string (multiline diff)" },
   "test_code": "string",
   "confidence": number
 }

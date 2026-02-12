@@ -55,6 +55,8 @@ function getRequestId(result: DetectorResult): string {
 
 function getDetailsFromSignal(result: DetectorResult): string {
   if (result.scope === "span") {
+    if (result.stacktrace) return result.stacktrace;
+
     const s = result.signal as any;
     if (result.type === "exception") {
       return `Exception in Span ${s.name}: ${result.reason}`;

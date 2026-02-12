@@ -62,6 +62,7 @@ export class Detectors {
         if (evt.name === "exception") {
           let msg = "Unknown Exception";
           let type = "Error";
+          let stacktrace = "";
 
           if (Array.isArray(evt.attributes)) {
             msg =
@@ -70,9 +71,13 @@ export class Detectors {
             type =
               evt.attributes.find((a) => a.key === "exception.type")?.value
                 .stringValue || type;
+            stacktrace =
+              evt.attributes.find((a) => a.key === "exception.stacktrace")
+                ?.value.stringValue || stacktrace;
           } else if (typeof evt.attributes === "object") {
             msg = evt.attributes["exception.message"] || msg;
             type = evt.attributes["exception.type"] || type;
+            stacktrace = evt.attributes["exception.stacktrace"] || stacktrace;
           }
 
           results.push({
@@ -81,6 +86,7 @@ export class Detectors {
             type: "exception",
             scope: "span",
             signal: span,
+            stacktrace: stacktrace,
           });
         }
       }

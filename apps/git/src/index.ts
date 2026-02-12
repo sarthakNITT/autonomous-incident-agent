@@ -44,7 +44,9 @@ const server = Bun.serve({
               `[Git] Failed to apply patch for ${patch.path || "unknown"}:`,
               e,
             );
-            // Continue without failing the whole PR creation
+            const failedPatchName = `patch_failed_${Date.now()}.diff`;
+            await Bun.write(join(repoPath, failedPatchName), patch.content);
+            await repoMgr.add(repoPath, [failedPatchName]);
           }
         }
 
@@ -70,7 +72,6 @@ const server = Bun.serve({
           config.github.base_branch,
         );
 
-        // Update State: VALIDATING
         fetch(
           `${config.services.state.base_url}/incidents/${body.incident_id}/update`,
           {

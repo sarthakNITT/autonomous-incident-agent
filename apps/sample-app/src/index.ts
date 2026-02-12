@@ -5,7 +5,6 @@ import { SimpleOTELTracer } from "./otel-tracer";
 const config = loadConfig();
 const PORT = config.services.sample_app.port;
 
-// Initialize OpenTelemetry tracer
 const tracer = new SimpleOTELTracer("sample-app");
 
 console.log(`Starting sample-app on port ${PORT}...`);

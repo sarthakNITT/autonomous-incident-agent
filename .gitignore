@@ -41,3 +41,15 @@ yarn-error.log*
 *.db
 *.db-shm
 *.db-wal
+ 
+# Git Service Workspace
+apps/git/git_workspace/
+git_workspace/
+ 
+# Logs
+verification_logs.txt
+*.log
+ 
+# Temporary Patches
+*.diff
+patches/

@@ -49,6 +49,7 @@ const server = Bun.serve({
         const snapshot =
           await storage.downloadJSON<RouterSnapshot>(snapshotKey);
         const stacktrace = snapshot.event.stacktrace || "";
+        console.log(`[Autopsy] FULL STACKTRACE:\n${stacktrace}`);
 
         console.log(`[Autopsy] Snapshot Loaded. Incident: ${incidentId}`);
 

@@ -54,7 +54,6 @@ const server = Bun.serve({
 
         console.log(`[Router] Snapshot uploaded to R2: ${key}`);
 
-        // Persist to state service database
         try {
           await fetch(`${STATE_SERVICE_URL}/incidents`, {
             method: "POST",
@@ -72,13 +71,11 @@ const server = Bun.serve({
           });
           console.log(`[Router] Incident persisted to state service`);
 
-          // Trigger Autopsy Analysis
           const AUTOPSY_SERVICE_URL = config.services.autopsy.base_url;
           try {
             console.log(
               `[Router] Triggering Autopsy analysis for snapshot: ${key}`,
             );
-            // Fire and forget - don't await the response to keep ingestion fast
             fetch(`${AUTOPSY_SERVICE_URL}/analyze`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -97,7 +94,6 @@ const server = Bun.serve({
             `[Router] Failed to persist to state service:`,
             stateError,
           );
-          // Continue anyway
         }
 
         return new Response(
