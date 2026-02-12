@@ -11,7 +11,7 @@ export class GitHubClient {
     head: string,
     base: string,
   ): Promise<PullRequestResult> {
-    const url = `${this.baseUrl}/repos/${this.config.org}/${this.config.repo}/pulls`;
+    const url = `${this.baseUrl}/repos/${this.config.owner}/${this.config.repo}/pulls`;
 
     try {
       const response = await fetch(url, {

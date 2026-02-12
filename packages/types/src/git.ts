@@ -1,11 +1,11 @@
 export interface GitHubConfig {
   provider: "github" | "gitlab";
   token: string;
-  org: string;
+  owner: string;
   repo: string;
   base_branch: string;
-  username: string;
-  email: string;
+  username?: string;
+  email?: string;
 }
 
 export interface PullRequestRequest {

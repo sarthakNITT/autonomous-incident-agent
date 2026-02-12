@@ -27,7 +27,12 @@ const server = Bun.serve({
 
         const branchName = `aia/incident-${body.incident_id}`;
         const repoName = `repo-${body.incident_id}`;
-        const repoPath = await repoMgr.clone(config.paths.repo_root, repoName);
+
+        const githubUrl = `https://${config.github.token}@github.com/${config.github.owner}/${config.github.repo}.git`;
+        console.log(
+          `[Git] Cloning from GitHub: https://***@github.com/${config.github.owner}/${config.github.repo}.git`,
+        );
+        const repoPath = await repoMgr.clone(githubUrl, repoName);
         console.log(`[Git] Cloned into ${repoPath}`);
         try {
           const envContent = await Bun.file(
@@ -48,8 +53,8 @@ const server = Bun.serve({
         console.log(`[Git] Checking out branch: ${branchName}`);
         await repoMgr.configUser(
           repoPath,
-          config.github.username,
-          config.github.email,
+          config.github.username || "aia-bot",
+          config.github.email || "bot@aia.local",
         );
         await repoMgr.checkout(repoPath, branchName, true);
 

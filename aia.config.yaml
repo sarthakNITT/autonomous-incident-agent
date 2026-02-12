@@ -36,8 +36,8 @@ storage:
 github:
   provider: "github"
   token: "PLACEHOLDER"
-  owner: "PLACEHOLDER"
-  repo: "PLACEHOLDER"
+  owner: "sarthakNITT"
+  repo: "autonomous-incident-agent"
   base_branch: "main"
 
 ai:
