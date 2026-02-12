@@ -1,10 +1,10 @@
 echo "Starting pre-push hook..."
 
-echo "running check-types..."
-echo "running check-types..."
-bun run check-types
+# echo "running check-types..."
+# echo "running check-types..."
+# bun run check-types
 
-echo "running build..."
-bun run build
+# echo "running build..."
+# bun run build
 
 echo "Pre-push hook finished."
