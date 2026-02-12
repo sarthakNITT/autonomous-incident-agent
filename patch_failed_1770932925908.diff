@@ -1,0 +1,17 @@
+--- a/unknown
++++ b/unknown
+@@ -10,8 +10,13 @@
+-// Original error handler code that causes failure
+-function errorHandler(err, req, res, next) {
+-    // Possibly accessing err.message without checking if err exists
+-    res.status(500).send(`HTTP 500 Error: ${err.message}`);
+-}
++// Improved error handler with safe checks and fallback
++function errorHandler(err, req, res, next) {
++    // Ensure err is defined and has a message property
++    const message = err && err.message ? err.message : 'Unknown error';
++    // Log the error safely
++    console.error('Error caught in handler:', message);
++    // Send a safe HTTP 500 response
++    res.status(500).send(`HTTP 500 Error: ${message}`);
++}
