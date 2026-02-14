@@ -56,7 +56,7 @@ export function loadConfig(): Config {
     const envContent = readFileSync(envPath, "utf-8");
     envContent.split("\n").forEach((line) => {
       const match = line.match(/^\s*([\w_]+)\s*=\s*(.*)?\s*$/);
-      if (match) {
+      if (match && match[1]) {
         const key = match[1];
         let value = match[2] || "";
         if (value.startsWith('"') && value.endsWith('"'))
@@ -64,7 +64,7 @@ export function loadConfig(): Config {
         if (value.startsWith("'") && value.endsWith("'"))
           value = value.slice(1, -1);
 
-        if (!process.env[key]) {
+        if (!process.env[key as string]) {
           process.env[key] = value;
         }
       }
