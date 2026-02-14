@@ -1,393 +1,383 @@
-# Autonomous Incident Agent (AIA)
+# 🤖 Autonomous Incident Agent (AIA)
 
-This repository contains a demonstration of an Autonomous Incident Agent (AIA) capable of detecting and reporting failure scenarios.
+**AI-powered incident detection, root cause analysis, and automated fixes for your applications.**
 
-## Configuration
+[![Production Ready](https://img.shields.io/badge/production-ready-green.svg)](./QUICKSTART.md)
+[![Docker](https://img.shields.io/badge/docker-supported-blue.svg)](./docker-compose.prod.yml)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
-The platform is configured via `config/aia.config.yaml`. This file controls ports, paths, environment tags, service behavior, and storage.
+## 🌟 What is AIA?
 
-### Observability (OpenTelemetry)
+AIA is an autonomous system that:
 
-The Agent services act as an OpenTelemetry Receiver on port **4318** (HTTP).
-To monitor your application, configure the OOTB OpenTelemetry Exporter:
+- 🔍 **Detects incidents** in real-time using OpenTelemetry
+- 🧠 **Analyzes root causes** using AI (GPT-4)
+- 🔧 **Generates fixes** with AI prompts and manual steps
+- 📊 **Provides insights** through a modern dashboard
+- 🔐 **Supports multi-tenancy** with per-project credentials
 
-```bash
-export OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:4318"
-export OTEL_SERVICE_NAME="my-app"
-```
+## 🚀 Quick Start
 
-The Agent automatically detects:
+### For Users (Deploy as a Service)
 
-- HTTP 5xx errors
-- Uncaught exceptions
-- Latency spikes (>2000ms)
-- Process crashes (via log patterns)
-
-# Quick Start
-
-## Onboarding
-
-Run the automated installer to configure your environment:
+Deploy AIA to monitor your applications:
 
 ```bash
-bun run cli/install.ts
+git clone https://github.com/sarthakNITT/autonomous-incident-agent.git
+cd autonomous-incident-agent
+
+cp .env.production.template .env.production
+
+./scripts/deploy-production.sh
+
+open http://localhost:3006
 ```
 
-## Documentation
+**See [QUICKSTART.md](./QUICKSTART.md) for detailed deployment instructions.**
 
-Start the local documentation site for architecture details and guides:
+### For Contributors (Local Development)
+
+Set up the development environment:
 
 ```bash
-bun run apps/docs/src/server.ts
+git clone https://github.com/sarthakNITT/autonomous-incident-agent.git
+cd autonomous-incident-agent
+
+bun install
+
+cp .env.local.example .env.local
+
+cd apps/state
+npx prisma migrate dev
+npx prisma generate
+cd ../..
+
+bun run dev
+
+http://localhost:3006
 ```
 
-Then visit `http://localhost:3008`.
+## 📋 Prerequisites
 
-## Web Dashboard
+### For Production Deployment:
 
-Launch the user interface:
+- Docker and Docker Compose
+- PostgreSQL database (or use included Docker Postgres)
+- Cloudflare R2 account (for storage)
+- You.com API key (or OpenAI-compatible API)
+- Clerk account (for authentication)
+- GitHub token (optional, for default)
+
+### For Local Development:
+
+- Bun runtime (v1.0+)
+- PostgreSQL database
+- Node.js 20+ (for some tools)
+- Git
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                  USER'S APPLICATION                      │
+│        (Instrumented with OpenTelemetry)                │
+└────────────────────┬────────────────────────────────────┘
+                     │ Sends traces/logs
+                     ▼
+┌────────────────────────────────────────────────────────┐
+│  AGENT (Port 4318) - OTel Receiver                      │
+│  • Detects incidents from telemetry data               │
+│  • Tags with project_id                                 │
+└────────────────────┬───────────────────────────────────┘
+                     │
+                     ▼
+┌────────────────────────────────────────────────────────┐
+│  ROUTER (Port 3001) - Incident Router                   │
+│  • Fetches project credentials                          │
+│  • Creates snapshots                                     │
+│  • Triggers autopsy with project-specific credentials   │
+└────────────────────┬───────────────────────────────────┘
+                     │
+        ┌────────────┴────────────┐
+        ▼                         ▼
+┌──────────────────┐    ┌──────────────────────┐
+│  STATE (3003)    │    │  AUTOPSY (3002)      │
+│  • PostgreSQL    │    │  • AI analysis       │
+│  • Projects      │    │  • Root cause        │
+│  • Incidents     │    │  • Fix generation    │
+└──────────────────┘    └──────────┬───────────┘
+                                   │
+                                   ▼
+                        ┌──────────────────────┐
+                        │  R2 STORAGE          │
+                        │  • Snapshots         │
+                        │  • Autopsy results   │
+                        │  • Patches & logs    │
+                        └──────────────────────┘
+                                   │
+                                   ▼
+                        ┌──────────────────────┐
+                        │  WEB (3006)          │
+                        │  • Dashboard UI      │
+                        │  • Project mgmt      │
+                        │  • Incident view     │
+                        └──────────────────────┘
+```
+
+## 🎯 Features
+
+### Core Features
+
+- ✅ **Real-time Incident Detection** - OpenTelemetry integration
+- ✅ **AI-Powered Analysis** - Root cause identification using GPT-4
+- ✅ **Automated Fix Suggestions** - AI-generated prompts and manual steps
+- ✅ **Multi-Project Support** - Manage multiple applications
+- ✅ **Credential Isolation** - Each project uses its own API keys
+- ✅ **PDF Reports** - Generate incident reports on-demand
+- ✅ **Modern Dashboard** - Beautiful UI with dark mode
+
+### For Users
+
+- 🔐 **Secure Authentication** - Clerk-powered auth
+- 📊 **Incident Dashboard** - View all incidents with details
+- 🤖 **AI Fix Prompts** - Copy-paste ready prompts for AI agents
+- 📝 **Manual Steps** - Step-by-step fix instructions
+- 📄 **PDF Export** - Download incident reports
+- 🔔 **Real-time Updates** - See incidents as they happen
+
+### For Developers
+
+- 🐳 **Docker Support** - Easy deployment with Docker Compose
+- 🏥 **Health Checks** - All services have health endpoints
+- 📚 **Comprehensive Docs** - Detailed guides and API docs
+- 🔧 **TypeScript** - Full type safety
+- 🧪 **Testable** - Modular architecture
+
+## 📚 Documentation
+
+- **[QUICKSTART.md](./QUICKSTART.md)** - Quick deployment guide
+- **[PRODUCTION_DEPLOYMENT.md](./PRODUCTION_DEPLOYMENT.md)** - Detailed deployment instructions
+- **[PROJECT_CREDENTIALS_INTEGRATION.md](./PROJECT_CREDENTIALS_INTEGRATION.md)** - How credentials work
+- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Contribution guidelines
+
+## 🔧 Configuration
+
+### Environment Variables
+
+#### Required for Production:
 
 ```bash
-bun run apps/web/src/server.ts
+DATABASE_URL=postgresql://user:password@host:5432/dbname
+
+R2_ACCOUNT_ID=your_account_id
+R2_ACCESS_KEY_ID=your_access_key
+R2_SECRET_ACCESS_KEY=your_secret_key
+R2_BUCKET_NAME=autonomous-incidents
+
+YOU_API_KEY=your_api_key
+
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_...
+CLERK_SECRET_KEY=sk_live_...
 ```
 
-Visit `http://localhost:3007`.
-
-## For Contributors
-
-If you're contributing to this project, you'll need to set up your local environment:
-
-1. **Clone the repository**
-2. **Create `.env` file** with your API keys:
-   ```bash
-   YOU_API_KEY=ydc_your_key_here
-   GITHUB_TOKEN=ghp_your_token_here
-   ```
-3. **Create `aia.config.local.yaml`** (gitignored) with your GitHub details:
-   ```yaml
-   # Copy from aia.config.yaml and update these fields:
-   github:
-     owner: "your-github-username"
-     repo: "your-test-repo-name"
-   ```
-4. **Run the dev server**: `bun run dev`
-
-The system will automatically use `aia.config.local.yaml` if it exists, allowing you to test without modifying the main config file.
-
-### AI (You.com)
-
-The Autopsy engine uses You.com API for reasoning.
-
-1. Obtain an API Key from [You.com](https://you.com) (or relevant developer portal).
-2. Update `config/aia.config.yaml`:
-   ```yaml
-   ai:
-     provider: "you.com"
-     api_key: "YOUR_API_KEY"
-     model: "you-chat-gpt-4"
-   ```
-
-### GitHub Integration (Required for PR Creation)
-
-The system creates Pull Requests automatically when incidents are detected and analyzed. To enable this:
-
-#### Step 1: Create a GitHub Personal Access Token
-
-1. **Go to GitHub Settings**:
-   - Visit [https://github.com/settings/tokens](https://github.com/settings/tokens)
-   - Click **"Generate new token"** → **"Generate new token (classic)"**
-
-2. **Configure Token Permissions**:
-   - **Note**: Enter a descriptive name (e.g., "AIA Incident Agent")
-   - **Expiration**: Choose your preferred expiration (recommend 90 days or No expiration for testing)
-   - **Select scopes**: Check the following permissions:
-     - ✅ `repo` (Full control of private repositories)
-       - This includes: `repo:status`, `repo_deployment`, `public_repo`, `repo:invite`, `security_events`
-     - ✅ `workflow` (Update GitHub Action workflows) - _Optional, only if your repo uses GitHub Actions_
-
-3. **Generate and Copy Token**:
-   - Click **"Generate token"** at the bottom
-   - **IMPORTANT**: Copy the token immediately (format: `ghp_xxxxxxxxxxxx`)
-   - You won't be able to see it again!
-
-#### Step 2: Configure the Token in Your Environment
-
-1. **Add to `.env` file**:
-
-   ```bash
-   GITHUB_TOKEN=ghp_your_actual_token_here
-   ```
-
-2. **Update `aia.config.yaml`**:
-
-   ```yaml
-   github:
-     provider: "github"
-     token: "PLACEHOLDER" # Will be read from .env
-     owner: "your-github-username" # REQUIRED: Your GitHub username (e.g., "sarthakNITT")
-     repo: "your-repo-name" # REQUIRED: Your repository name (e.g., "my-project")
-     base_branch: "main"
-   ```
-
-   **Important**: Replace `your-github-username` and `your-repo-name` with your actual GitHub username and the repository where you want PRs to be created.
-
-   **Example**:
-   - If your repo is `https://github.com/johndoe/my-awesome-app`
-   - Set `owner: "johndoe"`
-   - Set `repo: "my-awesome-app"`
-
-   **💡 Tip for Local Testing**: Create a `aia.config.local.yaml` file (gitignored) with your actual values to test without modifying the main config.
-
-#### Step 3: Verify Token Permissions
-
-The token needs access to:
-
-- **Create branches** in your repository
-- **Push commits** to those branches
-- **Create Pull Requests**
-
-**Note**: The system will create branches named `aia/incident-{incident-id}` and push fixes there before creating PRs.
-
-#### Troubleshooting GitHub Integration
-
-- **404 Error**: Check that `owner` and `repo` in `aia.config.yaml` match your actual GitHub repository
-- **403 Error**: Your token doesn't have sufficient permissions - regenerate with `repo` scope
-- **Push Failed**: Ensure your token has write access to the repository
-
-### Database (State Layer)
-
-The `apps/state` service uses SQLite by default to track incident lifecycle.
-
-- **Location**: `aira.db` in the project root.
-- **Schema**: Automatically created on startup (`db.ts`).
-- **Inspection**: Use `bun:sqlite` or any SQLite viewer to inspect `incidents` table.
-
-### Automated Validation
-
-The system includes a CI/CD pipeline for automated remediation validation:
-
-1. **Trigger**: Phase 14 creates a PR with branch `aia/incident-{id}`.
-2. **Action**: `.github/workflows/validate-pr.yml` triggers the `apps/repro` container.
-3. **Execution**:
-   - Downloads `patch.diff` and `generated_test.ts` from R2.
-   - Applies patch and runs tests in isolation.
-   - Reports results back to R2 and validates the PR.
-
-> [!IMPORTANT]
-> The validation pipeline requires Docker and access to the R2 bucket.
-
-- **Ports**: Change `services.<name>.port` to resolve conflicts.
-- **Paths**: `paths.repo_root` defines the target repository to analyze.
-- **AI Provider**: (Placeholder) Add `ai` section to config in future phases.
-
-### Directory Mapping
-
-When running in Docker, the `config/` directory is mounted to `/app/config`.
-
-- **Local Dev**: Edit `config/aia.config.yaml` and restart services.
-- **Docker**: Rebuild using `docker-compose up --build` if changing paths structure, otherwise restart is sufficient.
-
-## Run Demo
+#### Optional:
 
 ```bash
-bun run demo/run_demo.ts --scenario 1
+GITHUB_TOKEN=ghp_your_token
+AI_MODEL=gpt-4o
 ```
 
-## Manual Setup
+**See [.env.production.template](./.env.production.template) for complete configuration.**
 
-See `docs/` for### Web Dashboard
-The new Web Client (Phase 17) provides a rich interface for managing incidents.
+### For Local Development:
 
-- **Port**: 3007 (default)
-- **Features**: Real-time status timeline, patch review, and manual approval/rejection.
-- **Access**: Open `http://localhost:3007` in your browser.
-
-## Service Architecture.
-
-## Migration Guide (Phase 10)
-
-We have migrated from hardcoded constants to `aia.config.yaml`.
-
-- Old `apps/dashboard/src/index.ts` hardcoded ports -> Now uses `config.services.dashboard.port`.
-- Old file paths -> Now use `config.paths.*`.
-
-## Repository Structure
-
-- `apps/sample-app`: A lightweight Bun service that can be triggered to fail.
-- `apps/agent`: A monitoring service that detects failures and emits incident reports.
-- `packages/types`: Shared TypeScript definitions.
-- `events/`: Directory where incident reports are output.
-
-## Getting Started
-
-### Prerequisites
-
-- [Bun](https://bun.sh) (v1.0+)
-- Docker & Docker Compose
-
-### 1. Verification (Phase 2)
-
-To verify the agent monitoring and incident generation:
-
-**1. Start the services:**
+Create `.env.local` with your development credentials:
 
 ```bash
-docker-compose up --build
+cp .env.local.example .env.local
+nano .env.local
 ```
 
-**2. Trigger the failure:**
-Open a new terminal and run:
+## 🎓 How It Works
+
+### 1. Instrument Your Application
+
+Add OpenTelemetry to your application:
+
+```typescript
+import { NodeSDK } from "@opentelemetry/sdk-node";
+import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
+
+const sdk = new NodeSDK({
+  traceExporter: new OTLPTraceExporter({
+    url: "http://localhost:4318/v1/traces",
+  }),
+  serviceName: "my-app",
+});
+
+sdk.start();
+```
+
+### 2. Create a Project
+
+Sign in to the dashboard and create a project:
+
+- Name: Your application name
+- Repository URL: GitHub repo URL
+- GitHub Token: (optional) Your GitHub token
+- OpenAI API Key: (optional) Your OpenAI key
+
+### 3. Monitor Incidents
+
+When an error occurs:
+
+1. Agent detects the incident from telemetry
+2. Router fetches your project credentials
+3. Autopsy analyzes using your OpenAI key
+4. Dashboard shows root cause, fix prompt, and manual steps
+5. Download PDF report or view suggested fixes
+
+## 🤝 Contributing
+
+We welcome contributions! Here's how to get started:
+
+### Development Setup
 
 ```bash
-curl -X POST http://localhost:3000/trigger \
-     -H "Content-Type: application/json" \
-     -d @test/bug-scenarios/scenario-1.json
+git clone https://github.com/YOUR_USERNAME/autonomous-incident-agent.git
+cd autonomous-incident-agent
+
+bun install
+
+cp .env.local.example .env.local
+cd apps/state
+npx prisma migrate dev
+cd ../..
+bun run dev
 ```
 
-**3. Verify Agent Response:**
-Check the agent logs in the docker terminal. You should see "FAILURE DETECTED!".
+### Making Changes
 
-**4. Check Generated Event:**
-Verify that `events/incident-1.json` has been created and contains the failure details.
+1. Create a feature branch: `git checkout -b feature/amazing-feature`
+2. Make your changes
+3. Test thoroughly
+4. Commit: `git commit -m 'Add amazing feature'`
+5. Push: `git push origin feature/amazing-feature`
+6. Open a Pull Request
+
+### Code Style
+
+- TypeScript for all code
+- Prettier for formatting (runs on commit)
+- ESLint for linting
+- Follow existing patterns
+
+**See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.**
+
+## 📦 Project Structure
+
+```
+autonomous-incident-agent/
+├── apps/
+│   ├── agent/          # OTel receiver & incident detector
+│   ├── router/         # Incident router & orchestrator
+│   ├── autopsy/        # AI-powered root cause analysis
+│   ├── state/          # State management & database
+│   ├── web/            # Next.js dashboard
+│   └── docs/           # Documentation site
+├── packages/
+│   ├── storage/        # R2 storage client
+│   ├── types/          # Shared TypeScript types
+│   └── ui/             # Shared UI components
+├── shared/
+│   └── config_loader/  # Configuration loader
+├── scripts/
+│   └── deploy-production.sh  # Deployment script
+├── docker-compose.prod.yml   # Production Docker Compose
+├── .env.production.template  # Environment template
+└── docs/
+    ├── QUICKSTART.md
+    ├── PRODUCTION_DEPLOYMENT.md
+    └── PROJECT_CREDENTIALS_INTEGRATION.md
+```
+
+## 🐳 Docker Deployment
+
+### Quick Deploy
 
 ```bash
-cat events/incident-1.json
+./scripts/deploy-production.sh
 ```
 
-### 2. Verification (Phase 3: Router)
-
-To verify the event router ingestion:
-
-**1. Send the incident to the router:**
+### Manual Deploy
 
 ```bash
-curl -X POST http://localhost:4000/ingest \
-     -H "Content-Type: application/json" \
-     -d @events/incident-1.json
+docker-compose -f docker-compose.prod.yml up -d
+
+docker-compose -f docker-compose.prod.yml logs -f
+docker-compose -f docker-compose.prod.yml down
 ```
 
-**2. Verify Response:**
-Should return: `{"snapshot_id":"..."}`
-
-**3. Verify Storage:**
-Check that a snapshot file exists in `router/storage/`.
-
-### 3. Verification (Phase 4: Autopsy)
-
-To verify the autopsy engine analysis:
-
-**1. Call the analysis endpoint:**
-Replace `<SNAPSHOT_ID>` with the ID returned from the router.
+## 🧪 Testing
 
 ```bash
-curl -X POST http://localhost:5001/analyze \
-     -H "Content-Type: application/json" \
-     -d '{ "snapshot_id": "<SNAPSHOT_ID>", "repo_path": "/repo" }'
+bun test
+
+
+cd apps/autopsy
+bun test
+
+bun test:e2e
 ```
 
-**2. Verify Response:**
-Should return a JSON object with `root_cause_text` and `suggested_patch`.
+## 📊 Monitoring
 
-**3. Check Output File:**
-Verify `autopsy/sample_output/incident-1-autopsy.json` exists.
-
-### 4. Verification (Phase 5: PR Generator)
-
-To generate PR artifacts from the autopsy result:
-
-**1. Run the generator:**
+All services expose health check endpoints:
 
 ```bash
-bun run apps/autopsy/pr_generator.ts
+curl http://localhost:3003/health
+curl http://localhost:3001/health
+curl http://localhost:3002/health
+curl http://localhost:4318/health
+curl http://localhost:3006/
 ```
 
-**2. Verify Outputs:**
-Check for created files:
+## 🔒 Security
 
-- `autopsy/patches/patch-1.diff`
-- `autopsy/pr_description/incident-1-pr.md`
-- `app/test/generated/repro.test.ts`
+- All credentials are encrypted at rest
+- Per-project credential isolation
+- Clerk-powered authentication
+- HTTPS/TLS in production
+- Rate limiting on public endpoints
 
-### 4. Verification (Phase 5: PR Generator)
+## 📄 License
 
-To generate PR artifacts from the autopsy result:
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-**1. Run the generator:**
+## 🙏 Acknowledgments
 
-```bash
-bun run apps/autopsy/pr_generator.ts
-```
+- OpenTelemetry for observability
+- Clerk for authentication
+- Cloudflare R2 for storage
+- You.com for AI capabilities
 
-**2. Verify Outputs:**
-Check for created files:
+## 📞 Support
 
-- `app/test/generated/repro.test.ts`
+- **Documentation**: See [docs](./docs) folder
+- **Issues**: [GitHub Issues](https://github.com/sarthakNITT/autonomous-incident-agent/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/sarthakNITT/autonomous-incident-agent/discussions)
 
-### 5. Verification (Phase 6: Reproduction Harness)
+## 🗺️ Roadmap
 
-To verify the patch effectiveness using the containerized harness:
+- [ ] Slack/Discord notifications
+- [ ] GitHub PR auto-creation
+- [ ] Custom detection rules
+- [ ] Multi-cloud storage support
+- [ ] Advanced analytics
+- [ ] Team collaboration features
 
-**1. Run the harness:**
+---
 
-```bash
-bun run repro/run_repro.ts
-```
+**Made with ❤️ by the AIA team**
 
-**2. Verify Logs:**
-
-- `repro/logs/pre.txt`: Should show the test failing (HTTP 500).
-- `repro/logs/post.txt`: Should show the test passing (HTTP 200).
-
-### 6. Verification (Phase 7: Dashboard & Reporting)
-
-**1. Start the Dashboard:**
-
-```bash
-docker-compose up -d dashboard
-```
-
-**2. View Incident Report:**
-Open [http://localhost:3002/incident-1](http://localhost:3002/incident-1) in your browser.
-
-**3. Generate PDF Report:**
-
-```bash
-bun run apps/dashboard/src/export.ts
-```
-
-Verify `dashboard/reports/incident-1.pdf` is created.
-
-### 7. End-to-End Demo (Phase 8 & 9)
-
-Run the entire pipeline (Trigger -> Agent -> Router -> Autopsy -> Patch -> Verify -> Report) in one command:
-
-```bash
-# Default: Scenario 1 (Deterministic Error)
-bun run demo/run_demo.ts
-
-# Scenario 2 (Null Pointer / Crash)
-bun run demo/run_demo.ts --scenario 2
-
-# Scenario 3 (CPU Timeout)
-bun run demo/run_demo.ts --scenario 3
-```
-
-This will:
-
-1. Reset the environment.
-2. Spin up the entire stack.
-3. Simulate the chosen incident.
-4. Auto-generate a fix and verify it.
-5. Export all artifacts to `demo/output`.
-
-**Expected Runtime:** ~2 minutes per scenario.
-
-## Troubleshooting
-
-- **Docker Errors**: Ensure Docker is running. If network errors occur, run `docker-compose down -v` to clear state.
-- **Port Conflicts**: Ensure ports 3000, 3002, 4000, 5001 are free.
-- **Permissions**: Ensure `bun run` commands are executed with sufficient permissions to write to artifact directories.
-
-## Security & Privacy Note
-
-This project is a demonstration. All processed data is **synthetic**. The "incidents" are seeded bug scenarios, and no real production data, secrets, or PII are ever accessed or transmitted. The "Autopsy" logic uses local heuristics and does not send code to external services in this standalone configuration.
+**Status**: ✅ Production Ready | **Version**: 1.0.0

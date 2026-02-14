@@ -52,13 +52,13 @@ services:
       context: .
       dockerfile: apps/dashboard/Dockerfile
     ports:
-      - "3002:3002" # Fixed internal port to match config default 3002 if dashboard listens on it. Wait, dashboard refactor uses config port. If config says 3002, internal is 3002.
+      - "3002:3002"
     volumes:
       - ./config:/app/config:ro
       - ./autopsy/sample_output:/autopsy_output:ro
       - ./autopsy/pr_description:/pr_description:ro
       - ./repro/logs:/repro_logs:ro
-      - ./dashboard/reports:/app/dashboard/reports # Maintain this if export script writes here
+      - ./dashboard/reports:/app/dashboard/reports
 
 volumes:
   shared_logs:

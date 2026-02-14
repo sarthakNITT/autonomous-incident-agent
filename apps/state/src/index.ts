@@ -21,7 +21,6 @@ const server = Bun.serve({
         });
       }
 
-      // Health check endpoint
       if (req.method === "GET" && url.pathname === "/health") {
         return new Response(
           JSON.stringify({ status: "healthy", service: "state" }),

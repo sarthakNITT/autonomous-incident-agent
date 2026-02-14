@@ -14,28 +14,22 @@ Before deploying to production, ensure you have:
 ## Step 1: Configure Environment
 
 ```bash
-# Copy the environment template
 cp .env.production.template .env.production
 
-# Edit the file and fill in your values
 nano .env.production
 ```
 
 ### Required Values:
 
 ```bash
-# Database
 DB_PASSWORD=your_secure_password
 
-# R2 Storage
 R2_ACCOUNT_ID=your_account_id
 R2_ACCESS_KEY_ID=your_access_key
 R2_SECRET_ACCESS_KEY=your_secret_key
 
-# AI Provider
 YOU_API_KEY=your_api_key
 
-# Clerk
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_...
 CLERK_SECRET_KEY=sk_live_...
 ```
@@ -43,7 +37,6 @@ CLERK_SECRET_KEY=sk_live_...
 ## Step 2: Deploy
 
 ```bash
-# Run the deployment script
 ./scripts/deploy-production.sh
 ```
 
@@ -60,21 +53,18 @@ This script will:
 ### Check Service Health:
 
 ```bash
-# All services should return {"status":"healthy"}
-curl http://localhost:3003/health  # State
-curl http://localhost:3001/health  # Router
-curl http://localhost:3002/health  # Autopsy
-curl http://localhost:4318/health  # Agent
-curl http://localhost:3006/        # Web (returns HTML)
+curl http://localhost:3003/health
+curl http://localhost:3001/health
+curl http://localhost:3002/health
+curl http://localhost:4318/health
+curl http://localhost:3006/
 ```
 
 ### View Logs:
 
 ```bash
-# All services
 docker-compose -f docker-compose.prod.yml logs -f
 
-# Specific service
 docker-compose -f docker-compose.prod.yml logs -f web
 docker-compose -f docker-compose.prod.yml logs -f state
 ```
@@ -105,7 +95,6 @@ Open: http://localhost:3006
 ### 4. Trigger a Test Incident:
 
 ```bash
-# Send a test trace to the agent
 curl -X POST http://localhost:4318/v1/traces \
   -H "Content-Type: application/json" \
   -d '{
@@ -213,23 +202,18 @@ docker-compose -f docker-compose.prod.yml up -d
 ### Services Won't Start:
 
 ```bash
-# Check logs
 docker-compose -f docker-compose.prod.yml logs
 
-# Check if ports are in use
 lsof -ti:3003,3001,3002,4318,3006
 
-# Restart services
 docker-compose -f docker-compose.prod.yml restart
 ```
 
 ### Database Connection Issues:
 
 ```bash
-# Check database is running
 docker-compose -f docker-compose.prod.yml ps postgres
 
-# Check connection
 docker-compose -f docker-compose.prod.yml exec postgres psql -U postgres -d autonomous_incidents
 ```
 
@@ -250,7 +234,6 @@ docker-compose -f docker-compose.prod.yml exec postgres psql -U postgres -d auto
 ### Horizontal Scaling:
 
 ```yaml
-# In docker-compose.prod.yml, add replicas:
 services:
   autopsy:
     deploy:
@@ -260,7 +243,6 @@ services:
 ### Vertical Scaling:
 
 ```yaml
-# Add resource limits:
 services:
   autopsy:
     deploy:
@@ -275,10 +257,8 @@ services:
 ### Database Backup:
 
 ```bash
-# Backup
 docker-compose -f docker-compose.prod.yml exec postgres pg_dump -U postgres autonomous_incidents > backup.sql
 
-# Restore
 docker-compose -f docker-compose.prod.yml exec -T postgres psql -U postgres autonomous_incidents < backup.sql
 ```
 

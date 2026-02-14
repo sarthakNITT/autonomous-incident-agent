@@ -19,7 +19,6 @@ const server = Bun.serve({
   async fetch(req) {
     const url = new URL(req.url);
 
-    // Health check endpoint
     if (req.method === "GET" && url.pathname === "/health") {
       return new Response(
         JSON.stringify({ status: "healthy", service: "autopsy" }),

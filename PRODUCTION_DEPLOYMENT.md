@@ -17,23 +17,18 @@
 ### **Required for All Services:**
 
 ```bash
-# Database
 DATABASE_URL="postgresql://user:password@host:5432/dbname"
 
-# R2 Storage (Cloudflare)
 R2_ACCOUNT_ID="your-account-id"
 R2_ACCESS_KEY_ID="your-access-key"
 R2_SECRET_ACCESS_KEY="your-secret-key"
 R2_BUCKET_NAME="autonomous-incidents"
 
-# AI Provider (You.com or OpenAI-compatible)
 YOU_API_KEY="your-you-api-key"
 AI_MODEL="gpt-4o"
 
-# GitHub (Default, can be overridden per project)
 GITHUB_TOKEN="ghp_your_github_token"
 
-# Clerk Authentication (for apps/web)
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_live_..."
 CLERK_SECRET_KEY="sk_live_..."
 NEXT_PUBLIC_CLERK_SIGN_IN_URL="/sign-in"
@@ -41,7 +36,6 @@ NEXT_PUBLIC_CLERK_SIGN_UP_URL="/sign-up"
 NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL="/dashboard"
 NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL="/dashboard"
 
-# Service URLs (adjust for production)
 STATE_SERVICE_URL="https://state.yourdomain.com"
 ROUTER_SERVICE_URL="https://router.yourdomain.com"
 AUTOPSY_SERVICE_URL="https://autopsy.yourdomain.com"
@@ -52,7 +46,6 @@ WEB_URL="https://yourdomain.com"
 ### **Service-Specific Ports (Production):**
 
 ```yaml
-# aia.config.yaml (production)
 services:
   state:
     port: 3003
@@ -76,14 +69,11 @@ services:
 ### **Run Migrations:**
 
 ```bash
-# Generate Prisma client
 cd apps/state
 npx prisma generate
 
-# Run migrations
 npx prisma migrate deploy
 
-# Verify
 npx prisma db pull
 ```
 
@@ -269,16 +259,13 @@ volumes:
 ### **Recommended Tools:**
 
 ```bash
-# Application Monitoring
 - Sentry (error tracking)
 - Datadog / New Relic (APM)
 - Prometheus + Grafana (metrics)
 
-# Infrastructure
 - Cloudflare Analytics
 - AWS CloudWatch / DigitalOcean Monitoring
 
-# Logs
 - Loki / ELK Stack
 - Papertrail
 ```
@@ -298,30 +285,18 @@ volumes:
 ### **Step-by-Step:**
 
 ```bash
-# 1. Build all services
 bun run build
 
-# 2. Run database migrations
 cd apps/state && npx prisma migrate deploy
 
-# 3. Test production build locally
 NODE_ENV=production bun run start
 
-# 4. Deploy to production
-# (Use your deployment platform: Vercel, Railway, AWS, etc.)
-
-# 5. Verify all services are running
 curl https://yourdomain.com/api/health
 curl https://state.yourdomain.com/health
 curl https://router.yourdomain.com/health
 curl https://autopsy.yourdomain.com/health
 curl https://agent.yourdomain.com/health
 
-# 6. Test end-to-end flow
-# - Sign in to dashboard
-# - Create a project
-# - Trigger an incident
-# - Verify it appears in dashboard
 ```
 
 ## 8. Post-Deployment
@@ -350,18 +325,11 @@ curl https://agent.yourdomain.com/health
 ### **If Issues Occur:**
 
 ```bash
-# 1. Revert to previous deployment
 git revert HEAD
 git push
 
-# 2. Restore database if needed
 pg_restore -d autonomous_incidents backup.sql
 
-# 3. Clear R2 cache if needed
-# (Use R2 dashboard or CLI)
-
-# 4. Notify users of downtime
-# (Use status page)
 ```
 
 ## 10. Cleanup
@@ -369,18 +337,6 @@ pg_restore -d autonomous_incidents backup.sql
 ### **Remove Old Dashboard Service:**
 
 ```bash
-# 1. Stop old dashboard
-# (if still running on port 3000)
-
-# 2. Remove from deployment
-# - Remove from docker-compose.yml
-# - Remove from CI/CD pipeline
-
-# 3. Update documentation
-# - Remove references to localhost:3000
-# - Update all links to new dashboard
-
-# 4. Archive old code
 git mv apps/dashboard apps/dashboard-archived
 git commit -m "Archive old dashboard service"
 ```
