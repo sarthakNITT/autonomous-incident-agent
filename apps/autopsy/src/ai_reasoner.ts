@@ -37,6 +37,19 @@ Task:
    - Added lines start with a plus sign (+)
    - DO NOT include any markdown formatting, code blocks, or explanatory text
    - The patch must be a valid git diff that can be applied with 'git apply'
+   
+   EXAMPLE PATCH FORMAT:
+   --- a/apps/sample-app/src/index.ts
+   +++ b/apps/sample-app/src/index.ts
+   @@ -38,7 +38,7 @@
+    
+    if (payload?.action === "cause_error") {
+      console.log("Triggering intentional failure scenario...");
+   -  const error = new Error(
+   +  throw new Error(
+        "SeededDemoFailure: deterministic bug for AIA demo",
+      );
+      console.log(error.stack);
 3. Provide a deterministic test case (TypeScript) to reproduce and verify the fix.
 4. Estimate confidence score (0-1).
 5. Provide a "fix_prompt" (string): A comprehensive, detailed prompt that includes:
@@ -113,7 +126,29 @@ Output JSON only. Do not include markdown code block syntax (no \`\`\`json). Jus
         .trim();
 
       try {
-        return JSON.parse(cleanJson);
+        const parsed = JSON.parse(cleanJson);
+
+        // Validate and clean the patch
+        if (parsed.patch && parsed.patch.diff) {
+          let diff = parsed.patch.diff;
+
+          // Remove markdown code blocks if present
+          diff = diff.replace(/```diff\n?/g, "").replace(/```\n?/g, "");
+
+          // Validate patch format
+          const hasHeader = diff.includes("---") && diff.includes("+++");
+          const hasHunk = diff.includes("@@");
+
+          if (!hasHeader || !hasHunk) {
+            console.warn(
+              "[AI Reasoner] Patch format invalid, may fail to apply",
+            );
+          }
+
+          parsed.patch.diff = diff.trim();
+        }
+
+        return parsed;
       } catch (e) {
         const jsonMatch = textFn.match(/\{[\s\S]*\}/);
         if (jsonMatch) {

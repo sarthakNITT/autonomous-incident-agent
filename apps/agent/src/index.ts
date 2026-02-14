@@ -15,14 +15,24 @@ const DEDUPE_WINDOW_MS = 30000;
 console.log("Starting Autonomous Observability Agent (OTel Receiver)...");
 
 const onIncident = async (result: DetectorResult) => {
-  // Use just the reason for deduplication to catch same error detected in different ways
-  const dedupeKey = result.reason || "unknown";
+  // Extract trace ID for better deduplication
+  let traceId = "unknown";
+  if (result.scope === "span") {
+    const span = result.signal as any;
+    traceId = span.traceId || "unknown";
+  }
+
+  // Use trace ID for deduplication to catch same error detected in different ways
+  const dedupeKey =
+    traceId !== "unknown" ? traceId : result.reason || "unknown";
   const now = Date.now();
 
   if (incidentCache.has(dedupeKey)) {
     const lastSeen = incidentCache.get(dedupeKey) || 0;
     if (now - lastSeen < DEDUPE_WINDOW_MS) {
-      console.log(`[Agent] Skipping duplicate incident: ${result.reason}`);
+      console.log(
+        `[Agent] Skipping duplicate incident (trace: ${traceId}): ${result.reason}`,
+      );
       return;
     }
   }
