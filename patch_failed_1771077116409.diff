@@ -1,0 +1,11 @@
+--- a/unknown
++++ b/unknown
+@@ -1,7 +1,10 @@
+ 
+-function errorHandler(err, req, res, next) {
+-  throw new Error('error.handler');
+-}
++function errorHandler(err, req, res, next) {
++  console.error('Error caught in errorHandler:', err);
++  res.status(500).json({ error: 'Internal Server Error' });
++}
