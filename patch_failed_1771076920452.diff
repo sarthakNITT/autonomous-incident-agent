@@ -1,0 +1,34 @@
+--- a/apps/sample-app/src/index.ts
++++ b/apps/sample-app/src/index.ts
+@@ -38,13 +38,17 @@
+       if (payload.action === "cause_crash") {
+         throw new ReferenceError("config_is_undefined is not defined");
+         return new Response("Crashed", { status: 500 });
+       }
+
+       if (payload.action === "cause_cpu") {
+         const start = Date.now();
+         while (Date.now() - start < 3000) {}
+         throw new Error("Request Timeout - CPU Limit Exceeded");
+       }
+
+-      if (payload?.action === "cause_error") {
+-        console.log("Triggering intentional failure scenario...");
+-        const error = new Error(
+-          "SeededDemoFailure: deterministic bug for AIA demo",
+-        );
+-        console.log(error.stack);
+-        throw error;
+-      }
++      if (payload?.action === "cause_error") {
++        console.log("Triggering intentional failure scenario...");
++        const error = new Error(
++          "SeededDemoFailure: deterministic bug for AIA demo",
++        );
++        console.log(error.stack);
++        // Instead of throwing, return a controlled error response
++        return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { "Content-Type": "application/json" } });
++      }
+
+       const response: TriggerResponse = { status: "ok" };
+       return new Response(JSON.stringify(response), {
