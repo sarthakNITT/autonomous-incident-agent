@@ -38,7 +38,7 @@ describe("State Service API", () => {
     const response = await fetch(`${STATE_URL}/projects`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({}), // Invalid: missing required fields
+      body: JSON.stringify({}),
     });
     expect(response.status).toBeGreaterThanOrEqual(400);
   });

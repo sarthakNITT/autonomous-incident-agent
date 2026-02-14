@@ -41,7 +41,6 @@ describe("Autopsy Service Analysis", () => {
         snapshot: { files: [] },
       }),
     });
-    // Should either process or return validation error
     expect([200, 201, 400, 404, 500]).toContain(response.status);
   });
 });

@@ -11,7 +11,6 @@ describe("Agent Service Health Check", () => {
   });
 
   test("should accept OTel traces endpoint", async () => {
-    // Just verify the endpoint exists
     const response = await fetch(`${AGENT_URL}/v1/traces`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -19,7 +18,6 @@ describe("Agent Service Health Check", () => {
         resourceSpans: [],
       }),
     });
-    // Should accept the request (even if empty)
     expect([200, 202, 400]).toContain(response.status);
   });
 });

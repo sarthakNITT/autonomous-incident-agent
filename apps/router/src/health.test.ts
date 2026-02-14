@@ -26,7 +26,6 @@ describe("Router Service Incident Handling", () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         error: "Test error",
-        // Missing project_id
       }),
     });
     expect(response.status).toBeGreaterThanOrEqual(400);
@@ -42,7 +41,6 @@ describe("Router Service Incident Handling", () => {
         timestamp: new Date().toISOString(),
       }),
     });
-    // Should either process or return validation error
     expect([200, 201, 400, 404]).toContain(response.status);
   });
 });

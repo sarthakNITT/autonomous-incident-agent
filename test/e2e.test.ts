@@ -38,13 +38,12 @@ describe("End-to-End Integration Tests", () => {
       const duration = Date.now() - start;
 
       expect(response.status).toBe(200);
-      expect(duration).toBeLessThan(5000); // 5 seconds max
+      expect(duration).toBeLessThan(5000);
       console.log(`✓ ${service.name} responded in ${duration}ms`);
     }
   });
 
   test("state service should be accessible from router", async () => {
-    // Router should be able to reach State service
     const response = await fetch(`${ROUTER_URL}/health`);
     expect(response.status).toBe(200);
     const data = await response.json();
@@ -56,7 +55,6 @@ describe("Service Communication", () => {
   const STATE_URL = process.env.STATE_SERVICE_URL || "http://localhost:3003";
 
   test("database connection should be stable", async () => {
-    // Test multiple rapid requests
     const requests = Array(5)
       .fill(null)
       .map(() => fetch(`${STATE_URL}/health`));
