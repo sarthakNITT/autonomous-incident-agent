@@ -16,22 +16,20 @@ export function Navbar() {
               AIA
             </Link>
             <div className="hidden md:flex md:gap-6">
-              <a
+              <Link
                 href="http://localhost:3007"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 Docs
-              </a>
-              <a
-                href="http://localhost:3000"
-                target="_blank"
-                rel="noopener noreferrer"
+              </Link>
+              <Link
+                href="/dashboard"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 Dashboard
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -62,14 +60,12 @@ export function Navbar() {
                 >
                   Docs
                 </a>
-                <a
-                  href="http://localhost:3000"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  href="/dashboard"
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Dashboard
-                </a>
+                </Link>
                 <SignedOut>
                   <Button asChild variant="outline" className="w-full">
                     <Link href="/sign-in">Sign In</Link>

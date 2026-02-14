@@ -2,6 +2,7 @@
 
 import { useUser, SignedIn, SignedOut, RedirectToSignIn } from "@clerk/nextjs";
 import { useState, useEffect } from "react";
+import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,8 +15,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Plus, Github, Lock, Copy, Check } from "lucide-react";
+import { Plus, Github, Lock, Copy, Check, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import Link from "next/link";
 
 import { Project } from "@repo/types";
 
@@ -25,6 +27,7 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [incidentCount, setIncidentCount] = useState(0);
 
   const [name, setName] = useState("");
   const [repoUrl, setRepoUrl] = useState("");
@@ -35,16 +38,25 @@ export default function DashboardPage() {
   useEffect(() => {
     if (user?.id) {
       loadProjects(user.id);
+      loadIncidents();
     }
   }, [user?.id]);
 
+  const loadIncidents = async () => {
+    try {
+      const response = await axios.get("/api/incidents");
+      setIncidentCount(response.data.incidents.length);
+    } catch (error) {
+      console.error("Failed to load incidents", error);
+    }
+  };
+
   const loadProjects = async (userId: string) => {
     try {
-      const res = await fetch(`http://localhost:3003/projects/user/${userId}`);
-      if (res.ok) {
-        const data = await res.json();
-        setProjects(data);
-      }
+      const response = await axios.get(
+        `http://localhost:3003/projects/user/${userId}`,
+      );
+      setProjects(response.data);
     } catch (error) {
       console.error("Failed to load projects", error);
       toast.error("Failed to load projects");
@@ -59,22 +71,16 @@ export default function DashboardPage() {
 
     setIsCreating(true);
     try {
-      const res = await fetch("http://localhost:3003/projects", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId: user.id,
-          name,
-          repoUrl,
-          githubToken,
-          openaiApiKey: openaiKey,
-          baseBranch,
-        }),
+      const response = await axios.post("http://localhost:3003/projects", {
+        userId: user.id,
+        name,
+        repoUrl,
+        githubToken,
+        openaiApiKey: openaiKey,
+        baseBranch,
       });
 
-      if (res.ok) {
+      if (response.status === 200 || response.status === 201) {
         toast.success("Project created successfully");
         setShowForm(false);
         setName("");
@@ -204,6 +210,35 @@ export default function DashboardPage() {
                       </Button>
                     </div>
                   </form>
+                </CardContent>
+              </Card>
+            )}
+
+            {incidentCount > 0 && (
+              <Card className="mb-6 border-orange-200 bg-orange-50 dark:bg-orange-950/20 dark:border-orange-900">
+                <CardContent className="flex items-center justify-between p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="rounded-full bg-orange-100 dark:bg-orange-900 p-3">
+                      <AlertCircle className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-orange-900 dark:text-orange-100">
+                        {incidentCount} Active Incident
+                        {incidentCount !== 1 ? "s" : ""}
+                      </h3>
+                      <p className="text-sm text-orange-700 dark:text-orange-300">
+                        Detected issues requiring attention
+                      </p>
+                    </div>
+                  </div>
+                  <Link href="/dashboard/incidents">
+                    <Button
+                      variant="outline"
+                      className="border-orange-300 dark:border-orange-800"
+                    >
+                      View Incidents
+                    </Button>
+                  </Link>
                 </CardContent>
               </Card>
             )}
