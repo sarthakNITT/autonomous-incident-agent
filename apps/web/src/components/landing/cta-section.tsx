@@ -32,7 +32,7 @@ export function CTASection() {
             </Button>
             <Button asChild variant="outline" size="lg">
               <a
-                href="http://localhost:3003/docs/getting-started"
+                href="http://localhost:3007"
                 target="_blank"
                 rel="noopener noreferrer"
               >

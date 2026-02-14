@@ -9,12 +9,14 @@ export function Footer() {
             © 2026 Autonomous Incident Agent
           </p>
           <div className="flex gap-6">
-            <Link
-              href="/docs"
+            <a
+              href="http://localhost:3007"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               Documentation
-            </Link>
+            </a>
             <Link
               href="/privacy"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"

@@ -53,7 +53,7 @@ export function WorkflowSection() {
               className="relative"
             >
               <div className="flex flex-col items-center text-center">
-                <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <div className="relative z-10 flex h-16 w-16 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                   <step.icon className="h-8 w-8" />
                 </div>
                 <h3 className="mt-4 text-lg font-semibold text-foreground">
@@ -64,7 +64,7 @@ export function WorkflowSection() {
                 </p>
               </div>
               {index < steps.length - 1 && (
-                <div className="absolute right-0 top-8 hidden h-0.5 w-full bg-border lg:block" />
+                <div className="absolute right-0 top-8 z-0 hidden h-0.5 w-full bg-border lg:block" />
               )}
             </motion.div>
           ))}
