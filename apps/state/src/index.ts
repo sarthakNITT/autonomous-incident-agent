@@ -21,6 +21,16 @@ const server = Bun.serve({
         });
       }
 
+      // Health check endpoint
+      if (req.method === "GET" && url.pathname === "/health") {
+        return new Response(
+          JSON.stringify({ status: "healthy", service: "state" }),
+          {
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+      }
+
       if (req.method === "GET" && url.pathname === "/incidents") {
         console.log(`[State] GET /incidents - Listing incidents`);
         const incidents = await IncidentModel.list();

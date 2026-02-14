@@ -19,10 +19,43 @@ const server = Bun.serve({
   async fetch(req) {
     const url = new URL(req.url);
 
+    // Health check endpoint
+    if (req.method === "GET" && url.pathname === "/health") {
+      return new Response(
+        JSON.stringify({ status: "healthy", service: "router" }),
+        {
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
+
     if (req.method === "POST" && url.pathname === "/ingest") {
       try {
         const event = (await req.json()) as IncidentEvent;
-        console.log(`[Router] Received incident: ${event.id}`);
+        console.log(
+          `[Router] Received incident: ${event.id} (project: ${event.project_id || "none"})`,
+        );
+
+        let projectConfig: any = null;
+        if (event.project_id) {
+          try {
+            const projectRes = await fetch(
+              `${STATE_SERVICE_URL}/projects/${event.project_id}`,
+            );
+            if (projectRes.ok) {
+              projectConfig = await projectRes.json();
+              console.log(
+                `[Router] Loaded project config: ${projectConfig.name}`,
+              );
+            } else {
+              console.warn(
+                `[Router] Project ${event.project_id} not found, using defaults`,
+              );
+            }
+          } catch (e) {
+            console.error(`[Router] Failed to fetch project config:`, e);
+          }
+        }
 
         const meta: EnvMetadata = {
           service_name: event.service_name || "unknown",
@@ -32,9 +65,9 @@ const server = Bun.serve({
         };
 
         const repoRef: RepoRef = {
-          repo_url: "local-sample-repo",
+          repo_url: projectConfig?.repo_url || "local-sample-repo",
           commit: "demo-seeded",
-          branch: "main",
+          branch: projectConfig?.base_branch || "main",
         };
 
         const snapshot_id = crypto.randomUUID();
@@ -66,6 +99,8 @@ const server = Bun.serve({
               title: `Incident in ${event.service_name}`,
               error_message: event.error_details?.message || "Unknown error",
               snapshot_id: snapshot_id,
+              repo_name: projectConfig?.name || event.service_name,
+              file_path: "analyzing...",
               created_at: new Date().toISOString(),
             }),
           });
@@ -76,13 +111,23 @@ const server = Bun.serve({
             console.log(
               `[Router] Triggering Autopsy analysis for snapshot: ${key}`,
             );
+
+            const autopsyPayload: any = {
+              snapshot_key: key,
+              incident_id: event.id,
+            };
+
+            if (projectConfig) {
+              autopsyPayload.github_token = projectConfig.github_token;
+              autopsyPayload.openai_api_key = projectConfig.openai_api_key;
+              autopsyPayload.repo_url = projectConfig.repo_url;
+              autopsyPayload.base_branch = projectConfig.base_branch;
+            }
+
             fetch(`${AUTOPSY_SERVICE_URL}/analyze`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                snapshot_key: key,
-                incident_id: event.id,
-              }),
+              body: JSON.stringify(autopsyPayload),
             }).catch((e) =>
               console.error(`[Router] Failed to trigger Autopsy async:`, e),
             );

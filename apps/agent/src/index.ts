@@ -107,6 +107,18 @@ Bun.serve({
   port: PORT,
   async fetch(req) {
     const url = new URL(req.url);
+
+    // Health check endpoint
+    if (req.method === "GET" && url.pathname === "/health") {
+      return new Response(
+        JSON.stringify({ status: "healthy", service: "agent" }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
+
     if (req.method === "POST") {
       try {
         const body = await req.json();

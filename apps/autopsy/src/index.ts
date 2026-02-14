@@ -19,17 +19,40 @@ const server = Bun.serve({
   async fetch(req) {
     const url = new URL(req.url);
 
+    // Health check endpoint
+    if (req.method === "GET" && url.pathname === "/health") {
+      return new Response(
+        JSON.stringify({ status: "healthy", service: "autopsy" }),
+        {
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
+
     if (req.method === "POST" && url.pathname === "/analyze") {
       try {
         const body = (await req.json()) as any;
         const snapshotKey = body.snapshot_key;
         const incidentId = body.incident_id;
 
+        const projectGithubToken = body.github_token;
+        const projectOpenAIKey = body.openai_api_key;
+        const projectRepoUrl = body.repo_url;
+        const projectBaseBranch = body.base_branch;
+
         if (!snapshotKey || !incidentId) {
           return new Response("Missing snapshot_key or incident_id", {
             status: 400,
           });
         }
+
+        console.log(`[Autopsy] Analyzing snapshot: ${snapshotKey}`);
+        console.log(
+          `[Autopsy] Using ${projectOpenAIKey ? "project-specific" : "default"} OpenAI key`,
+        );
+        console.log(
+          `[Autopsy] Using ${projectGithubToken ? "project-specific" : "default"} GitHub token`,
+        );
 
         fetch(
           `${config.services.state.base_url}/incidents/${incidentId}/update`,
@@ -39,8 +62,6 @@ const server = Bun.serve({
             body: JSON.stringify({ status: "analyzing" }),
           },
         ).catch(() => {});
-
-        console.log(`[Autopsy] Analyzing snapshot: ${snapshotKey}`);
 
         const snapshot =
           await storage.downloadJSON<RouterSnapshot>(snapshotKey);
@@ -75,7 +96,13 @@ const server = Bun.serve({
         };
 
         console.log("[Autopsy] Sending request to AI Reasoner...");
-        const aiResponse = await reasoner.analyze(request);
+
+        const apiKey = projectOpenAIKey || aiConfig.api_key;
+        const projectReasoner = projectOpenAIKey
+          ? new YouComReasoner(projectOpenAIKey, aiConfig.model)
+          : reasoner;
+
+        const aiResponse = await projectReasoner.analyze(request);
         console.log(
           `[Autopsy] AI Response Received. Confidence: ${aiResponse.confidence}`,
         );
