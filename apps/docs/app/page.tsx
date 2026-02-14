@@ -15,7 +15,10 @@ export default function Home() {
         <Link href="/docs/getting-started">
           <Button size="lg">Get Started</Button>
         </Link>
-        <Link href="https://github.com/your-org/aia-agent" target="_blank">
+        <Link
+          href="https://github.com/sarthakNITT/autonomous-incident-agent"
+          target="_blank"
+        >
           <Button variant="outline" size="lg">
             GitHub
           </Button>
