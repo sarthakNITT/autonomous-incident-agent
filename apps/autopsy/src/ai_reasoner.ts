@@ -128,14 +128,11 @@ Output JSON only. Do not include markdown code block syntax (no \`\`\`json). Jus
       try {
         const parsed = JSON.parse(cleanJson);
 
-        // Validate and clean the patch
         if (parsed.patch && parsed.patch.diff) {
           let diff = parsed.patch.diff;
 
-          // Remove markdown code blocks if present
           diff = diff.replace(/```diff\n?/g, "").replace(/```\n?/g, "");
 
-          // Validate patch format
           const hasHeader = diff.includes("---") && diff.includes("+++");
           const hasHunk = diff.includes("@@");
 

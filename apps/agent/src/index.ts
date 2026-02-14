@@ -15,14 +15,12 @@ const DEDUPE_WINDOW_MS = 30000;
 console.log("Starting Autonomous Observability Agent (OTel Receiver)...");
 
 const onIncident = async (result: DetectorResult) => {
-  // Extract trace ID for better deduplication
   let traceId = "unknown";
   if (result.scope === "span") {
     const span = result.signal as any;
     traceId = span.traceId || "unknown";
   }
 
-  // Use trace ID for deduplication to catch same error detected in different ways
   const dedupeKey =
     traceId !== "unknown" ? traceId : result.reason || "unknown";
   const now = Date.now();

@@ -15,13 +15,11 @@ export function loadConfig(): Config {
 
   const possiblePaths = [
     process.env.AIA_CONFIG_PATH,
-    // Local config takes priority (gitignored, for testing)
     join(process.cwd(), "aia.config.local.yaml"),
     join(process.cwd(), "../aia.config.local.yaml"),
     join(process.cwd(), "../../aia.config.local.yaml"),
     join(process.cwd(), "../../../aia.config.local.yaml"),
     join(process.cwd(), "config", "aia.config.local.yaml"),
-    // Then check standard config locations
     join(process.cwd(), "config", "aia.config.yaml"),
     join(process.cwd(), "aia.config.yaml"),
     join(process.cwd(), "../aia.config.yaml"),
