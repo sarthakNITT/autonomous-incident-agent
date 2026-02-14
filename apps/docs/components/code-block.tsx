@@ -68,7 +68,7 @@ export function CodeBlock({
       <div className="overflow-x-auto py-4">
         <div
           ref={ref}
-          className="font-mono text-[13px] leading-[1.6] px-4 text-foreground/90 tabular-nums"
+          className="font-mono text-[13px] leading-[1.6] px-4 text-zinc-400 tabular-nums"
         >
           {children}
         </div>

@@ -23,7 +23,7 @@ export const sidebarItems: SidebarGroup[] = [
     title: "Architecture",
     items: [
       { title: "Overview", href: "/docs/architecture/overview" },
-      { title: "Architecture", href: "/docs/architecture" },
+      { title: "Architecture", href: "/docs/architecture", showDot: true },
       { title: "Data Flow", href: "/docs/architecture/data-flow" },
       { title: "AI Engine", href: "/docs/architecture/ai-engine" },
       { title: "State Schema", href: "/docs/reference/state" },
@@ -32,7 +32,7 @@ export const sidebarItems: SidebarGroup[] = [
   {
     title: "Integration",
     items: [
-      { title: "OpenTelemetry", href: "/docs/opentelemetry" },
+      { title: "OpenTelemetry", href: "/docs/opentelemetry", showDot: true },
       { title: "GitHub", href: "/docs/github-bot" },
       { title: "Node.js Tutorial", href: "/docs/tutorials/node" },
       { title: "Next.js Tutorial", href: "/docs/tutorials/next" },
