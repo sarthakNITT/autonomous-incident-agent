@@ -1,42 +1,318 @@
-# AI Engine
+# AI Engine (Autopsy)
 
-The AI Engine is the "brain" of AIA available at `apps/agent`. It uses Large Language Models (LLMs) to reason about code and failure states.
+The **Autopsy** service (`apps/autopsy`) is the AI-powered analysis engine that uses You.com API to analyze incidents and generate fix suggestions.
+
+## Overview
+
+When an incident is detected, the Autopsy service:
+1. Receives incident data from the Router
+2. Analyzes the error using AI (You.com)
+3. Generates:
+   - Root cause analysis
+   - Code patch (git diff format)
+   - AI fix prompt (for developers)
+   - Step-by-step manual instructions
 
 ## Capabilities
 
-### 1. Root Cause Analysis (RCA)
+### 1. Root Cause Analysis
 
-The engine analyzes stack traces and source code to determine *why* an error occurred. It doesn't just look at the line number; it reads the surrounding context (AST) to understand the logic flow.
+The AI analyzes:
+- **Stack trace**: Error location and call chain
+- **Error message**: What went wrong
+- **Code context**: Surrounding code from the file
+- **Error type**: HTTP error, exception, crash, etc.
 
-### 2. Test Generation
+**Output:**
+```
+Root Cause: The error occurs because the `user` object is undefined 
+when accessing `user.name`. This happens when the database query 
+returns null but the code doesn't check for this case.
+```
 
-Before fixing a bug, the engine writes a reproduction script (`repro.ts`). This ensures that the bug is observable and that the fix is valid.
+### 2. Patch Generation
 
-### 3. AST-Aware Patching
+The AI generates a git diff patch to fix the error:
 
-AIA uses Abstract Syntax Trees (AST) to modify code. Instead of "replace line 10", it says "replace the `FunctionDeclaration` named `getUser`". This makes patches robust against stale file versions.
+**Example Patch:**
+```diff
+--- a/src/api/users.ts
++++ b/src/api/users.ts
+@@ -10,7 +10,10 @@
+ 
+ export async function getUser(id: string) {
+   const user = await db.query("SELECT * FROM users WHERE id = ?", [id]);
+-  return { name: user.name, email: user.email };
++  if (!user) {
++    throw new Error("User not found");
++  }
++  return { name: user.name, email: user.email };
+ }
+```
+
+**Patch Quality:**
+- Success rate: ~40-60%
+- Validated for format (headers, hunks)
+- Cleaned of markdown formatting
+- Automatically applied by Git service
+
+### 3. AI Fix Prompt
+
+A detailed, copy-paste ready prompt for AI coding assistants:
+
+**Example:**
+```
+Fix the following error in src/api/users.ts:
+
+Error: Cannot read property 'name' of undefined
+
+The issue occurs at line 13 when accessing user.name. The database 
+query can return null, but there's no null check.
+
+Please add a null check before accessing user properties and throw 
+an appropriate error if the user is not found.
+```
+
+**Use with:**
+- Cursor
+- GitHub Copilot
+- Claude
+- ChatGPT
+- Any AI coding assistant
+
+### 4. Manual Remediation Steps
+
+Step-by-step instructions for manual fixes:
+
+**Example:**
+```
+1. Open src/api/users.ts
+2. Locate the getUser function (line 10)
+3. Add a null check after the database query:
+   if (!user) {
+     throw new Error("User not found");
+   }
+4. Test the fix by calling getUser with an invalid ID
+5. Commit the changes
+```
 
 ## Configuration
 
-The engine is configured in `aia.config.ts`:
+### You.com API Setup
 
-<Tabs defaultValue="terminal">
-  <TabsList>
-    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
-      <TabsTrigger value="terminal">Terminal</TabsTrigger>
-    </div>
-    <TabsCopyButton />
-  </TabsList>
-  <TabsContent value="terminal">
-    ```typescript
-    ai: {
-      provider: "you.com", // or "mock"
-      model: "research-pro",
-      maxIterations: 5
-    }
-    ```
-  </TabsContent>
-</Tabs>
+1. Get API key from [You.com](https://you.com)
+2. Add to `.env`:
 
-*   **`provider`**: The backend LLM service.
-*   **`maxIterations`**: How many times the agent will retry a fix if the reproduction script fails.
+```bash
+YOU_API_KEY=ydc_your_actual_key_here
+```
+
+3. Configure in `aia.config.yaml`:
+
+```yaml
+ai:
+  provider: "you.com"
+  model: "express"  # or "research-pro" for better quality
+  api_url: "https://api.you.com/v1/chat/completions"
+```
+
+### AI Models
+
+| Model | Speed | Quality | Cost |
+| :--- | :--- | :--- | :--- |
+| **express** | Fast | Good | Low |
+| **research-pro** | Slower | Better | Higher |
+
+**Recommendation:** Use `express` for development, `research-pro` for production.
+
+## How It Works
+
+### 1. Incident Received
+
+Router sends incident data:
+```json
+{
+  "incident_id": "abc123",
+  "error_type": "exception",
+  "error_message": "Cannot read property 'name' of undefined",
+  "stack_trace": "...",
+  "file_context": [{
+    "path": "src/api/users.ts",
+    "content": "...",
+    "line_number": 13
+  }]
+}
+```
+
+### 2. AI Analysis
+
+Autopsy constructs a prompt:
+```
+Analyze this error and provide a fix:
+
+Error: Cannot read property 'name' of undefined
+Location: src/api/users.ts:13
+Stack trace: ...
+
+Code context:
+[file contents]
+
+Provide:
+1. Root cause explanation
+2. A valid git diff patch
+3. An AI fix prompt
+4. Manual remediation steps
+```
+
+### 3. Response Parsing
+
+AI returns JSON:
+```json
+{
+  "root_cause": "...",
+  "patch": {
+    "diff": "--- a/src/api/users.ts\n+++ b/..."
+  },
+  "ai_fix_prompt": "...",
+  "manual_steps": ["step 1", "step 2", ...]
+}
+```
+
+### 4. Validation & Cleaning
+
+- Remove markdown formatting (` ```diff `)
+- Validate patch headers (`---`, `+++`)
+- Validate hunks (`@@`)
+- Warn if format is invalid
+
+### 5. Storage
+
+Results saved to State service (PostgreSQL):
+```sql
+INSERT INTO autopsy_results (
+  incident_id,
+  root_cause,
+  patch_diff,
+  ai_fix_prompt,
+  manual_steps,
+  created_at
+) VALUES (...)
+```
+
+## Patch Success Factors
+
+### What Makes Patches Succeed
+
+✅ **Simple changes** (add null check, fix typo)
+✅ **Clear context** (good error messages)
+✅ **Correct line numbers** (accurate stack traces)
+✅ **Minimal changes** (1-5 lines)
+
+### What Makes Patches Fail
+
+❌ **Complex refactoring** (multiple files)
+❌ **Ambiguous errors** (generic "Internal Server Error")
+❌ **Stale code** (file changed since error)
+❌ **Large changes** (>10 lines)
+
+## Fallback Strategy
+
+When patches fail:
+1. **Patch saved** as `patch_failed_{timestamp}.diff`
+2. **AI fix prompt** provided in PR
+3. **Manual steps** included in PR
+4. **Dashboard** shows all information
+
+**Users can:**
+- Copy AI fix prompt to their AI assistant
+- Follow manual steps
+- Review failed patch for guidance
+- Apply fix manually
+
+## Prompt Engineering
+
+The AI prompt includes:
+- **Task description**: "Analyze and fix this error"
+- **Error context**: Stack trace, message, type
+- **Code context**: File contents, line numbers
+- **Format requirements**: Exact patch format with example
+- **Output structure**: JSON schema
+
+**Example format requirement:**
+```
+CRITICAL PATCH FORMAT REQUIREMENTS:
+- Must start with: --- a/path/to/file
+- Followed by: +++ b/path/to/file
+- Then hunk header: @@ -line,count +line,count @@
+- Include 3 lines of context before and after
+- DO NOT include markdown formatting
+```
+
+## Monitoring
+
+### Success Metrics
+
+Track in dashboard:
+- Patch application success rate
+- AI response time
+- Confidence scores
+- User feedback
+
+### Debugging
+
+Check Autopsy logs:
+```bash
+# View Autopsy service logs
+bun run apps/autopsy/src/index.ts
+```
+
+Look for:
+- `[AI Reasoner] Patch format invalid` - Patch validation failed
+- `[Autopsy] Analysis complete` - Success
+- `AI Reasoner failed` - API error
+
+## Limitations
+
+### Current Limitations
+
+1. **Patch Success Rate**: ~40-60%
+   - AI generates text, not code
+   - Format requirements are strict
+   - Line numbers can be off
+
+2. **Context Window**: Limited file size
+   - Large files may be truncated
+   - Only relevant sections sent to AI
+
+3. **AI Hallucinations**: Possible
+   - AI may suggest incorrect fixes
+   - Always review before merging
+
+### Future Improvements
+
+- **AST-based patching**: Direct code manipulation
+- **AI agent integration**: Use Cursor/Copilot APIs
+- **Multi-file fixes**: Support complex changes
+- **Automated testing**: Test patches before PR
+
+## Best Practices
+
+### For Better Results
+
+1. **Good error messages**: Clear, descriptive errors
+2. **Stack traces**: Include full stack traces
+3. **Code context**: Send relevant file sections
+4. **OTEL instrumentation**: Proper trace context
+
+### For Production
+
+1. **Monitor success rate**: Track patch application
+2. **Collect feedback**: User ratings on fixes
+3. **Iterate prompts**: Improve based on failures
+4. **Set expectations**: Patches are suggestions, not guarantees
+
+## Next Steps
+
+- [GitHub Integration](/docs/github-bot) - How patches are applied
+- [Architecture](/docs/architecture) - System overview
+- [Configuration Reference](/docs/reference/config) - All config options

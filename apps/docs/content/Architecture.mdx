@@ -1,6 +1,6 @@
 # Architecture
 
-The Autonomous Incident Agent (AIA) is a modular, event-driven system designed to run alongside your applications. It mimics the workflow of a human Site Reliability Engineer (SRE) but operates at machine speed.
+The Autonomous Incident Agent (AIA) is a modular, event-driven system designed to automatically detect, analyze, and create fix suggestions for application failures. It uses OpenTelemetry for observability, AI for analysis, and GitHub for delivering fixes.
 
 ## System Overview
 
@@ -8,30 +8,149 @@ AIA is composed of several specialized microservices that coordinate to handle t
 
 ### Core Services
 
-#### 1. Router (`apps/router`)
-The entry point for all telemetry. The Router ingests OpenTelemetry traces from your application, filters out noise, and identifies distinct error patterns. It acts as the "ears" of the system.
+#### 1. Agent (`apps/agent`)
+The OpenTelemetry receiver running on port **4318**. Receives OTEL traces and logs from your application, detects errors using built-in detectors (HTTP 5xx, exceptions, latency spikes, crashes), and forwards incidents to the Router.
 
-#### 2. Agent (`apps/agent`)
-The brain of the operation. The Agent is a state machine that orchestrates the resolution process. It decides when to trigger an autopsy, when to attempt a reproduction, and when to give up.
+**Key Features:**
+- OTEL HTTP endpoint (`/v1/traces`, `/v1/logs`)
+- Built-in error detectors
+- Trace ID-based deduplication (30-second window)
+
+#### 2. Router (`apps/router`)
+The incident orchestrator. Receives detected incidents from the Agent, enriches them with context (snapshots, file paths), stores them in the State service, and triggers the Autopsy service for analysis.
+
+**Key Features:**
+- Incident enrichment with code snapshots
+- State persistence coordination
+- Autopsy triggering
 
 #### 3. Autopsy (`apps/autopsy`)
-The analytical engine. Autopsy uses LLMs to read stack traces, analyze source code, and formulate hypotheses about why an error occurred. It produces an "Autopsy Report" artifact.
+The AI-powered analysis engine. Uses You.com API to analyze incidents and generate:
+- Root cause analysis
+- Code patches (git diff format)
+- AI fix prompts for developers
+- Step-by-step manual remediation instructions
 
-#### 4. Repo / Git (`apps/git-service`)
-The hands of the system. This service manages git operations, including cloning repositories, creating branches, applying patches, and opening Pull Requests.
+**Key Features:**
+- AI reasoning (You.com API)
+- Patch generation with validation
+- Detailed fix instructions
+- Confidence scoring
 
-#### 5. Repro (`apps/repro-service`)
-The validation lab. This service runs in a sandboxed environment to execute reproduction scripts and verify fixes. It ensures that the "fix" actually works before it reaches a human.
+#### 4. State (`apps/state`)
+The persistence layer using PostgreSQL (Neon). Stores all incident data, autopsy results, and PR metadata.
 
-## Storage Layout
+**Database Schema:**
+- `incidents` table: Core incident data
+- `autopsy_results` table: AI analysis results
+- Indexed by incident_id for fast lookups
 
-AIA uses **Cloudflare R2** as a central artifact store. All intermediate data—from raw traces to generated patches—is persisted here.
+#### 5. Git (`apps/git`)
+The GitHub integration service. Handles all git operations:
+1. Clones repository using GitHub token
+2. Creates incident branch (`aia/incident-{id}`)
+3. Attempts to apply AI-generated patch
+4. Commits changes (or saves failed patch)
+5. Pushes to GitHub
+6. Creates Pull Request with fix details
 
-*   `/events`: Raw OpenTelemetry spans.
-*   `/autopsy`: Analysis reports and hypothesis docs.
-*   `/patches`: Generated code patches.
-*   `/repro`: Reproduction scripts and logs.
+**Key Features:**
+- Automatic patch application
+- Failed patch handling (`patch_failed_*.diff`)
+- PR creation with detailed context
+
+#### 6. Dashboard (`apps/dashboard`)
+The web UI for monitoring incidents. Provides:
+- Real-time incident list
+- Autopsy results viewer
+- AI fix prompt (copy-to-clipboard)
+- Manual remediation steps
+- GitHub PR links
+- PDF report generation
+
+**Tech Stack:** Bun + HTML templates
+
+#### 7. Web (`apps/web`)
+The marketing/landing page with Clerk authentication.
+
+**Tech Stack:** Next.js 14, Clerk, shadcn/ui
+
+#### 8. Docs (`apps/docs`)
+The documentation site you're reading now.
+
+**Tech Stack:** Next.js 14, MDX
+
+#### 9. Sample App (`apps/sample-app`)
+A demo application that emits OTEL traces for testing.
+
+**Features:**
+- `/trigger` endpoint to cause intentional errors
+- OTEL instrumentation
+- Error simulation
+
+## Data Flow
+
+```
+1. Application Error
+   ↓
+2. OTEL Trace → Agent (port 4318)
+   ↓
+3. Detector identifies incident
+   ↓
+4. Router enriches with context
+   ↓
+5. State stores incident
+   ↓
+6. Autopsy analyzes with AI
+   ↓
+7. State stores autopsy result
+   ↓
+8. Git creates PR
+   ↓
+9. Dashboard displays results
+```
+
+## Storage
+
+### Database (PostgreSQL/Neon)
+- Incident metadata
+- Autopsy results
+- PR status
+
+### Cloudflare R2 (Optional)
+- Autopsy result backups
+- Large artifacts
+
+### Local Filesystem
+- Git workspace (`apps/git/git_workspace/`)
+- Logs
+- Failed patches
+
+## Configuration
+
+All services are configured via `aia.config.yaml`:
+- Service ports and URLs
+- GitHub credentials
+- AI API keys
+- Database connection
+- Storage settings
+
+See [Configuration Reference](/docs/reference/config) for details.
 
 ## Deployment
 
-These services are packaged as Docker containers and can be deployed to any container orchestration platform (Kubernetes, ECS, Nomad) or run on a single robust instance via Docker Compose.
+### Development
+```bash
+bun run dev
+```
+Starts all services locally with hot reload.
+
+### Production
+Services can be deployed as:
+- Docker containers
+- Standalone Node.js/Bun processes
+- Kubernetes pods
+- Serverless functions (with modifications)
+
+See deployment guides for specific platforms.
+

@@ -1,21 +1,42 @@
 # OpenTelemetry Integration
 
-Autonomous Incident Agent (AIA) relies on OpenTelemetry (OTel) to detect anomalies and errors in your application.
+AIA uses OpenTelemetry to receive traces and logs from your application, automatically detecting errors and triggering incident analysis.
 
 ## Overview
 
-Your application must send trace data to the AIA `router` endpoint. This allows the agent to:
-1.  Detect 500 errors and exceptions.
-2.  Analyze trace context to pinpoint root causes.
-3.  Trigger autonomous investigation workflows.
+The **Agent** service runs an OpenTelemetry receiver on **port 4318** (HTTP). Your application sends telemetry data to this endpoint, and AIA automatically detects:
 
-## Adding OpenTelemetry
+- **HTTP 5xx errors**
+- **Uncaught exceptions**
+- **Latency spikes** (>2000ms)
+- **Process crashes** (via log patterns)
 
-We recommend using the standard OTel SDKs for your language/framework.
+## Quick Setup
 
-### Node.js (Express/NestJS/Bun)
+### Environment Variables
 
-Install the necessary packages:
+Set these in your application's environment:
+
+<Tabs defaultValue="bash">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="bash">bash</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="bash">
+    ```bash
+    OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:4318"
+    OTEL_SERVICE_NAME="my-app"
+    ```
+  </TabsContent>
+</Tabs>
+
+**Important:** The endpoint is **port 4318** (Agent service), not 3001 (Router).
+
+## Node.js / Bun / Express
+
+### Step 1: Install Dependencies
 
 <Tabs defaultValue="bun">
   <TabsList>
@@ -57,16 +78,18 @@ Install the necessary packages:
   </TabsContent>
 </Tabs>
 
-Configure the SDK to export to your AIA agent's endpoint. Create an `instrumentation.ts` file:
+### Step 2: Create Instrumentation File
 
-<Tabs defaultValue="terminal">
+Create `instrumentation.ts`:
+
+<Tabs defaultValue="typescript">
   <TabsList>
     <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
-      <TabsTrigger value="terminal">Terminal</TabsTrigger>
+      <TabsTrigger value="typescript">TypeScript</TabsTrigger>
     </div>
     <TabsCopyButton />
   </TabsList>
-  <TabsContent value="terminal">
+  <TabsContent value="typescript">
     ```typescript
     import { NodeSDK } from '@opentelemetry/sdk-node';
     import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
@@ -74,18 +97,51 @@ Configure the SDK to export to your AIA agent's endpoint. Create an `instrumenta
 
     const sdk = new NodeSDK({
       traceExporter: new OTLPTraceExporter({
-        // Point this to your router service
-        url: 'http://localhost:3001/v1/traces',
+        // AIA Agent endpoint
+        url: 'http://localhost:4318/v1/traces',
       }),
       instrumentations: [getNodeAutoInstrumentations()],
+      serviceName: process.env.OTEL_SERVICE_NAME || 'my-app',
     });
 
     sdk.start();
+
+    // Graceful shutdown
+    process.on('SIGTERM', () => {
+      sdk.shutdown()
+        .then(() => console.log('Tracing terminated'))
+        .catch((error) => console.log('Error terminating tracing', error))
+        .finally(() => process.exit(0));
+    });
     ```
   </TabsContent>
 </Tabs>
 
-Run your app with the instrumentation:
+### Step 3: Run Your Application
+
+<Tabs defaultValue="bun">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="bun">bun</TabsTrigger>
+      <TabsTrigger value="node">node</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="bun">
+    ```bash
+    bun run -r ./instrumentation.ts server.ts
+    ```
+  </TabsContent>
+  <TabsContent value="node">
+    ```bash
+    node -r ./instrumentation.js server.js
+    ```
+  </TabsContent>
+</Tabs>
+
+## Next.js
+
+### Step 1: Install Dependencies
 
 <Tabs defaultValue="bun">
   <TabsList>
@@ -96,34 +152,132 @@ Run your app with the instrumentation:
   </TabsList>
   <TabsContent value="bun">
     ```bash
-    bun run -r ./instrumentation.ts server.ts
+    bun add @opentelemetry/api @opentelemetry/sdk-node \
+      @opentelemetry/auto-instrumentations-node \
+      @opentelemetry/exporter-trace-otlp-http
     ```
   </TabsContent>
 </Tabs>
 
-### Next.js
+### Step 2: Create Instrumentation
 
-For Next.js App Router, use the `instrumentation.ts` file in your project root (or `src/` directory).
+Create `instrumentation.ts` in your project root (or `src/`):
 
-<Tabs defaultValue="terminal">
+<Tabs defaultValue="typescript">
   <TabsList>
     <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
-      <TabsTrigger value="terminal">Terminal</TabsTrigger>
+      <TabsTrigger value="typescript">TypeScript</TabsTrigger>
     </div>
     <TabsCopyButton />
   </TabsList>
-  <TabsContent value="terminal">
+  <TabsContent value="typescript">
     ```typescript
     export async function register() {
       if (process.env.NEXT_RUNTIME === 'nodejs') {
-        await import('./instrumentation.node');
+        const { NodeSDK } = await import('@opentelemetry/sdk-node');
+        const { OTLPTraceExporter } = await import('@opentelemetry/exporter-trace-otlp-http');
+        const { getNodeAutoInstrumentations } = await import('@opentelemetry/auto-instrumentations-node');
+
+        const sdk = new NodeSDK({
+          traceExporter: new OTLPTraceExporter({
+            url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT + '/v1/traces',
+          }),
+          instrumentations: [getNodeAutoInstrumentations()],
+        });
+
+        sdk.start();
       }
     }
     ```
   </TabsContent>
 </Tabs>
 
-Ensure you set the exporter URL in your environment:
+### Step 3: Configure Environment
+
+Add to `.env.local`:
+
+```bash
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
+OTEL_SERVICE_NAME=my-nextjs-app
+```
+
+### Step 4: Enable Instrumentation
+
+In `next.config.js`:
+
+```javascript
+module.exports = {
+  experimental: {
+    instrumentationHook: true,
+  },
+}
+```
+
+## Detectors
+
+AIA automatically detects the following error types:
+
+### 1. HTTP 5xx Errors
+
+Triggered when:
+- Span status code is `2` (ERROR)
+- HTTP status code is `>= 500`
+
+**Example trace:**
+```json
+{
+  "name": "GET /api/users",
+  "status": { "code": 2 },
+  "attributes": {
+    "http.status_code": 500
+  }
+}
+```
+
+### 2. Uncaught Exceptions
+
+Triggered when:
+- Span contains an `exception` event
+- Event has `exception.type` and `exception.message`
+
+**Example trace:**
+```json
+{
+  "events": [{
+    "name": "exception",
+    "attributes": {
+      "exception.type": "TypeError",
+      "exception.message": "Cannot read property 'x' of undefined",
+      "exception.stacktrace": "..."
+    }
+  }]
+}
+```
+
+### 3. Latency Spikes
+
+Triggered when:
+- Span duration > 2000ms
+- Span status is ERROR
+
+### 4. Process Crashes
+
+Triggered when:
+- Log contains crash patterns
+- Keywords: "SIGTERM", "SIGKILL", "fatal error"
+
+## Deduplication
+
+AIA deduplicates incidents using **trace ID**:
+- Same trace ID within 30 seconds = same incident
+- Prevents duplicate PRs for multi-faceted errors
+- Example: HTTP 500 + exception in same trace = 1 incident
+
+## Testing
+
+### Using Sample App
+
+The included sample app demonstrates OTEL integration:
 
 <Tabs defaultValue="bash">
   <TabsList>
@@ -134,11 +288,62 @@ Ensure you set the exporter URL in your environment:
   </TabsList>
   <TabsContent value="bash">
     ```bash
-    OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:3001"
+    # Trigger test error
+    curl -X POST http://localhost:3008/trigger \
+      -H "Content-Type: application/json" \
+      -d '{"action":"cause_error"}'
     ```
   </TabsContent>
 </Tabs>
 
+### Manual Testing
+
+Send a test trace:
+
+```bash
+curl -X POST http://localhost:4318/v1/traces \
+  -H "Content-Type: application/json" \
+  -d '{
+    "resourceSpans": [{
+      "scopeSpans": [{
+        "spans": [{
+          "name": "test-error",
+          "status": {"code": 2},
+          "attributes": {
+            "http.status_code": 500
+          }
+        }]
+      }]
+    }]
+  }'
+```
+
 ## Data Privacy
 
-AIA only analyzes error traces. We recommend sanitizing sensitive data (PII, secrets) before exporting spans, although the agent is designed to ignore non-error data by default.
+- AIA only analyzes **error traces**
+- Non-error spans are ignored
+- Sanitize PII before exporting (recommended)
+- Use OTEL processors to filter sensitive data
+
+## Troubleshooting
+
+### "No traces received"
+- Check endpoint: `http://localhost:4318` (not 3001)
+- Verify Agent service is running
+- Check network connectivity
+
+### "Traces sent but no incidents"
+- Ensure traces have error status (`code: 2`)
+- Check HTTP status code is >= 500
+- Verify exception events are formatted correctly
+
+### "Duplicate incidents"
+- Check if traces have different trace IDs
+- Deduplication window is 30 seconds
+- Same trace ID = same incident
+
+## Next Steps
+
+- [Architecture](/docs/architecture) - How detection works
+- [Getting Started](/docs/getting-started) - Full setup guide
+- [Troubleshooting](/docs/troubleshooting) - Common issues

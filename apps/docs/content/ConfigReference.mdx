@@ -1,143 +1,392 @@
 # Configuration Reference
 
-The `aia.config.ts` file acts as the single source of truth for your agent's behavior. It manages service ports, storage credentials, and third-party integrations.
+AIA uses `aia.config.yaml` as the main configuration file, with support for local overrides via `aia.config.local.yaml`.
 
-## Configuration File
+## Configuration Files
 
-The agent looks for `aia.config.ts` (or `.js`, `.json`, `.yaml`) in the project root.
+### Main Config: `aia.config.yaml`
 
-<Tabs defaultValue="terminal">
-  <TabsList>
-    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
-      <TabsTrigger value="terminal">Terminal</TabsTrigger>
-    </div>
-    <TabsCopyButton />
-  </TabsList>
-  <TabsContent value="terminal">
-    ```typescript
-    import { defineConfig } from 'aia-agent/config';
+The primary configuration file (committed to git):
 
-    export default defineConfig({
-      project_name: 'my-app',
-      environment: 'production',
-      // ...
-    });
-    ```
-  </TabsContent>
-</Tabs>
+```yaml
+project_name: "aia-demo"
+cluster_env: "prod"
 
-## Schema Reference
+services:
+  dashboard: { port: 3000, base_url: "http://localhost:3000" }
+  router: { port: 3001, base_url: "http://localhost:3001" }
+  autopsy: { port: 3002, base_url: "http://localhost:3002" }
+  state: { port: 3003, base_url: "http://localhost:3003" }
+  git: { port: 3004, base_url: "http://localhost:3004" }
+  repro: { port: 3005, base_url: "http://localhost:3005" }
+  web: { port: 3006, base_url: "http://localhost:3006" }
+  docs: { port: 3007, base_url: "http://localhost:3007" }
+  sample_app: { port: 3008, base_url: "http://localhost:3008" }
+  agent: { port: 4318, base_url: "http://localhost:4318" }
 
-The configuration object adheres to the `Config` interface from `@repo/types`.
+github:
+  provider: "github"
+  token: "PLACEHOLDER"  # Read from .env
+  owner: "your-org"  # CHANGE THIS
+  repo: "your-repo"  # CHANGE THIS
+  base_branch: "main"
 
-### Top-Level Fields
+ai:
+  provider: "you.com"
+  model: "express"
+  api_url: "https://api.you.com/v1/chat/completions"
+```
 
-| Field | Type | Description |
-| :--- | :--- | :--- |
-| `project_name` | `string` | Unique identifier for your project artifacts. |
-| `environment` | `string` | Deployment environment (e.g., `production`, `staging`). |
+### Local Override: `aia.config.local.yaml`
 
-### Services
+For local testing (gitignored):
 
-Configures the ports and base URLs for all internal microservices.
+```yaml
+github:
+  owner: "your-github-username"
+  repo: "your-test-repo"
+```
 
-<Tabs defaultValue="terminal">
-  <TabsList>
-    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
-      <TabsTrigger value="terminal">Terminal</TabsTrigger>
-    </div>
-    <TabsCopyButton />
-  </TabsList>
-  <TabsContent value="terminal">
-    ```typescript
-    services: {
-      router: { port: 3001, base_url: "http://localhost:3001" },
-      agent: { port: 3002, base_url: "http://localhost:3002" },
-      // ... other services
-    }
-    ```
-  </TabsContent>
-</Tabs>
-
-### Storage (R2)
-
-AIA strictly requires an S3-compatible store, currently optimized for Cloudflare R2.
-
-<Tabs defaultValue="terminal">
-  <TabsList>
-    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
-      <TabsTrigger value="terminal">Terminal</TabsTrigger>
-    </div>
-    <TabsCopyButton />
-  </TabsList>
-  <TabsContent value="terminal">
-    ```typescript
-    storage: {
-      provider: "r2",
-      bucket: process.env.R2_BUCKET,
-      access_key: process.env.R2_ACCESS_KEY_ID,
-      secret_key: process.env.R2_SECRET_ACCESS_KEY,
-      region: "auto",
-      endpoint: process.env.R2_ENDPOINT,
-    }
-    ```
-  </TabsContent>
-</Tabs>
-
-### GitHub
-
-Configures the bot's identity and permissions.
-
-<Tabs defaultValue="terminal">
-  <TabsList>
-    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
-      <TabsTrigger value="terminal">Terminal</TabsTrigger>
-    </div>
-    <TabsCopyButton />
-  </TabsList>
-  <TabsContent value="terminal">
-    ```typescript
-    github: {
-      provider: "github",
-      token: process.env.GITHUB_TOKEN,
-      org: "my-org",
-      repo: "my-repo",
-      username: "aia-bot",
-    }
-    ```
-  </TabsContent>
-</Tabs>
+**Priority:** `aia.config.local.yaml` > `aia.config.yaml`
 
 ## Environment Variables
 
-For security, we recommend using environment variables for sensitive credentials.
+Create a `.env` file in the project root:
 
-| Variable | Description |
-| :--- | :--- |
-| `R2_BUCKET` | The name of your R2 bucket. |
-| `R2_ACCESS_KEY_ID` | R2 Access Key ID. |
-| `R2_SECRET_ACCESS_KEY` | R2 Secret Access Key. |
-| `R2_ENDPOINT` | The S3-compatible endpoint URL for your bucket. |
-| `GITHUB_TOKEN` | A Fine-Grained PAT or App Installation Token. |
-| `AIA_API_KEY` | API Key for the LLM provider (e.g., OpenAI, Anthropic). |
+```bash
+# Required
+YOU_API_KEY=ydc_your_actual_key_here
+GITHUB_TOKEN=ghp_your_actual_token_here
+DATABASE_URL=postgresql://user:pass@host/db
 
-## Database
+# Optional: R2 Storage
+R2_ACCESS_KEY_ID=your_r2_access_key
+R2_SECRET_ACCESS_KEY=your_r2_secret_key
+R2_BUCKET_NAME=aia
+R2_ACCOUNT_ID=your_account_id
+```
 
-AIA supports SQLite (default) and PostgreSQL.
+## Configuration Schema
 
-<Tabs defaultValue="terminal">
+### Top-Level Fields
+
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `project_name` | `string` | ✅ | Project identifier |
+| `cluster_env` | `string` | ✅ | Environment (dev/prod) |
+| `services` | `object` | ✅ | Service ports and URLs |
+| `github` | `object` | ✅ | GitHub integration |
+| `ai` | `object` | ✅ | AI provider config |
+| `paths` | `object` | ❌ | File paths |
+| `storage` | `object` | ❌ | R2 storage (optional) |
+
+### Services
+
+Each service has:
+- `port`: Port number
+- `base_url`: Full URL with protocol
+
+<Tabs defaultValue="yaml">
   <TabsList>
     <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
-      <TabsTrigger value="terminal">Terminal</TabsTrigger>
+      <TabsTrigger value="yaml">yaml</TabsTrigger>
     </div>
     <TabsCopyButton />
   </TabsList>
-  <TabsContent value="terminal">
-    ```typescript
-    database: {
-      provider: "sqlite",
-      path: "./aia.db"
-    }
+  <TabsContent value="yaml">
+    ```yaml
+    services:
+      # OTEL receiver
+      agent: { port: 4318, base_url: "http://localhost:4318" }
+      
+      # Dashboard UI
+      dashboard: { port: 3000, base_url: "http://localhost:3000" }
+      
+      # Incident orchestrator
+      router: { port: 3001, base_url: "http://localhost:3001" }
+      
+      # AI analysis
+      autopsy: { port: 3002, base_url: "http://localhost:3002" }
+      
+      # Database service
+      state: { port: 3003, base_url: "http://localhost:3003" }
+      
+      # GitHub integration
+      git: { port: 3004, base_url: "http://localhost:3004" }
+      
+      # Repro service (optional)
+      repro: { port: 3005, base_url: "http://localhost:3005" }
+      
+      # Marketing site
+      web: { port: 3006, base_url: "http://localhost:3006" }
+      
+      # Documentation
+      docs: { port: 3007, base_url: "http://localhost:3007" }
+      
+      # Sample app for testing
+      sample_app: { port: 3008, base_url: "http://localhost:3008" }
     ```
   </TabsContent>
 </Tabs>
+
+### GitHub Configuration
+
+<Tabs defaultValue="yaml">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="yaml">yaml</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="yaml">
+    ```yaml
+    github:
+      provider: "github"
+      token: "PLACEHOLDER"  # Read from GITHUB_TOKEN env var
+      owner: "your-github-username"  # REQUIRED
+      repo: "your-repo-name"  # REQUIRED
+      base_branch: "main"
+      username: "aia-bot"  # Optional: bot username
+      email: "bot@aia.local"  # Optional: bot email
+    ```
+  </TabsContent>
+</Tabs>
+
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `provider` | `string` | ✅ | Always "github" |
+| `token` | `string` | ✅ | GitHub PAT (from .env) |
+| `owner` | `string` | ✅ | GitHub username/org |
+| `repo` | `string` | ✅ | Repository name |
+| `base_branch` | `string` | ✅ | Default branch (main/master) |
+| `username` | `string` | ❌ | Git commit author name |
+| `email` | `string` | ❌ | Git commit author email |
+
+### AI Configuration
+
+<Tabs defaultValue="yaml">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="yaml">yaml</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="yaml">
+    ```yaml
+    ai:
+      provider: "you.com"
+      model: "express"  # or "research-pro"
+      api_url: "https://api.you.com/v1/chat/completions"
+    ```
+  </TabsContent>
+</Tabs>
+
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `provider` | `string` | ✅ | AI provider (you.com) |
+| `model` | `string` | ✅ | Model name |
+| `api_url` | `string` | ✅ | API endpoint |
+
+**Models:**
+- `express`: Fast, good quality
+- `research-pro`: Slower, better quality
+
+### Paths Configuration
+
+<Tabs defaultValue="yaml">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="yaml">yaml</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="yaml">
+    ```yaml
+    paths:
+      repo_root: "/path/to/project"
+      logs: "logs/app.log"
+      events: "events"
+      storage: "storage"
+      autopsy_output: "autopsy_output"
+      patches: "patches"
+      pr_description: "pr_descriptions"
+      repro_logs: "repro_logs"
+    ```
+  </TabsContent>
+</Tabs>
+
+### Storage Configuration (Optional)
+
+R2 is optional for autopsy result backups:
+
+<Tabs defaultValue="yaml">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="yaml">yaml</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="yaml">
+    ```yaml
+    storage:
+      provider: "r2"
+      bucket: "aia"
+      access_key: "${R2_ACCESS_KEY_ID}"
+      secret_key: "${R2_SECRET_ACCESS_KEY}"
+      account_id: "${R2_ACCOUNT_ID}"
+      region: "auto"
+    ```
+  </TabsContent>
+</Tabs>
+
+## Environment Variable Reference
+
+### Required
+
+| Variable | Description | Example |
+| :--- | :--- | :--- |
+| `YOU_API_KEY` | You.com API key | `ydc_abc123...` |
+| `GITHUB_TOKEN` | GitHub PAT with repo scope | `ghp_abc123...` |
+| `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@host/db` |
+
+### Optional
+
+| Variable | Description | Example |
+| :--- | :--- | :--- |
+| `R2_ACCESS_KEY_ID` | R2 access key | `abc123...` |
+| `R2_SECRET_ACCESS_KEY` | R2 secret key | `xyz789...` |
+| `R2_BUCKET_NAME` | R2 bucket name | `aia` |
+| `R2_ACCOUNT_ID` | Cloudflare account ID | `abc123...` |
+| `AIA_CONFIG_PATH` | Custom config file path | `/path/to/config.yaml` |
+
+## Config Loading
+
+The config loader searches for files in this order:
+
+1. `$AIA_CONFIG_PATH` (if set)
+2. `./aia.config.local.yaml`
+3. `../aia.config.local.yaml`
+4. `../../aia.config.local.yaml`
+5. `../../../aia.config.local.yaml`
+6. `./config/aia.config.local.yaml`
+7. `./config/aia.config.yaml`
+8. `./aia.config.yaml`
+9. `../aia.config.yaml`
+10. `../../aia.config.yaml`
+11. `../../../aia.config.yaml`
+
+**Why multiple paths?**
+Services run from different directories (`apps/git/`, `apps/agent/`, etc.), so the loader searches upward to find the config in the project root.
+
+## Database Configuration
+
+### PostgreSQL (Recommended)
+
+Set in `.env`:
+
+```bash
+DATABASE_URL=postgresql://user:password@host:5432/database
+```
+
+**Providers:**
+- [Neon](https://neon.tech) - Free tier available
+- [Supabase](https://supabase.com) - Free tier available
+- Local PostgreSQL
+
+### Schema
+
+Tables are auto-created:
+- `incidents`: Incident metadata
+- `autopsy_results`: AI analysis results
+
+## Production Configuration
+
+### Security Best Practices
+
+1. **Never commit secrets**
+   - Use `.env` for all credentials
+   - Add `.env` to `.gitignore`
+   - Use `aia.config.local.yaml` for local testing
+
+2. **Use environment variables**
+   ```yaml
+   github:
+     token: "${GITHUB_TOKEN}"  # Read from env
+   ```
+
+3. **Rotate tokens regularly**
+   - GitHub PAT: Every 90 days
+   - You.com API key: As needed
+
+### Production Checklist
+
+- [ ] Set `cluster_env: "prod"`
+- [ ] Configure production database
+- [ ] Set up R2 storage (optional)
+- [ ] Use production GitHub repo
+- [ ] Set proper service URLs (not localhost)
+- [ ] Enable HTTPS for external services
+- [ ] Set up monitoring and logging
+
+## Example Configurations
+
+### Development
+
+```yaml
+project_name: "aia-dev"
+cluster_env: "dev"
+
+github:
+  owner: "your-username"
+  repo: "test-repo"
+
+ai:
+  model: "express"  # Faster for dev
+```
+
+### Production
+
+```yaml
+project_name: "aia-prod"
+cluster_env: "prod"
+
+services:
+  dashboard: { port: 3000, base_url: "https://dashboard.example.com" }
+  agent: { port: 4318, base_url: "https://agent.example.com" }
+  # ... other services
+
+github:
+  owner: "your-org"
+  repo: "production-app"
+
+ai:
+  model: "research-pro"  # Better quality for prod
+```
+
+## Troubleshooting
+
+### "Config file not found"
+- Check file exists: `ls aia.config.yaml`
+- Verify file name (not `.yml`)
+- Check search paths in logs
+
+### "Invalid config"
+- Validate YAML syntax
+- Check required fields are present
+- Verify service ports don't conflict
+
+### "GitHub token invalid"
+- Check token in `.env`
+- Verify token has `repo` scope
+- Test token: `curl -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/user`
+
+### "Database connection failed"
+- Verify `DATABASE_URL` format
+- Check database is running
+- Test connection: `psql $DATABASE_URL`
+
+## Next Steps
+
+- [Installation](/docs/install) - Setup guide
+- [GitHub Integration](/docs/github-bot) - GitHub setup
+- [Architecture](/docs/architecture) - System overview

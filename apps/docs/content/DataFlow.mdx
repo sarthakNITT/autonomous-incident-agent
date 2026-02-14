@@ -1,46 +1,494 @@
 # Data Flow
 
-This document details the lifecycle of an incident within AIA, tracing the path from a raw error to a resolved Pull Request.
+Understanding how data flows through AIA helps you debug issues, optimize performance, and extend the system.
 
-## The Incident Lifecycle
+## Complete Flow Overview
 
-The flow is strictly sequential but asynchronous, driven by the Agent's state machine.
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        Your Application                          │
+│                    (with OTEL instrumentation)                   │
+└────────────────────────────┬────────────────────────────────────┘
+                             │
+                             │ HTTP POST /v1/traces
+                             │ (OpenTelemetry Protocol)
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      Agent Service (Port 4318)                   │
+│  - Receives OTEL traces and logs                                │
+│  - Runs error detectors (HTTP 5xx, exceptions, latency)         │
+│  - Deduplicates by trace ID (30s window)                        │
+└────────────────────────────┬────────────────────────────────────┘
+                             │
+                             │ Detected incident
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                     Router Service (Port 3001)                   │
+│  - Enriches incident with code snapshots                        │
+│  - Extracts file paths from stack trace                         │
+│  - Reads relevant source code                                   │
+└────────────────────────────┬────────────────────────────────────┘
+                             │
+                             │ Store incident
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      State Service (Port 3003)                   │
+│  - Stores incident in PostgreSQL                                │
+│  - Generates unique incident ID                                 │
+│  - Returns incident metadata                                    │
+└────────────────────────────┬────────────────────────────────────┘
+                             │
+                             │ Trigger analysis
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    Autopsy Service (Port 3002)                   │
+│  - Calls You.com API with incident context                      │
+│  - Receives AI analysis:                                        │
+│    • Root cause explanation                                     │
+│    • Code patch (git diff)                                      │
+│    • AI fix prompt                                              │
+│    • Manual remediation steps                                   │
+│  - Validates and cleans patch                                   │
+└────────────────────────────┬────────────────────────────────────┘
+                             │
+                             │ Store autopsy result
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      State Service (Port 3003)                   │
+│  - Stores autopsy result in PostgreSQL                          │
+│  - Links to incident via incident_id                            │
+└────────────────────────────┬────────────────────────────────────┘
+                             │
+                             │ Create PR
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                       Git Service (Port 3004)                    │
+│  - Clones GitHub repository                                     │
+│  - Creates branch: aia/incident-{id}                            │
+│  - Attempts to apply patch                                      │
+│  - Commits (or saves failed patch)                              │
+│  - Pushes to GitHub                                             │
+│  - Creates Pull Request                                         │
+└────────────────────────────┬────────────────────────────────────┘
+                             │
+                             │ PR created
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    Dashboard (Port 3000)                         │
+│  - Displays incident list                                       │
+│  - Shows autopsy results                                        │
+│  - Provides AI fix prompt (copy button)                         │
+│  - Links to GitHub PR                                           │
+│  - Generates PDF reports                                        │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-### 1. Ingestion (Router)
-*   **Input**: An HTTP POST with OpenTelemetry traces.
-*   **Process**: The Router validates the trace, extracts the exception stack, and hashes it to create a unique `IncidentID`.
-*   **Output**: An `IncidentDetected` event emitted to the internal bus.
+## Detailed Flow Steps
 
-### 2. Triage & Analysis (Agent & Autopsy)
-*   **Input**: The `IncidentDetected` event.
-*   **Process**:
-    1.  The Agent assigns the incident to the **Autopsy** service.
-    2.  Autopsy pulls the relevant source code from the **Git Service**.
-    3.  It uses an LLM to analyze the code against the stack trace.
-*   **Output**: An `AutopsyReport` containing the Root Cause Analysis (RCA) and a proposed fix plan.
+### Step 1: Error Occurs
 
-### 3. Reproduction (Repro Service)
-*   **Input**: The `AutopsyReport`.
-*   **Process**:
-    1.  The **Repro Service** spins up an isolated environment (e.g., a temporary directory or container).
-    2.  It generates a *reproduction script* (a small test case) that triggers the bug.
-    3.  It runs the script to confirm the failure (Red state).
-*   **Output**: A `ReproResult` confirming the bug exists and is reproducible.
+Your application encounters an error:
 
-### 4. Remediation (Agent)
-*   **Input**: A confirmed `ReproResult`.
-*   **Process**:
-    1.  The Agent requests a code patch from the LLM based on the Autopsy findings.
-    2.  The patch is applied to the isolated environment.
-    3.  The reproduction script is run again.
-    4.  If the script passes (Green state) *and* existing tests pass, the patch is verified.
-*   **Output**: A `VerifiedPatch` artifact.
+```typescript
+// Example: Null pointer error
+function getUser(id: string) {
+  const user = db.query("SELECT * FROM users WHERE id = ?", [id]);
+  return { name: user.name }; // ❌ user might be null
+}
+```
 
-### 5. Delivery (Git Service)
-*   **Input**: The `VerifiedPatch`.
-*   **Process**:
-    1.  The **Git Service** checks out a new branch: `aia/fix-<incident-id>`.
-    2.  It commits the patch and the reproduction test case.
-    3.  It pushes the branch to GitHub.
-    4.  It calls the GitHub API to open a Pull Request with a detailed description.
-*   **Output**: A URL to the created Pull Request.
+### Step 2: OTEL Trace Sent
+
+OpenTelemetry SDK captures the error and sends a trace:
+
+```json
+{
+  "resourceSpans": [{
+    "scopeSpans": [{
+      "spans": [{
+        "traceId": "abc123...",
+        "spanId": "def456...",
+        "name": "GET /api/users/123",
+        "status": { "code": 2 },
+        "attributes": {
+          "http.status_code": 500,
+          "http.method": "GET",
+          "http.url": "/api/users/123"
+        },
+        "events": [{
+          "name": "exception",
+          "attributes": {
+            "exception.type": "TypeError",
+            "exception.message": "Cannot read property 'name' of undefined",
+            "exception.stacktrace": "at getUser (src/api/users.ts:13:25)..."
+          }
+        }]
+      }]
+    }]
+  }]
+}
+```
+
+### Step 3: Agent Detection
+
+Agent service receives the trace and runs detectors:
+
+```typescript
+// HTTP Error Detector
+if (span.status?.code === 2 && statusCode >= 500) {
+  return {
+    triggered: true,
+    reason: `HTTP ${statusCode} Error: ${span.name}`,
+    type: "http_error"
+  };
+}
+
+// Exception Detector
+if (event.name === "exception") {
+  return {
+    triggered: true,
+    reason: `Uncaught Exception: ${type}: ${msg}`,
+    type: "exception",
+    stacktrace: stacktrace
+  };
+}
+```
+
+**Deduplication:**
+```typescript
+// Use trace ID to prevent duplicates
+const dedupeKey = span.traceId;
+if (incidentCache.has(dedupeKey)) {
+  console.log("Skipping duplicate incident");
+  return;
+}
+incidentCache.set(dedupeKey, Date.now());
+```
+
+### Step 4: Router Enrichment
+
+Router extracts file information from stack trace:
+
+```typescript
+// Parse stack trace
+const stackLines = stacktrace.split('\n');
+const fileMatch = stackLines[0].match(/at .* \((.*):(\d+):(\d+)\)/);
+
+if (fileMatch) {
+  const [_, filePath, line, col] = fileMatch;
+  
+  // Read source code
+  const fileContent = fs.readFileSync(filePath, 'utf-8');
+  
+  // Create snapshot
+  const snapshot = {
+    path: filePath,
+    content: fileContent,
+    line_number: parseInt(line),
+    column: parseInt(col)
+  };
+}
+```
+
+### Step 5: State Persistence
+
+State service stores incident in PostgreSQL:
+
+```sql
+INSERT INTO incidents (
+  id,
+  trace_id,
+  error_type,
+  error_message,
+  stack_trace,
+  file_snapshots,
+  created_at
+) VALUES (
+  'inc_abc123',
+  'trace_abc123',
+  'exception',
+  'Cannot read property name of undefined',
+  '...',
+  '[{"path": "src/api/users.ts", ...}]',
+  NOW()
+);
+```
+
+### Step 6: AI Analysis
+
+Autopsy service calls You.com API:
+
+**Request:**
+```json
+{
+  "input": "Analyze this error and provide a fix:\n\nError: Cannot read property 'name' of undefined\nLocation: src/api/users.ts:13\n\nCode:\n...\n\nProvide:\n1. Root cause\n2. Git diff patch\n3. AI fix prompt\n4. Manual steps",
+  "agent": "express"
+}
+```
+
+**Response:**
+```json
+{
+  "root_cause": "The user object is undefined when the database query returns null...",
+  "patch": {
+    "diff": "--- a/src/api/users.ts\n+++ b/src/api/users.ts\n..."
+  },
+  "ai_fix_prompt": "Fix the null pointer error in getUser function...",
+  "manual_steps": [
+    "Open src/api/users.ts",
+    "Add null check after db.query",
+    "..."
+  ]
+}
+```
+
+### Step 7: Autopsy Storage
+
+Autopsy result stored in database:
+
+```sql
+INSERT INTO autopsy_results (
+  incident_id,
+  root_cause,
+  patch_diff,
+  ai_fix_prompt,
+  manual_steps,
+  confidence_score,
+  created_at
+) VALUES (
+  'inc_abc123',
+  'The user object is undefined...',
+  '--- a/src/api/users.ts...',
+  'Fix the null pointer error...',
+  '["Open src/api/users.ts", ...]',
+  0.85,
+  NOW()
+);
+```
+
+### Step 8: Git Operations
+
+Git service creates PR:
+
+```bash
+# Clone repository
+git clone https://${GITHUB_TOKEN}@github.com/owner/repo.git
+
+# Create branch
+git checkout -b aia/incident-inc_abc123
+
+# Apply patch
+git apply --ignore-space-change patch.diff
+
+# If patch fails, save it
+if [ $? -ne 0 ]; then
+  cp patch.diff patch_failed_$(date +%s).diff
+  git add patch_failed_*.diff
+fi
+
+# Commit
+git commit -m "fix: resolve incident inc_abc123"
+
+# Push
+git push origin aia/incident-inc_abc123
+
+# Create PR via GitHub API
+curl -X POST https://api.github.com/repos/owner/repo/pulls \
+  -H "Authorization: token ${GITHUB_TOKEN}" \
+  -d '{
+    "title": "fix: resolve incident inc_abc123",
+    "head": "aia/incident-inc_abc123",
+    "base": "main",
+    "body": "..."
+  }'
+```
+
+### Step 9: Dashboard Display
+
+Dashboard fetches and displays data:
+
+```typescript
+// Fetch incidents
+const incidents = await fetch('http://localhost:3003/incidents');
+
+// Fetch autopsy for each incident
+const autopsy = await fetch(`http://localhost:3003/autopsy/${incident.id}`);
+
+// Display in UI
+<div class="incident">
+  <h3>{incident.error_message}</h3>
+  <p>{autopsy.root_cause}</p>
+  <button onclick="copyToClipboard(autopsy.ai_fix_prompt)">
+    Copy AI Fix Prompt
+  </button>
+  <a href="{incident.pr_url}">View PR on GitHub</a>
+</div>
+```
+
+## Data Storage
+
+### PostgreSQL Schema
+
+**incidents table:**
+```sql
+CREATE TABLE incidents (
+  id VARCHAR(255) PRIMARY KEY,
+  trace_id VARCHAR(255),
+  error_type VARCHAR(50),
+  error_message TEXT,
+  stack_trace TEXT,
+  file_snapshots JSONB,
+  pr_url VARCHAR(500),
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_incidents_trace_id ON incidents(trace_id);
+CREATE INDEX idx_incidents_created_at ON incidents(created_at);
+```
+
+**autopsy_results table:**
+```sql
+CREATE TABLE autopsy_results (
+  id SERIAL PRIMARY KEY,
+  incident_id VARCHAR(255) REFERENCES incidents(id),
+  root_cause TEXT,
+  patch_diff TEXT,
+  ai_fix_prompt TEXT,
+  manual_steps JSONB,
+  confidence_score FLOAT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_autopsy_incident_id ON autopsy_results(incident_id);
+```
+
+### Cloudflare R2 (Optional)
+
+Used for backup storage:
+
+```
+/autopsy_results/
+  ├── inc_abc123.json
+  ├── inc_def456.json
+  └── ...
+
+/patches/
+  ├── inc_abc123.diff
+  ├── inc_def456.diff
+  └── ...
+```
+
+### Local Filesystem
+
+```
+apps/git/git_workspace/
+  └── {repo-name}/
+      ├── .git/
+      ├── src/
+      └── ...
+
+logs/
+  ├── agent.log
+  ├── router.log
+  ├── autopsy.log
+  └── ...
+```
+
+## Performance Considerations
+
+### Latency Breakdown
+
+| Step | Service | Typical Latency |
+| :--- | :--- | :--- |
+| OTEL trace sent | Application → Agent | 10-50ms |
+| Detection | Agent | 5-10ms |
+| Enrichment | Router | 50-100ms |
+| State storage | State | 10-20ms |
+| AI analysis | Autopsy → You.com | 2-5s |
+| Autopsy storage | State | 10-20ms |
+| Git operations | Git | 5-15s |
+| PR creation | Git → GitHub | 1-2s |
+| **Total** | | **8-22s** |
+
+### Bottlenecks
+
+1. **AI Analysis** (2-5s)
+   - Slowest step
+   - Depends on You.com API
+   - Use `express` model for faster results
+
+2. **Git Operations** (5-15s)
+   - Repository cloning
+   - Patch application
+   - Push to GitHub
+
+### Optimization Tips
+
+1. **Cache git clones**
+   - Reuse existing clones
+   - Only fetch updates
+
+2. **Parallel processing**
+   - Multiple incidents can be processed simultaneously
+   - Each service is stateless
+
+3. **Database indexing**
+   - Index on `trace_id` for deduplication
+   - Index on `created_at` for dashboard queries
+
+## Error Handling
+
+### Retry Logic
+
+**Agent → Router:**
+- Retries: 3
+- Backoff: Exponential (1s, 2s, 4s)
+
+**Autopsy → You.com:**
+- Retries: 2
+- Timeout: 30s
+
+**Git → GitHub:**
+- Retries: 3
+- Handles rate limits
+
+### Failure Modes
+
+| Failure | Handling |
+| :--- | :--- |
+| OTEL trace invalid | Log and skip |
+| No file snapshot | Use stack trace only |
+| AI API timeout | Retry, then fail gracefully |
+| Patch application fails | Save as `patch_failed_*.diff` |
+| PR creation fails | Log error, save to database |
+| Database unavailable | Queue in memory, retry |
+
+## Monitoring
+
+### Key Metrics
+
+- **Incidents detected per hour**
+- **Patch success rate**
+- **Average time to PR**
+- **AI API latency**
+- **Database query time**
+
+### Logging
+
+Each service logs to console:
+
+```
+[Agent] Incident detected: HTTP 500 Error
+[Router] Enriched incident inc_abc123
+[State] Stored incident inc_abc123
+[Autopsy] Analysis complete for inc_abc123
+[Git] PR created: https://github.com/owner/repo/pull/123
+[Dashboard] Displaying 5 incidents
+```
+
+## Next Steps
+
+- [Architecture](/docs/architecture) - Service details
+- [OpenTelemetry](/docs/opentelemetry) - Instrumentation
+- [AI Engine](/docs/architecture/ai-engine) - How analysis works
+- [GitHub Integration](/docs/github-bot) - PR creation

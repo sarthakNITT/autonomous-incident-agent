@@ -1,6 +1,6 @@
 # Getting Started
 
-The Autonomous Incident Agent (AIA) is a production-grade system that automatically detects, analyzes, and fixes application failures. It connects your observability data with an intelligent agentic loop to resolve incidents without human intervention.
+The Autonomous Incident Agent (AIA) is an intelligent system that automatically detects application failures via OpenTelemetry, analyzes them using AI, and creates GitHub Pull Requests with fix suggestions and manual remediation steps.
 
 ## One-Line Start
 
@@ -15,98 +15,158 @@ If you have already configured your environment, you can start the full AIA stac
   </TabsList>
   <TabsContent value="bun">
     ```bash
-    bun run start
+    bun run dev
     ```
   </TabsContent>
 </Tabs>
 
-This will launch all services, including the Agent, Router, Autopsy, and Dashboard.
+This will launch all services, including the Agent, Router, Autopsy, State, Git, Dashboard, and sample application.
 
 ## Core Concepts
 
-Understanding AIA requires identifying its four main stages of operation.
+Understanding AIA requires identifying its main stages of operation.
 
-### 1. Detection (Router)
+### 1. Detection (Agent + Router)
 
-The lifecycle begins when your application emits an error trace via OpenTelemetry. The **Router** service ingests this trace, filters out noise, and identifies it as a distinct incident.
+The lifecycle begins when your application emits error traces via OpenTelemetry to the **Agent** service (port 4318). The **Router** service processes these traces, applies deduplication (based on trace ID), and identifies distinct incidents.
 
 ### 2. Analysis (Autopsy)
 
-Once an incident is detected, the **Autopsy** service analyzes the stack trace, local variables, and recent logs. It correlates this data to pinpoint the root cause in the codebase.
+Once an incident is detected, the **Autopsy** service uses AI (You.com API) to:
+- Analyze the stack trace and error context
+- Identify the root cause
+- Generate a code patch (git diff format)
+- Create detailed fix instructions
+- Provide manual remediation steps
 
-### 3. Resolution (Agent)
+### 3. Storage & State (State Service)
 
-The **Agent** takes the autopsy report and spins up a reproduction environment. It attempts to:
-1.  Create a reproduction script (repro) that fails.
-2.  Write a patch to fix the code.
-3.  Verify the patch passes the repro and existing tests.
+The **State** service (PostgreSQL/Neon) stores:
+- Incident metadata
+- Autopsy results
+- PR creation status
+- Historical incident data
 
-### 4. Delivery (GitHub)
+### 4. Git Integration (Git Service)
 
-Finally, if the patch is verified, AIA automatically opens a Pull Request in your repository with the fix, the reproduction proof, and a detailed explanation of the change.
+The **Git** service:
+1. Clones your GitHub repository
+2. Creates a new branch (`aia/incident-{id}`)
+3. Attempts to apply the AI-generated patch
+4. Commits changes (or saves failed patch as `patch_failed_*.diff`)
+5. Pushes to GitHub
+6. Creates a Pull Request with:
+   - AI-generated fix prompt
+   - Manual step-by-step instructions
+   - Patch file (if application failed)
+   - Full error context
 
-## Zero to Hero Overview
+### 5. Dashboard
+
+The **Dashboard** (port 3000) provides:
+- Real-time incident monitoring
+- Autopsy results viewer
+- AI fix prompt (copy-to-clipboard)
+- Manual remediation steps
+- Link to GitHub PR
+
+## Quick Setup
 
 <Steps>
   <Step>
-    ### Installation
-
-    Install the package and dependencies used by your project.
+    ### Clone & Install
 
     <Tabs defaultValue="bun">
       <TabsList>
         <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
-          <TabsTrigger value="npm">npm</TabsTrigger>
-          <TabsTrigger value="pnpm">pnpm</TabsTrigger>
-          <TabsTrigger value="yarn">yarn</TabsTrigger>
           <TabsTrigger value="bun">bun</TabsTrigger>
         </div>
         <TabsCopyButton />
       </TabsList>
-      <TabsContent value="npm">
-        ```bash
-        npm install @aia/sdk
-        ```
-      </TabsContent>
-      <TabsContent value="pnpm">
-        ```bash
-        pnpm add @aia/sdk
-        ```
-      </TabsContent>
-      <TabsContent value="yarn">
-        ```bash
-        yarn add @aia/sdk
-        ```
-      </TabsContent>
       <TabsContent value="bun">
         ```bash
-        bun add @aia/sdk
+        git clone https://github.com/your-org/autonomous-incident-agent
+        cd autonomous-incident-agent
+        bun install
         ```
       </TabsContent>
     </Tabs>
   </Step>
 
   <Step>
-    ### Configuration
+    ### Configure Environment
 
-    Set up your `aia.config.ts` to point to your repository, R2 bucket, and GitHub App.
+    Create a `.env` file in the project root:
+
+    ```bash
+    YOU_API_KEY=ydc_your_key_here
+    GITHUB_TOKEN=ghp_your_token_here
+    DATABASE_URL=postgresql://user:pass@host/db
+    ```
   </Step>
 
   <Step>
-    ### Instrumentation
+    ### Configure GitHub Integration
 
-    Add the AIA OpenTelemetry instrumentation to your application's entry point.
+    Create `aia.config.local.yaml` (gitignored):
+
+    ```yaml
+    github:
+      owner: "your-github-username"
+      repo: "your-repo-name"
+      base_branch: "main"
+    ```
   </Step>
 
   <Step>
-    ### Deployment
+    ### Start Services
 
-    Deploy the agent alongside your application or as a standalone service.
+    <Tabs defaultValue="bun">
+      <TabsList>
+        <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+          <TabsTrigger value="bun">bun</TabsTrigger>
+        </div>
+        <TabsCopyButton />
+      </TabsList>
+      <TabsContent value="bun">
+        ```bash
+        bun run dev
+        ```
+      </TabsContent>
+    </Tabs>
+
+    This starts all services:
+    - Agent (OTEL receiver): `http://localhost:4318`
+    - Dashboard: `http://localhost:3000`
+    - Router: `http://localhost:3001`
+    - Autopsy: `http://localhost:3002`
+    - State: `http://localhost:3003`
+    - Git: `http://localhost:3004`
+    - Web: `http://localhost:3006`
+    - Docs: `http://localhost:3007`
+    - Sample App: `http://localhost:3008`
   </Step>
 </Steps>
 
+## Test the System
+
+Trigger a test incident using the sample app:
+
+```bash
+curl -X POST http://localhost:3008/trigger \
+  -H "Content-Type: application/json" \
+  -d '{"action":"cause_error"}'
+```
+
+Then:
+1. Check the dashboard at `http://localhost:3000`
+2. View the autopsy results
+3. Check your GitHub repository for a new PR
+
 ## Next Steps
 
-Now that you understand the high-level flow, proceed to the installation guide to set up your environment.
+- [Installation Guide](/docs/install) - Detailed setup instructions
+- [Architecture](/docs/architecture) - System architecture overview
+- [Configuration Reference](/docs/reference/config) - All configuration options
+- [OpenTelemetry Integration](/docs/opentelemetry) - Instrument your app
 
-[Installation](./Install.mdx)

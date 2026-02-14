@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
+import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 
 export function Navbar() {
   return (
@@ -16,7 +17,7 @@ export function Navbar() {
             </Link>
             <div className="hidden md:flex md:gap-6">
               <a
-                href="http://localhost:3003/docs/getting-started"
+                href="http://localhost:3007"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -35,9 +36,14 @@ export function Navbar() {
           </div>
 
           <div className="hidden md:flex md:items-center md:gap-4">
-            <Button asChild variant="outline">
-              <Link href="/sign-in">Sign In</Link>
-            </Button>
+            <SignedOut>
+              <Button asChild variant="outline">
+                <Link href="/sign-in">Sign In</Link>
+              </Button>
+            </SignedOut>
+            <SignedIn>
+              <UserButton afterSignOutUrl="/" />
+            </SignedIn>
           </div>
 
           <Sheet>
@@ -49,7 +55,7 @@ export function Navbar() {
             <SheetContent side="right">
               <div className="flex flex-col gap-4 mt-8">
                 <a
-                  href="http://localhost:3003/docs/getting-started"
+                  href="http://localhost:3007"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -64,9 +70,19 @@ export function Navbar() {
                 >
                   Dashboard
                 </a>
-                <Button asChild variant="outline" className="w-full">
-                  <Link href="/sign-in">Sign In</Link>
-                </Button>
+                <SignedOut>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link href="/sign-in">Sign In</Link>
+                  </Button>
+                </SignedOut>
+                <SignedIn>
+                  <div className="flex items-center gap-2 p-2">
+                    <UserButton afterSignOutUrl="/" />
+                    <span className="text-sm text-muted-foreground">
+                      Account
+                    </span>
+                  </div>
+                </SignedIn>
               </div>
             </SheetContent>
           </Sheet>

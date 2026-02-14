@@ -1,42 +1,661 @@
 # Troubleshooting
 
-This guide addresses common issues encountered when running AIA.
+Common issues and solutions for running the Autonomous Incident Agent.
 
-## Incident Detection
+## Installation Issues
 
-### Agent Not Receiving Events
+### "Command not found: bun"
 
-**Symptom**: Application errors occur, but no incident is created.
+**Problem:** Bun is not installed or not in PATH.
 
-**Checks**:
-1.  **Endpoint**: Ensure `OTEL_EXPORTER_OTLP_ENDPOINT` points to `http://localhost:3001` (Router) or `http://aia-agent:3001` (Docker).
-2.  **Sampling**: Check if your OTel SDK is sampling out the error (set `OTEL_TRACES_SAMPLER=always_on` for debugging).
-3.  **Logs**: Check `apps/router` logs. You should see `Span received: <traceId>`.
+**Solution:**
+```bash
+# Install Bun
+curl -fsSL https://bun.sh/install | bash
 
-### False Positives
+# Add to PATH (if needed)
+export PATH="$HOME/.bun/bin:$PATH"
 
-**Symptom**: AIA creates incidents for expected errors (e.g., 404s).
+# Verify installation
+bun --version
+```
 
-**Fix**:
--   Adjust the detection logic in `aia.config.ts` (if supported) or filter spans in your application before exporting.
+### "Module not found" errors
 
-## Remediation
+**Problem:** Dependencies not installed.
 
-### Autopsy Failed
+**Solution:**
+```bash
+# Clean install
+rm -rf node_modules
+rm bun.lockb
+bun install
+```
 
-**Symptom**: Incident stays in `ANALYZING` state forever.
+### TypeScript errors during build
 
-**Checks**:
-1.  **LLM Key**: Verify `AIA_API_KEY` is valid.
-2.  **Git Access**: Ensure the agent can clone the repo to read source code. Check `apps/git-service` logs for authentication errors.
+**Problem:** Type errors in code.
 
-### Patch Verification Failed
+**Solution:**
+```bash
+# Check types
+bun run check-types
 
-**Symptom**: Incident moves to `FAILED` state with "Repro failed".
+# View specific errors
+cd apps/sample-app
+bun run check-types
+```
 
-**Cause**:
--   **Hallucinated Repro**: The agent generated a test that doesn't actually fail on the original code.
--   **Broken Patch**: The patch caused a syntax error or failed the test.
+**Common fixes:**
+- Update `@types/*` packages
+- Check `tsconfig.json` settings
+- Ensure all imports are correct
 
-**Fix**:
--   Check the `repro.ts` artifact in R2 to see what the agent tried to run.
+## Configuration Issues
+
+### "Config file not found"
+
+**Problem:** `aia.config.yaml` not found.
+
+**Solution:**
+```bash
+# Check file exists
+ls -la aia.config.yaml
+
+# Check from service directory
+cd apps/agent
+ls -la ../../aia.config.yaml
+
+# Set custom path
+export AIA_CONFIG_PATH=/path/to/aia.config.yaml
+```
+
+### "Invalid YAML syntax"
+
+**Problem:** Syntax error in config file.
+
+**Solution:**
+```bash
+# Validate YAML
+bun add -g js-yaml
+js-yaml aia.config.yaml
+
+# Common issues:
+# - Tabs instead of spaces
+# - Missing quotes around strings with special chars
+# - Incorrect indentation
+```
+
+**Example fix:**
+```yaml
+# ❌ Wrong
+github:
+owner: my-org  # Missing indentation
+
+# ✅ Correct
+github:
+  owner: "my-org"
+```
+
+### "Environment variable not set"
+
+**Problem:** Required env vars missing.
+
+**Solution:**
+```bash
+# Check .env file exists
+ls -la .env
+
+# Verify variables are set
+echo $YOU_API_KEY
+echo $GITHUB_TOKEN
+echo $DATABASE_URL
+
+# Load .env manually (if needed)
+export $(cat .env | xargs)
+```
+
+## Service Startup Issues
+
+### Port already in use
+
+**Problem:** Another process is using the port.
+
+**Solution:**
+```bash
+# Find process using port
+lsof -i :3000
+
+# Kill process
+kill -9 $(lsof -t -i:3000)
+
+# Or change port in aia.config.yaml
+services:
+  dashboard: { port: 3010, base_url: "http://localhost:3010" }
+```
+
+### Service crashes immediately
+
+**Problem:** Missing dependencies or configuration.
+
+**Solution:**
+```bash
+# Check logs
+tail -f logs/agent.log
+
+# Run service directly to see errors
+bun run apps/agent/src/index.ts
+
+# Common causes:
+# - Missing environment variables
+# - Database connection failed
+# - Invalid configuration
+```
+
+### "Cannot connect to database"
+
+**Problem:** Database URL incorrect or database not running.
+
+**Solution:**
+```bash
+# Test connection
+psql $DATABASE_URL
+
+# Check URL format
+# postgresql://user:password@host:5432/database
+
+# For Neon, get connection string from dashboard
+# For local PostgreSQL:
+createdb aia_db
+export DATABASE_URL=postgresql://localhost/aia_db
+```
+
+**Common issues:**
+- Wrong password
+- Database doesn't exist
+- Network firewall blocking connection
+- SSL required but not specified
+
+**Fix for SSL:**
+```bash
+DATABASE_URL=postgresql://user:pass@host/db?sslmode=require
+```
+
+## GitHub Integration Issues
+
+### "Repository not found"
+
+**Problem:** GitHub token doesn't have access or repo doesn't exist.
+
+**Solution:**
+```bash
+# Test token
+curl -H "Authorization: token $GITHUB_TOKEN" \
+  https://api.github.com/repos/owner/repo
+
+# Check config
+cat aia.config.local.yaml | grep -A 3 github
+
+# Verify owner and repo are correct
+# Example: https://github.com/johndoe/my-app
+# owner: "johndoe"
+# repo: "my-app"
+```
+
+### "Permission denied" when pushing
+
+**Problem:** Token doesn't have `repo` scope.
+
+**Solution:**
+1. Go to [GitHub Settings → Tokens](https://github.com/settings/tokens)
+2. Click on your token
+3. Ensure `repo` scope is checked
+4. If not, create a new token with `repo` scope
+5. Update `.env` with new token
+
+### "Failed to create PR"
+
+**Problem:** Branch already exists or PR already open.
+
+**Solution:**
+```bash
+# Check existing PRs
+gh pr list --repo owner/repo
+
+# Delete branch if needed
+git push origin --delete aia/incident-abc123
+
+# Or close existing PR and retry
+```
+
+### Rate limit exceeded
+
+**Problem:** Too many GitHub API calls.
+
+**Solution:**
+```bash
+# Check rate limit
+curl -H "Authorization: token $GITHUB_TOKEN" \
+  https://api.github.com/rate_limit
+
+# Wait for reset or use different token
+# Rate limits reset every hour
+```
+
+## AI/Autopsy Issues
+
+### "You.com API error"
+
+**Problem:** Invalid API key or quota exceeded.
+
+**Solution:**
+```bash
+# Verify API key
+echo $YOU_API_KEY
+
+# Test API
+curl -X POST https://api.you.com/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $YOU_API_KEY" \
+  -d '{"input":"test","agent":"express"}'
+
+# Check quota at you.com dashboard
+```
+
+### "Patch format invalid"
+
+**Problem:** AI generated invalid patch.
+
+**Solution:**
+This is expected (~40-60% success rate). The system handles this:
+
+1. Patch saved as `patch_failed_*.diff`
+2. AI fix prompt provided in PR
+3. Manual steps included
+
+**No action needed** - use the AI fix prompt or manual steps.
+
+### "AI response timeout"
+
+**Problem:** You.com API taking too long.
+
+**Solution:**
+```bash
+# Use faster model
+# In aia.config.yaml:
+ai:
+  model: "express"  # Instead of "research-pro"
+
+# Or increase timeout (in code)
+timeout: 60000  # 60 seconds
+```
+
+## OpenTelemetry Issues
+
+### "No traces received"
+
+**Problem:** Application not sending traces or wrong endpoint.
+
+**Solution:**
+```bash
+# Verify OTEL endpoint
+echo $OTEL_EXPORTER_OTLP_ENDPOINT
+# Should be: http://localhost:4318
+
+# Test endpoint
+curl http://localhost:4318/health
+
+# Check application OTEL config
+# Should send to http://localhost:4318/v1/traces
+```
+
+### "Traces sent but no incidents detected"
+
+**Problem:** Traces don't match detector criteria.
+
+**Solution:**
+```bash
+# Check trace format
+# Must have:
+# - status.code = 2 (ERROR)
+# - http.status_code >= 500 (for HTTP errors)
+# - exception event (for exceptions)
+
+# Test with sample app
+curl -X POST http://localhost:3008/trigger \
+  -H "Content-Type: application/json" \
+  -d '{"action":"cause_error"}'
+
+# Check agent logs
+tail -f logs/agent.log | grep "Incident detected"
+```
+
+### "Duplicate incidents created"
+
+**Problem:** Same error creating multiple incidents.
+
+**Solution:**
+This shouldn't happen with trace ID deduplication. If it does:
+
+```bash
+# Check logs for trace IDs
+tail -f logs/agent.log | grep "traceId"
+
+# If traces have different IDs, they're different incidents
+# If same ID within 30s, check deduplication logic
+```
+
+## Dashboard Issues
+
+### "Dashboard shows no incidents"
+
+**Problem:** Database empty or connection issue.
+
+**Solution:**
+```bash
+# Check database
+psql $DATABASE_URL -c "SELECT COUNT(*) FROM incidents;"
+
+# Test state service
+curl http://localhost:3003/incidents
+
+# Check dashboard logs
+tail -f logs/dashboard.log
+```
+
+### "Cannot copy AI fix prompt"
+
+**Problem:** Clipboard API not working.
+
+**Solution:**
+- Use HTTPS (clipboard API requires secure context)
+- Or manually select and copy text
+- Or use "Download as PDF" feature
+
+## Performance Issues
+
+### High memory usage
+
+**Problem:** Services consuming too much memory.
+
+**Solution:**
+```bash
+# Check memory usage
+ps aux | grep bun
+
+# Set memory limit
+export NODE_OPTIONS="--max-old-space-size=2048"
+
+# Restart services
+pm2 restart all
+
+# Or reduce concurrency
+export WORKER_THREADS=2
+```
+
+### Slow AI analysis
+
+**Problem:** Autopsy taking too long.
+
+**Solution:**
+```bash
+# Use faster model
+ai:
+  model: "express"  # ~2-3s instead of 5-10s
+
+# Or increase timeout
+timeout: 30000  # 30 seconds
+
+# Check You.com API status
+curl https://status.you.com
+```
+
+### Database queries slow
+
+**Problem:** Missing indexes or too much data.
+
+**Solution:**
+```sql
+-- Add indexes
+CREATE INDEX IF NOT EXISTS idx_incidents_trace_id ON incidents(trace_id);
+CREATE INDEX IF NOT EXISTS idx_incidents_created_at ON incidents(created_at);
+CREATE INDEX IF NOT EXISTS idx_autopsy_incident_id ON autopsy_results(incident_id);
+
+-- Clean old data
+DELETE FROM incidents WHERE created_at < NOW() - INTERVAL '30 days';
+DELETE FROM autopsy_results WHERE created_at < NOW() - INTERVAL '30 days';
+```
+
+## Network Issues
+
+### "Connection refused"
+
+**Problem:** Service not running or firewall blocking.
+
+**Solution:**
+```bash
+# Check service is running
+curl http://localhost:3000/health
+
+# Check firewall
+sudo ufw status
+
+# Allow port
+sudo ufw allow 3000
+
+# Check if listening
+netstat -an | grep 3000
+```
+
+### "CORS errors" in browser
+
+**Problem:** Cross-origin requests blocked.
+
+**Solution:**
+Add CORS headers in service:
+
+```typescript
+// In service code
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  next();
+});
+```
+
+## Data Issues
+
+### "Incident data incomplete"
+
+**Problem:** Missing fields in incident.
+
+**Solution:**
+```bash
+# Check incident in database
+psql $DATABASE_URL -c \
+  "SELECT * FROM incidents WHERE id = 'inc_abc123';"
+
+# Verify OTEL trace has all required fields
+# - traceId
+# - spanId
+# - status.code
+# - attributes
+```
+
+### "Autopsy result missing"
+
+**Problem:** AI analysis failed or not stored.
+
+**Solution:**
+```bash
+# Check autopsy logs
+tail -f logs/autopsy.log | grep "inc_abc123"
+
+# Check database
+psql $DATABASE_URL -c \
+  "SELECT * FROM autopsy_results WHERE incident_id = 'inc_abc123';"
+
+# Manually trigger autopsy
+curl -X POST http://localhost:3002/analyze \
+  -H "Content-Type: application/json" \
+  -d '{"incident_id":"inc_abc123"}'
+```
+
+## Git/Patch Issues
+
+### "Patch failed to apply"
+
+**Problem:** AI patch doesn't match code.
+
+**Expected behavior** - This happens ~40-60% of the time.
+
+**Solution:**
+1. Check PR for `patch_failed_*.diff` file
+2. Use AI fix prompt (copy to Cursor/Copilot)
+3. Follow manual steps
+4. Or manually apply patch:
+   ```bash
+   git apply --ignore-space-change patch_failed_*.diff
+   ```
+
+### "Git clone failed"
+
+**Problem:** Repository access or network issue.
+
+**Solution:**
+```bash
+# Test git access
+git clone https://$GITHUB_TOKEN@github.com/owner/repo.git
+
+# Check token permissions
+curl -H "Authorization: token $GITHUB_TOKEN" \
+  https://api.github.com/repos/owner/repo
+
+# Check network
+ping github.com
+```
+
+## Debugging Tips
+
+### Enable debug logging
+
+```bash
+export LOG_LEVEL=debug
+bun run dev
+```
+
+### Check service health
+
+```bash
+# Create health check script
+cat > check-health.sh << 'EOF'
+#!/bin/bash
+for port in 4318 3000 3001 3002 3003 3004; do
+  if curl -s http://localhost:$port/health > /dev/null; then
+    echo "✅ Port $port - healthy"
+  else
+    echo "❌ Port $port - unhealthy"
+  fi
+done
+EOF
+
+chmod +x check-health.sh
+./check-health.sh
+```
+
+### Trace a request
+
+```bash
+# Enable request tracing
+export TRACE_REQUESTS=true
+
+# Watch logs
+tail -f logs/*.log | grep "REQUEST"
+```
+
+### Database debugging
+
+```bash
+# Connect to database
+psql $DATABASE_URL
+
+# List tables
+\dt
+
+# View recent incidents
+SELECT id, error_type, error_message, created_at 
+FROM incidents 
+ORDER BY created_at DESC 
+LIMIT 10;
+
+# View autopsy results
+SELECT incident_id, root_cause, created_at 
+FROM autopsy_results 
+ORDER BY created_at DESC 
+LIMIT 10;
+```
+
+## Getting Help
+
+### Check logs first
+
+```bash
+# All logs
+tail -f logs/*.log
+
+# Specific service
+tail -f logs/autopsy.log
+
+# Search for errors
+grep -r "ERROR" logs/
+
+# Last 100 lines
+tail -n 100 logs/agent.log
+```
+
+### Collect diagnostic info
+
+```bash
+# Create diagnostic report
+cat > diagnostic.sh << 'EOF'
+#!/bin/bash
+echo "=== System Info ==="
+uname -a
+bun --version
+
+echo "\n=== Services ==="
+lsof -i :4318,3000,3001,3002,3003,3004
+
+echo "\n=== Config ==="
+cat aia.config.yaml
+
+echo "\n=== Environment ==="
+env | grep -E "(YOU_API_KEY|GITHUB_TOKEN|DATABASE_URL)" | sed 's/=.*/=***/'
+
+echo "\n=== Recent Logs ==="
+tail -n 20 logs/*.log
+
+echo "\n=== Database ==="
+psql $DATABASE_URL -c "SELECT COUNT(*) FROM incidents;"
+EOF
+
+chmod +x diagnostic.sh
+./diagnostic.sh > diagnostic-report.txt
+```
+
+### Report an issue
+
+When reporting issues, include:
+1. Error message
+2. Relevant logs
+3. Configuration (sanitized)
+4. Steps to reproduce
+5. Expected vs actual behavior
+
+## Next Steps
+
+- [Running the Agent](/docs/running-agent) - Deployment guide
+- [Configuration Reference](/docs/reference/config) - All config options
+- [Architecture](/docs/architecture) - System overview
+- [Data Flow](/docs/architecture/data-flow) - How data moves

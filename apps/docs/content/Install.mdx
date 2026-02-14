@@ -1,47 +1,43 @@
 # Installation
 
-This guide covers the installation and setup of the Autonomous Incident Agent (AIA) using Bun and TypeScript.
+This guide covers the complete installation and setup of the Autonomous Incident Agent (AIA).
 
 ## Prerequisites
 
-Before proceeding, ensure your environment meets the following requirements:
+Before proceeding, ensure you have:
 
-*   **Runtime**: [Bun](https://bun.sh) v1.0 or later.
-*   **Node.js**: v20 or later (if using Node-based tools).
-*   **Storage**: A Cloudflare R2 bucket for storing artifacts (autopsy reports, patches).
-*   **Version Control**: A GitHub repository where the Agent can open Pull Requests.
+- **Bun**: v1.2 or later ([Install Bun](https://bun.sh))
+- **Git**: For cloning the repository
+- **GitHub Account**: For PR creation
+- **You.com API Key**: For AI analysis ([Get API Key](https://you.com))
+- **PostgreSQL Database**: We recommend [Neon](https://neon.tech) (free tier available)
 
-## Installing Dependencies
-
-AIA is designed to be run as a workspace within your monorepo or as a standalone service.
-
-To install the necessary dependencies, run:
+## Step 1: Clone Repository
 
 <Tabs defaultValue="bun">
   <TabsList>
     <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
-      <TabsTrigger value="npm">npm</TabsTrigger>
-      <TabsTrigger value="pnpm">pnpm</TabsTrigger>
-      <TabsTrigger value="yarn">yarn</TabsTrigger>
       <TabsTrigger value="bun">bun</TabsTrigger>
     </div>
     <TabsCopyButton />
   </TabsList>
-  <TabsContent value="npm">
+  <TabsContent value="bun">
     ```bash
-    npm install
+    git clone https://github.com/sarthakNITT/autonomous-incident-agent
+    cd autonomous-incident-agent
     ```
   </TabsContent>
-  <TabsContent value="pnpm">
-    ```bash
-    pnpm install
-    ```
-  </TabsContent>
-  <TabsContent value="yarn">
-    ```bash
-    yarn install
-    ```
-  </TabsContent>
+</Tabs>
+
+## Step 2: Install Dependencies
+
+<Tabs defaultValue="bun">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="bun">bun</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
   <TabsContent value="bun">
     ```bash
     bun install
@@ -49,59 +45,107 @@ To install the necessary dependencies, run:
   </TabsContent>
 </Tabs>
 
-If you are building the documentation or specific apps, you can verify the build with:
+This installs all dependencies for the monorepo workspace.
+
+## Step 3: Create GitHub Personal Access Token
+
+1. Go to [GitHub Settings → Developer Settings → Personal Access Tokens](https://github.com/settings/tokens)
+2. Click "Generate new token (classic)"
+3. Give it a name (e.g., "AIA Bot")
+4. Select scope: **`repo`** (Full control of private repositories)
+5. Click "Generate token"
+6. **Copy the token** (starts with `ghp_`)
+
+## Step 4: Get You.com API Key
+
+1. Visit [You.com](https://you.com)
+2. Sign up or log in
+3. Navigate to API settings
+4. Generate an API key
+5. **Copy the key** (starts with `ydc-`)
+
+## Step 5: Set Up Database
+
+### Option A: Neon (Recommended)
+
+1. Go to [Neon](https://neon.tech)
+2. Create a free account
+3. Create a new project
+4. Copy the connection string (looks like `postgresql://user:pass@host/db`)
+
+### Option B: Local PostgreSQL
+
+```bash
+# Install PostgreSQL
+brew install postgresql  # macOS
+# or
+sudo apt install postgresql  # Linux
+
+# Create database
+createdb aia_db
+
+# Connection string
+postgresql://localhost/aia_db
+```
+
+## Step 6: Configure Environment
+
+Create a `.env` file in the project root:
+
+```bash
+# AI Configuration
+YOU_API_KEY=ydc_your_actual_key_here
+
+# GitHub Configuration
+GITHUB_TOKEN=ghp_your_actual_token_here
+
+# Database Configuration
+DATABASE_URL=postgresql://user:pass@host/db
+
+# Optional: R2 Storage (for autopsy backups)
+R2_ACCESS_KEY_ID=your_r2_access_key
+R2_SECRET_ACCESS_KEY=your_r2_secret_key
+R2_BUCKET_NAME=aia
+R2_ACCOUNT_ID=your_account_id
+```
+
+## Step 7: Configure GitHub Repository
+
+Create `aia.config.local.yaml` (gitignored):
+
+```yaml
+github:
+  provider: "github"
+  token: "PLACEHOLDER"  # Read from .env
+  owner: "your-github-username"  # REQUIRED
+  repo: "your-repo-name"  # REQUIRED
+  base_branch: "main"
+```
+
+**Example:**
+- If your repo is `https://github.com/johndoe/my-app`
+- Set `owner: "johndoe"`
+- Set `repo: "my-app"`
+
+## Step 8: Verify TypeScript
+
+Ensure no type errors:
 
 <Tabs defaultValue="bun">
   <TabsList>
     <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
-      <TabsTrigger value="npm">npm</TabsTrigger>
-      <TabsTrigger value="pnpm">pnpm</TabsTrigger>
-      <TabsTrigger value="yarn">yarn</TabsTrigger>
       <TabsTrigger value="bun">bun</TabsTrigger>
     </div>
     <TabsCopyButton />
   </TabsList>
-  <TabsContent value="npm">
-    ```bash
-    npm run build --workspace=apps/docs
-    ```
-  </TabsContent>
-  <TabsContent value="pnpm">
-    ```bash
-    pnpm run build --filter=apps/docs
-    ```
-  </TabsContent>
-  <TabsContent value="yarn">
-    ```bash
-    yarn workspace apps/docs run build
-    ```
-  </TabsContent>
   <TabsContent value="bun">
     ```bash
-    bun run build --filter=apps/docs
+    bun run check-types
     ```
   </TabsContent>
 </Tabs>
 
-## System Requirements
-
-### Hardware
-
-*   **CPU**: 2+ cores recommended for concurrent agent operations.
-*   **Memory**: 4GB+ RAM (Agent analysis can be memory intensive).
-*   **Disk**: Fast I/O is recommended for log processing and temporary workspace creation.
-
-### Network
-
-The Agent requires outbound access to:
-
-*   **GitHub API**: `api.github.com`
-*   **Cloudflare R2**: `S3 Compatible Endpoint`
-*   **LLM Provider**: Your configured AI provider API (e.g., OpenAI, Anthropic).
-
-## Verifying Installation
-
-To verify that the CLI and core services are installed correctly, you can check the version:
+## Step 9: Start Services
 
 <Tabs defaultValue="bun">
   <TabsList>
@@ -112,55 +156,77 @@ To verify that the CLI and core services are installed correctly, you can check 
   </TabsList>
   <TabsContent value="bun">
     ```bash
-    bun run --version
+    bun run dev
     ```
   </TabsContent>
 </Tabs>
 
-And ensure the Typescript configuration is valid:
+This starts all services:
+- **Agent** (OTEL): `http://localhost:4318`
+- **Dashboard**: `http://localhost:3000`
+- **Router**: `http://localhost:3001`
+- **Autopsy**: `http://localhost:3002`
+- **State**: `http://localhost:3003`
+- **Git**: `http://localhost:3004`
+- **Web**: `http://localhost:3006`
+- **Docs**: `http://localhost:3007`
+- **Sample App**: `http://localhost:3008`
 
-<Tabs defaultValue="bun">
+## Step 10: Test the System
+
+Trigger a test incident:
+
+<Tabs defaultValue="bash">
   <TabsList>
     <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
-      <TabsTrigger value="npm">npm</TabsTrigger>
-      <TabsTrigger value="pnpm">pnpm</TabsTrigger>
-      <TabsTrigger value="yarn">yarn</TabsTrigger>
-      <TabsTrigger value="bun">bun</TabsTrigger>
+      <TabsTrigger value="bash">bash</TabsTrigger>
     </div>
     <TabsCopyButton />
   </TabsList>
-  <TabsContent value="npm">
+  <TabsContent value="bash">
     ```bash
-    npm run typecheck
-    ```
-  </TabsContent>
-  <TabsContent value="pnpm">
-    ```bash
-    pnpm run typecheck
-    ```
-  </TabsContent>
-  <TabsContent value="yarn">
-    ```bash
-    yarn run typecheck
-    ```
-  </TabsContent>
-  <TabsContent value="bun">
-    ```bash
-    bun run typecheck
+    curl -X POST http://localhost:3008/trigger \
+      -H "Content-Type: application/json" \
+      -d '{"action":"cause_error"}'
     ```
   </TabsContent>
 </Tabs>
 
-## Configuration
-
-After installation, you must configure the agent using `aia.config.ts`. See the [Configuration Reference](./ConfigReference.mdx) for details.
+Then:
+1. Check dashboard: `http://localhost:3000`
+2. View autopsy results
+3. Check your GitHub repo for a new PR
 
 ## Troubleshooting
 
-If you encounter issues during installation:
+### "Command not found: bun"
+Install Bun: `curl -fsSL https://bun.sh/install | bash`
 
-1.  Ensure `bun` is in your system PATH.
-2.  Check for write permissions in the directory (the agent creates a `.agent` folder).
-3.  Verify your network allows connections to npm/GitHub packages.
+### "GitHub token invalid"
+- Ensure token has `repo` scope
+- Check token hasn't expired
+- Verify token is correctly set in `.env`
 
-See [Troubleshooting](./Troubleshooting.mdx) for more solutions.
+### "Database connection failed"
+- Verify `DATABASE_URL` is correct
+- Check database is running
+- Ensure network allows connection
+
+### "You.com API error"
+- Verify API key is correct
+- Check you have API credits
+- Ensure key starts with `ydc-`
+
+### "TypeScript errors"
+Run `bun run check-types` to see specific errors
+
+### "Port already in use"
+Another service is using the port. Stop it or change ports in `aia.config.yaml`
+
+## Next Steps
+
+- [Configuration Reference](/docs/reference/config) - Detailed config options
+- [OpenTelemetry Integration](/docs/opentelemetry) - Instrument your app
+- [Architecture](/docs/architecture) - Understand the system
+- [Troubleshooting](/docs/troubleshooting) - Common issues
+

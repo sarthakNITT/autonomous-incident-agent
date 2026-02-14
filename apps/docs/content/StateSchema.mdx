@@ -1,92 +1,431 @@
 # State Schema
 
-The `Incident` object represents the lifecycle of a detected failure. It is managed by the State Service and stored in the database.
+The State service uses PostgreSQL to store all incident data, autopsy results, and system state.
 
-## Incident Lifecycle
+## Database Overview
 
-An incident moves through the following statuses (`IncidentStatus`):
+**Database:** PostgreSQL (recommended: Neon, Supabase, or local)
 
-1.  **`detected`**: The anomaly has been ingested by the Router.
-2.  **`analyzing`**: Autopsy is currently investigating the root cause.
-3.  **`patching`**: The Agent is generating a fix.
-4.  **`validating`**: Repro is running tests against the patch.
-5.  **`resolved`**: A PR has been opened.
-6.  **`failed`**: The agent could not resolve the issue.
+**Connection:**
+```bash
+DATABASE_URL=postgresql://user:password@host:5432/database
+```
 
-## Incident Object
+**Tables:**
+- `incidents` - Core incident data
+- `autopsy_results` - AI analysis results
 
-<Tabs defaultValue="terminal">
-  <TabsList>
-    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
-      <TabsTrigger value="terminal">Terminal</TabsTrigger>
-    </div>
-    <TabsCopyButton />
-  </TabsList>
-  <TabsContent value="terminal">
-    ```typescript
-    interface Incident {
-      id: string; // Unique UUID
-      status: "detected" | "analyzing" | "patching" | "validating" | "resolved" | "failed";
-      title: string;
-      created_at: string; // ISO Date
-      updated_at: string; // ISO Date
+## Tables
 
-      // Artifact links
-      snapshot_id?: string;     // ID of the OTel trace
-      root_cause?: string;      // Markdown summary of the cause
-      patch_diff_key?: string;  // R2 key for the .diff file
-      pr_url?: string;          // GitHub PR link
-      validation_status?: boolean;
+### incidents
 
-      // Metadata
-      repo_name?: string;
-      file_path?: string; // The culprit file
-    }
-    ```
-  </TabsContent>
-</Tabs>
+Stores all detected incidents with error details and metadata.
 
-## API Requests
+**Schema:**
+```sql
+CREATE TABLE incidents (
+  id VARCHAR(255) PRIMARY KEY,
+  trace_id VARCHAR(255) NOT NULL,
+  error_type VARCHAR(50) NOT NULL,
+  error_message TEXT NOT NULL,
+  stack_trace TEXT,
+  file_snapshots JSONB,
+  pr_url VARCHAR(500),
+  pr_number INTEGER,
+  status VARCHAR(50) DEFAULT 'detected',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
 
-### Create Incident
+-- Indexes for performance
+CREATE INDEX idx_incidents_trace_id ON incidents(trace_id);
+CREATE INDEX idx_incidents_created_at ON incidents(created_at DESC);
+CREATE INDEX idx_incidents_status ON incidents(status);
+CREATE INDEX idx_incidents_error_type ON incidents(error_type);
+```
 
-Used by the Router to register a new detection.
+**Columns:**
 
-<Tabs defaultValue="terminal">
-  <TabsList>
-    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
-      <TabsTrigger value="terminal">Terminal</TabsTrigger>
-    </div>
-    <TabsCopyButton />
-  </TabsList>
-  <TabsContent value="terminal">
-    ```json
+| Column | Type | Nullable | Description |
+| :--- | :--- | :--- | :--- |
+| `id` | VARCHAR(255) | NO | Unique incident ID (e.g., `inc_abc123`) |
+| `trace_id` | VARCHAR(255) | NO | OpenTelemetry trace ID for deduplication |
+| `error_type` | VARCHAR(50) | NO | Type: `http_error`, `exception`, `latency`, `crash` |
+| `error_message` | TEXT | NO | Human-readable error message |
+| `stack_trace` | TEXT | YES | Full stack trace (if available) |
+| `file_snapshots` | JSONB | YES | Array of file contexts with code |
+| `pr_url` | VARCHAR(500) | YES | GitHub PR URL (set after PR creation) |
+| `pr_number` | INTEGER | YES | GitHub PR number |
+| `status` | VARCHAR(50) | NO | Status: `detected`, `analyzing`, `pr_created`, `resolved` |
+| `created_at` | TIMESTAMP | NO | When incident was detected |
+| `updated_at` | TIMESTAMP | NO | Last update time |
+
+**Example Row:**
+```json
+{
+  "id": "inc_abc123",
+  "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736",
+  "error_type": "exception",
+  "error_message": "Cannot read property 'name' of undefined",
+  "stack_trace": "TypeError: Cannot read property 'name' of undefined\n    at getUser (src/api/users.ts:13:25)\n    at ...",
+  "file_snapshots": [
     {
-      "title": "TypeError in /api/users",
-      "status": "detected"
+      "path": "src/api/users.ts",
+      "content": "export async function getUser(id: string) {\n  const user = await db.query(...);\n  return { name: user.name };\n}",
+      "line_number": 13,
+      "column": 25
     }
-    ```
-  </TabsContent>
-</Tabs>
+  ],
+  "pr_url": "https://github.com/owner/repo/pull/123",
+  "pr_number": 123,
+  "status": "pr_created",
+  "created_at": "2024-02-14T19:00:00.000Z",
+  "updated_at": "2024-02-14T19:00:15.000Z"
+}
+```
 
-### Update Incident
+### autopsy_results
 
-Used by the Agent to progress the state.
+Stores AI analysis results for each incident.
 
-<Tabs defaultValue="terminal">
-  <TabsList>
-    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
-      <TabsTrigger value="terminal">Terminal</TabsTrigger>
-    </div>
-    <TabsCopyButton />
-  </TabsList>
-  <TabsContent value="terminal">
-    ```json
-    {
-      "status": "resolved",
-      "pr_url": "https://github.com/my-org/my-repo/pull/123",
-      "validation_status": true
-    }
-    ```
-  </TabsContent>
-</Tabs>
+**Schema:**
+```sql
+CREATE TABLE autopsy_results (
+  id SERIAL PRIMARY KEY,
+  incident_id VARCHAR(255) NOT NULL REFERENCES incidents(id) ON DELETE CASCADE,
+  root_cause TEXT NOT NULL,
+  patch_diff TEXT,
+  ai_fix_prompt TEXT NOT NULL,
+  manual_steps JSONB NOT NULL,
+  confidence_score FLOAT,
+  model_used VARCHAR(50),
+  analysis_time_ms INTEGER,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Indexes
+CREATE INDEX idx_autopsy_incident_id ON autopsy_results(incident_id);
+CREATE INDEX idx_autopsy_created_at ON autopsy_results(created_at DESC);
+CREATE UNIQUE INDEX idx_autopsy_incident_unique ON autopsy_results(incident_id);
+```
+
+**Columns:**
+
+| Column | Type | Nullable | Description |
+| :--- | :--- | :--- | :--- |
+| `id` | SERIAL | NO | Auto-incrementing primary key |
+| `incident_id` | VARCHAR(255) | NO | Foreign key to incidents table |
+| `root_cause` | TEXT | NO | AI-generated root cause explanation |
+| `patch_diff` | TEXT | YES | Git diff patch (if generated) |
+| `ai_fix_prompt` | TEXT | NO | Prompt for AI coding assistants |
+| `manual_steps` | JSONB | NO | Array of manual remediation steps |
+| `confidence_score` | FLOAT | YES | AI confidence (0.0 - 1.0) |
+| `model_used` | VARCHAR(50) | YES | AI model name (e.g., `express`) |
+| `analysis_time_ms` | INTEGER | YES | Time taken for analysis |
+| `created_at` | TIMESTAMP | NO | When analysis was completed |
+
+**Example Row:**
+```json
+{
+  "id": 1,
+  "incident_id": "inc_abc123",
+  "root_cause": "The error occurs because the `user` object is undefined when the database query returns null. The code attempts to access `user.name` without checking if `user` exists first.",
+  "patch_diff": "--- a/src/api/users.ts\n+++ b/src/api/users.ts\n@@ -10,7 +10,10 @@\n \n export async function getUser(id: string) {\n   const user = await db.query(\"SELECT * FROM users WHERE id = ?\", [id]);\n-  return { name: user.name, email: user.email };\n+  if (!user) {\n+    throw new Error(\"User not found\");\n+  }\n+  return { name: user.name, email: user.email };\n }",
+  "ai_fix_prompt": "Fix the null pointer error in the getUser function in src/api/users.ts. The database query can return null, but the code doesn't check for this before accessing user.name. Add a null check and throw an appropriate error if the user is not found.",
+  "manual_steps": [
+    "Open src/api/users.ts",
+    "Locate the getUser function (around line 10)",
+    "Add a null check after the database query: if (!user) { throw new Error(\"User not found\"); }",
+    "Test the fix by calling getUser with an invalid ID",
+    "Commit the changes"
+  ],
+  "confidence_score": 0.85,
+  "model_used": "express",
+  "analysis_time_ms": 2340,
+  "created_at": "2024-02-14T19:00:05.000Z"
+}
+```
+
+## Relationships
+
+```
+incidents (1) ←→ (1) autopsy_results
+  ↑
+  └─ incident_id (foreign key)
+```
+
+**Cascade Delete:** When an incident is deleted, its autopsy result is also deleted.
+
+## Queries
+
+### Common Queries
+
+**Get all incidents:**
+```sql
+SELECT * FROM incidents 
+ORDER BY created_at DESC 
+LIMIT 100;
+```
+
+**Get incident with autopsy:**
+```sql
+SELECT 
+  i.*,
+  a.root_cause,
+  a.patch_diff,
+  a.ai_fix_prompt,
+  a.manual_steps
+FROM incidents i
+LEFT JOIN autopsy_results a ON i.id = a.incident_id
+WHERE i.id = 'inc_abc123';
+```
+
+**Get recent incidents by type:**
+```sql
+SELECT error_type, COUNT(*) as count
+FROM incidents
+WHERE created_at > NOW() - INTERVAL '24 hours'
+GROUP BY error_type
+ORDER BY count DESC;
+```
+
+**Get incidents without PRs:**
+```sql
+SELECT * FROM incidents
+WHERE pr_url IS NULL
+AND created_at > NOW() - INTERVAL '7 days'
+ORDER BY created_at DESC;
+```
+
+**Get autopsy success rate:**
+```sql
+SELECT 
+  COUNT(*) as total_incidents,
+  COUNT(a.id) as analyzed_incidents,
+  ROUND(COUNT(a.id)::numeric / COUNT(*)::numeric * 100, 2) as success_rate
+FROM incidents i
+LEFT JOIN autopsy_results a ON i.id = a.incident_id
+WHERE i.created_at > NOW() - INTERVAL '30 days';
+```
+
+**Get patch application success rate:**
+```sql
+SELECT 
+  COUNT(*) as total_prs,
+  COUNT(CASE WHEN patch_diff NOT LIKE '%patch_failed%' THEN 1 END) as successful_patches,
+  ROUND(
+    COUNT(CASE WHEN patch_diff NOT LIKE '%patch_failed%' THEN 1 END)::numeric / 
+    COUNT(*)::numeric * 100, 
+    2
+  ) as success_rate
+FROM autopsy_results
+WHERE created_at > NOW() - INTERVAL '30 days';
+```
+
+## Migrations
+
+### Initial Setup
+
+Run this SQL to create tables:
+
+```sql
+-- Create incidents table
+CREATE TABLE IF NOT EXISTS incidents (
+  id VARCHAR(255) PRIMARY KEY,
+  trace_id VARCHAR(255) NOT NULL,
+  error_type VARCHAR(50) NOT NULL,
+  error_message TEXT NOT NULL,
+  stack_trace TEXT,
+  file_snapshots JSONB,
+  pr_url VARCHAR(500),
+  pr_number INTEGER,
+  status VARCHAR(50) DEFAULT 'detected',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Create autopsy_results table
+CREATE TABLE IF NOT EXISTS autopsy_results (
+  id SERIAL PRIMARY KEY,
+  incident_id VARCHAR(255) NOT NULL REFERENCES incidents(id) ON DELETE CASCADE,
+  root_cause TEXT NOT NULL,
+  patch_diff TEXT,
+  ai_fix_prompt TEXT NOT NULL,
+  manual_steps JSONB NOT NULL,
+  confidence_score FLOAT,
+  model_used VARCHAR(50),
+  analysis_time_ms INTEGER,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Create indexes
+CREATE INDEX IF NOT EXISTS idx_incidents_trace_id ON incidents(trace_id);
+CREATE INDEX IF NOT EXISTS idx_incidents_created_at ON incidents(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_incidents_status ON incidents(status);
+CREATE INDEX IF NOT EXISTS idx_incidents_error_type ON incidents(error_type);
+CREATE INDEX IF NOT EXISTS idx_autopsy_incident_id ON autopsy_results(incident_id);
+CREATE INDEX IF NOT EXISTS idx_autopsy_created_at ON autopsy_results(created_at DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_autopsy_incident_unique ON autopsy_results(incident_id);
+```
+
+### Backup
+
+**Backup database:**
+```bash
+pg_dump $DATABASE_URL > backup.sql
+```
+
+**Restore database:**
+```bash
+psql $DATABASE_URL < backup.sql
+```
+
+### Cleanup Old Data
+
+**Delete incidents older than 30 days:**
+```sql
+DELETE FROM incidents 
+WHERE created_at < NOW() - INTERVAL '30 days';
+```
+
+**Archive to JSON:**
+```bash
+psql $DATABASE_URL -c "
+  COPY (
+    SELECT row_to_json(t) 
+    FROM (
+      SELECT i.*, a.root_cause, a.patch_diff 
+      FROM incidents i 
+      LEFT JOIN autopsy_results a ON i.id = a.incident_id
+      WHERE i.created_at < NOW() - INTERVAL '30 days'
+    ) t
+  ) TO STDOUT
+" > archived_incidents.json
+```
+
+## Performance Optimization
+
+### Index Usage
+
+Check index usage:
+```sql
+SELECT 
+  schemaname,
+  tablename,
+  indexname,
+  idx_scan,
+  idx_tup_read,
+  idx_tup_fetch
+FROM pg_stat_user_indexes
+WHERE schemaname = 'public'
+ORDER BY idx_scan DESC;
+```
+
+### Table Statistics
+
+View table sizes:
+```sql
+SELECT 
+  tablename,
+  pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) AS size
+FROM pg_tables
+WHERE schemaname = 'public'
+ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;
+```
+
+### Vacuum
+
+Optimize tables:
+```sql
+VACUUM ANALYZE incidents;
+VACUUM ANALYZE autopsy_results;
+```
+
+## Monitoring
+
+### Active Connections
+
+```sql
+SELECT count(*) FROM pg_stat_activity;
+```
+
+### Slow Queries
+
+```sql
+SELECT 
+  query,
+  calls,
+  total_time,
+  mean_time,
+  max_time
+FROM pg_stat_statements
+ORDER BY mean_time DESC
+LIMIT 10;
+```
+
+### Table Bloat
+
+```sql
+SELECT 
+  tablename,
+  pg_size_pretty(pg_total_relation_size(tablename::regclass)) as size,
+  n_dead_tup,
+  n_live_tup,
+  ROUND(n_dead_tup::numeric / NULLIF(n_live_tup, 0)::numeric * 100, 2) as dead_ratio
+FROM pg_stat_user_tables
+WHERE schemaname = 'public'
+ORDER BY n_dead_tup DESC;
+```
+
+## Data Retention
+
+### Recommended Retention
+
+- **Incidents**: 30-90 days
+- **Autopsy Results**: Same as incidents (cascade delete)
+- **Logs**: 7-14 days
+
+### Automated Cleanup
+
+Create a cron job:
+
+```bash
+# /etc/cron.daily/aia-cleanup
+#!/bin/bash
+psql $DATABASE_URL << EOF
+DELETE FROM incidents WHERE created_at < NOW() - INTERVAL '90 days';
+VACUUM ANALYZE incidents;
+VACUUM ANALYZE autopsy_results;
+EOF
+```
+
+## Security
+
+### Access Control
+
+Grant read-only access:
+```sql
+CREATE USER aia_readonly WITH PASSWORD 'secure_password';
+GRANT CONNECT ON DATABASE aia_db TO aia_readonly;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO aia_readonly;
+```
+
+### Sensitive Data
+
+**Sanitize before storing:**
+```typescript
+// Remove sensitive data from stack traces
+function sanitizeStackTrace(trace: string): string {
+  return trace
+    .replace(/password=\w+/gi, 'password=***')
+    .replace(/token=\w+/gi, 'token=***')
+    .replace(/api[_-]?key=\w+/gi, 'api_key=***');
+}
+```
+
+## Next Steps
+
+- [Data Flow](/docs/architecture/data-flow) - How data moves through the system
+- [Architecture](/docs/architecture) - System overview
+- [Configuration Reference](/docs/reference/config) - Database configuration
+- [Troubleshooting](/docs/troubleshooting) - Database issues

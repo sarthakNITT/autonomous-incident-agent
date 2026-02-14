@@ -1,38 +1,12 @@
 # Running the Agent
 
-This guide details how to run the AIA Agent service in production and development.
+This guide covers how to run AIA in different environments, from local development to production deployment.
 
-## Production (Bun)
+## Development Mode
 
-The most performant way to run the agent is using Bun.
+### Quick Start
 
-<Tabs defaultValue="bun">
-  <TabsList>
-    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
-      <TabsTrigger value="bun">bun</TabsTrigger>
-    </div>
-    <TabsCopyButton />
-  </TabsList>
-  <TabsContent value="bun">
-    ```bash
-    bun run start
-    ```
-  </TabsContent>
-</Tabs>
-
-This command starts the `Agent`, `Router`, and `Autopsy` services according to your `aia.config.ts`.
-
-### Environment Variables
-
-Ensure the following are set in your production environment:
-
-*   `GITHUB_TOKEN`
-*   `R2_*` credentials
-*   `AIA_API_KEY` (for the LLM)
-
-## Development
-
-For contributing to AIA or debugging local issues:
+Start all services with hot reload:
 
 <Tabs defaultValue="bun">
   <TabsList>
@@ -48,25 +22,617 @@ For contributing to AIA or debugging local issues:
   </TabsContent>
 </Tabs>
 
-This starts the services with hot-reloading enabled. Logs will be streamed to stdout in a human-readable format.
+This starts:
+- **Agent** (OTEL): `http://localhost:4318`
+- **Dashboard**: `http://localhost:3000`
+- **Router**: `http://localhost:3001`
+- **Autopsy**: `http://localhost:3002`
+- **State**: `http://localhost:3003`
+- **Git**: `http://localhost:3004`
+- **Repro**: `http://localhost:3005`
+- **Web**: `http://localhost:3006`
+- **Docs**: `http://localhost:3007`
+- **Sample App**: `http://localhost:3008`
 
-## Docker
+### Individual Services
 
-You can also run the agent as a Docker container.
+Run specific services:
 
-<Tabs defaultValue="docker">
+<Tabs defaultValue="bun">
   <TabsList>
     <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
-      <TabsTrigger value="docker">docker</TabsTrigger>
+      <TabsTrigger value="bun">bun</TabsTrigger>
     </div>
     <TabsCopyButton />
   </TabsList>
-  <TabsContent value="docker">
+  <TabsContent value="bun">
     ```bash
-    docker run -d \
-      --env-file .env \
-      -p 3001:3001 \
-      ghcr.io/check19-studios/aia-agent:latest
+    # Agent (OTEL receiver)
+    bun run apps/agent/src/index.ts
+
+    # Dashboard
+    bun run apps/dashboard/src/index.ts
+
+    # Router
+    bun run apps/router/src/index.ts
+
+    # Autopsy
+    bun run apps/autopsy/src/index.ts
+
+    # State
+    bun run apps/state/src/index.ts
+
+    # Git
+    bun run apps/git/src/index.ts
+
+    # Sample App
+    bun run apps/sample-app/src/index.ts
     ```
   </TabsContent>
 </Tabs>
+
+### Development Workflow
+
+1. **Start services**: `bun run dev`
+2. **Trigger test error**:
+   <Tabs defaultValue="bash">
+     <TabsList>
+       <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+         <TabsTrigger value="bash">bash</TabsTrigger>
+       </div>
+       <TabsCopyButton />
+     </TabsList>
+     <TabsContent value="bash">
+       ```bash
+       curl -X POST http://localhost:3008/trigger \
+         -H "Content-Type: application/json" \
+         -d '{"action":"cause_error"}'
+       ```
+     </TabsContent>
+   </Tabs>
+3. **Check dashboard**: `http://localhost:3000`
+4. **View logs**: Check terminal output
+5. **Check GitHub**: Look for new PR
+
+### Hot Reload
+
+Services automatically reload on file changes:
+
+```bash
+# Edit a file
+vim apps/autopsy/src/ai_reasoner.ts
+
+# Service automatically restarts
+[Autopsy] File changed, restarting...
+[Autopsy] Service started on port 3002
+```
+
+## Production Mode
+
+### Build
+
+Build all services:
+
+<Tabs defaultValue="bun">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="bun">bun</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="bun">
+    ```bash
+    bun run build
+    ```
+  </TabsContent>
+</Tabs>
+
+This creates production builds in `dist/` directories.
+
+### Run Production Build
+
+<Tabs defaultValue="bun">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="bun">bun</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="bun">
+    ```bash
+    # Set environment
+    export NODE_ENV=production
+
+    # Run services
+    bun run apps/agent/dist/index.js
+    bun run apps/dashboard/dist/index.js
+    # ... other services
+    ```
+  </TabsContent>
+</Tabs>
+
+### Process Manager (PM2)
+
+Use PM2 for production process management:
+
+<Tabs defaultValue="bash">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="bash">bash</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="bash">
+    ```bash
+    # Install PM2
+    npm install -g pm2
+
+    # Create ecosystem file
+    cat > ecosystem.config.js << 'EOF'
+    module.exports = {
+      apps: [
+        {
+          name: 'aia-agent',
+          script: 'apps/agent/src/index.ts',
+          interpreter: 'bun',
+          env: { PORT: 4318 }
+        },
+        {
+          name: 'aia-dashboard',
+          script: 'apps/dashboard/src/index.ts',
+          interpreter: 'bun',
+          env: { PORT: 3000 }
+        },
+        {
+          name: 'aia-router',
+          script: 'apps/router/src/index.ts',
+          interpreter: 'bun',
+          env: { PORT: 3001 }
+        },
+        {
+          name: 'aia-autopsy',
+          script: 'apps/autopsy/src/index.ts',
+          interpreter: 'bun',
+          env: { PORT: 3002 }
+        },
+        {
+          name: 'aia-state',
+          script: 'apps/state/src/index.ts',
+          interpreter: 'bun',
+          env: { PORT: 3003 }
+        },
+        {
+          name: 'aia-git',
+          script: 'apps/git/src/index.ts',
+          interpreter: 'bun',
+          env: { PORT: 3004 }
+        }
+      ]
+    };
+    EOF
+
+    # Start all services
+    pm2 start ecosystem.config.js
+
+    # Monitor
+    pm2 monit
+
+    # View logs
+    pm2 logs
+
+    # Restart
+    pm2 restart all
+
+    # Stop
+    pm2 stop all
+    ```
+  </TabsContent>
+</Tabs>
+
+## Docker
+
+### Build Images
+
+<Tabs defaultValue="bash">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="bash">bash</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="bash">
+    ```bash
+    # Build all services
+    docker build -t aia-agent -f apps/agent/Dockerfile .
+    docker build -t aia-dashboard -f apps/dashboard/Dockerfile .
+    docker build -t aia-router -f apps/router/Dockerfile .
+    docker build -t aia-autopsy -f apps/autopsy/Dockerfile .
+    docker build -t aia-state -f apps/state/Dockerfile .
+    docker build -t aia-git -f apps/git/Dockerfile .
+    ```
+  </TabsContent>
+</Tabs>
+
+### Docker Compose
+
+Create `docker-compose.yml`:
+
+```yaml
+version: '3.8'
+
+services:
+  agent:
+    image: aia-agent
+    ports:
+      - "4318:4318"
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
+    networks:
+      - aia-network
+
+  dashboard:
+    image: aia-dashboard
+    ports:
+      - "3000:3000"
+    environment:
+      - STATE_URL=http://state:3003
+    networks:
+      - aia-network
+
+  router:
+    image: aia-router
+    ports:
+      - "3001:3001"
+    environment:
+      - STATE_URL=http://state:3003
+      - AUTOPSY_URL=http://autopsy:3002
+    networks:
+      - aia-network
+
+  autopsy:
+    image: aia-autopsy
+    ports:
+      - "3002:3002"
+    environment:
+      - YOU_API_KEY=${YOU_API_KEY}
+      - STATE_URL=http://state:3003
+    networks:
+      - aia-network
+
+  state:
+    image: aia-state
+    ports:
+      - "3003:3003"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+    networks:
+      - aia-network
+
+  git:
+    image: aia-git
+    ports:
+      - "3004:3004"
+    environment:
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - STATE_URL=http://state:3003
+    networks:
+      - aia-network
+
+networks:
+  aia-network:
+    driver: bridge
+```
+
+Run with Docker Compose:
+
+```bash
+docker-compose up -d
+```
+
+## Environment Variables
+
+### Required
+
+```bash
+# AI Configuration
+YOU_API_KEY=ydc_your_key_here
+
+# GitHub Configuration
+GITHUB_TOKEN=ghp_your_token_here
+
+# Database
+DATABASE_URL=postgresql://user:pass@host/db
+```
+
+### Optional
+
+```bash
+# R2 Storage
+R2_ACCESS_KEY_ID=your_key
+R2_SECRET_ACCESS_KEY=your_secret
+R2_BUCKET_NAME=aia
+R2_ACCOUNT_ID=your_account
+
+# Service URLs (for production)
+AGENT_URL=https://agent.example.com
+DASHBOARD_URL=https://dashboard.example.com
+ROUTER_URL=https://router.example.com
+AUTOPSY_URL=https://autopsy.example.com
+STATE_URL=https://state.example.com
+GIT_URL=https://git.example.com
+
+# Logging
+LOG_LEVEL=info  # debug, info, warn, error
+```
+
+## Health Checks
+
+### Service Health Endpoints
+
+Each service exposes a health endpoint:
+
+```bash
+# Agent
+curl http://localhost:4318/health
+
+# Dashboard
+curl http://localhost:3000/health
+
+# Router
+curl http://localhost:3001/health
+
+# Autopsy
+curl http://localhost:3002/health
+
+# State
+curl http://localhost:3003/health
+
+# Git
+curl http://localhost:3004/health
+```
+
+**Response:**
+```json
+{
+  "status": "healthy",
+  "service": "agent",
+  "uptime": 3600,
+  "version": "1.0.0"
+}
+```
+
+### Monitoring Script
+
+Create `scripts/health-check.sh`:
+
+```bash
+#!/bin/bash
+
+services=(
+  "Agent:4318"
+  "Dashboard:3000"
+  "Router:3001"
+  "Autopsy:3002"
+  "State:3003"
+  "Git:3004"
+)
+
+for service in "${services[@]}"; do
+  name="${service%%:*}"
+  port="${service##*:}"
+  
+  if curl -s "http://localhost:$port/health" > /dev/null; then
+    echo "✅ $name (port $port) - healthy"
+  else
+    echo "❌ $name (port $port) - unhealthy"
+  fi
+done
+```
+
+Run:
+```bash
+chmod +x scripts/health-check.sh
+./scripts/health-check.sh
+```
+
+## Logging
+
+### Log Levels
+
+Set log level via environment:
+
+```bash
+export LOG_LEVEL=debug  # debug, info, warn, error
+```
+
+### Log Format
+
+```
+[2024-02-14T19:00:00.000Z] [INFO] [Agent] Incident detected: HTTP 500 Error
+[2024-02-14T19:00:01.000Z] [INFO] [Router] Enriched incident inc_abc123
+[2024-02-14T19:00:02.000Z] [INFO] [State] Stored incident inc_abc123
+[2024-02-14T19:00:05.000Z] [INFO] [Autopsy] Analysis complete for inc_abc123
+[2024-02-14T19:00:15.000Z] [INFO] [Git] PR created: https://github.com/owner/repo/pull/123
+```
+
+### Log Files
+
+Logs are written to:
+
+```
+logs/
+  ├── agent.log
+  ├── router.log
+  ├── autopsy.log
+  ├── state.log
+  ├── git.log
+  └── dashboard.log
+```
+
+### Viewing Logs
+
+```bash
+# Tail all logs
+tail -f logs/*.log
+
+# Tail specific service
+tail -f logs/autopsy.log
+
+# Search logs
+grep "ERROR" logs/*.log
+
+# Last 100 lines
+tail -n 100 logs/agent.log
+```
+
+## Performance Tuning
+
+### Concurrency
+
+Adjust worker threads:
+
+```bash
+# Environment variable
+export WORKER_THREADS=4
+
+# Or in config
+workers: 4
+```
+
+### Memory Limits
+
+Set Node.js memory limits:
+
+```bash
+export NODE_OPTIONS="--max-old-space-size=4096"
+```
+
+### Database Connection Pool
+
+Configure in `.env`:
+
+```bash
+DATABASE_POOL_MIN=2
+DATABASE_POOL_MAX=10
+```
+
+## Troubleshooting
+
+### Service Won't Start
+
+**Check port availability:**
+```bash
+lsof -i :3000  # Check if port is in use
+```
+
+**Kill process:**
+```bash
+kill -9 $(lsof -t -i:3000)
+```
+
+### High Memory Usage
+
+**Check memory:**
+```bash
+ps aux | grep bun
+```
+
+**Restart service:**
+```bash
+pm2 restart aia-autopsy
+```
+
+### Database Connection Issues
+
+**Test connection:**
+```bash
+psql $DATABASE_URL
+```
+
+**Check logs:**
+```bash
+tail -f logs/state.log | grep "database"
+```
+
+### GitHub API Rate Limits
+
+**Check rate limit:**
+```bash
+curl -H "Authorization: token $GITHUB_TOKEN" \
+  https://api.github.com/rate_limit
+```
+
+**Response:**
+```json
+{
+  "resources": {
+    "core": {
+      "limit": 5000,
+      "remaining": 4999,
+      "reset": 1234567890
+    }
+  }
+}
+```
+
+## Deployment Platforms
+
+### Vercel
+
+Deploy web and docs:
+
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy web
+cd apps/web
+vercel
+
+# Deploy docs
+cd apps/docs
+vercel
+```
+
+### Railway
+
+Deploy backend services:
+
+```bash
+# Install Railway CLI
+npm i -g @railway/cli
+
+# Login
+railway login
+
+# Create project
+railway init
+
+# Deploy
+railway up
+```
+
+### Fly.io
+
+Deploy with Fly:
+
+```bash
+# Install Fly CLI
+curl -L https://fly.io/install.sh | sh
+
+# Login
+fly auth login
+
+# Launch app
+fly launch
+
+# Deploy
+fly deploy
+```
+
+## Next Steps
+
+- [Configuration Reference](/docs/reference/config) - All config options
+- [Troubleshooting](/docs/troubleshooting) - Common issues
+- [Architecture](/docs/architecture) - System overview
+- [Data Flow](/docs/architecture/data-flow) - How data moves through the system

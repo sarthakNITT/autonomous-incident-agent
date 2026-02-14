@@ -1,36 +1,36 @@
-# GitHub Bot Setup
+# GitHub Integration
 
-To automate incident response, AIA needs a GitHub App or a dedicated bot account to interact with your repositories.
+AIA automatically creates Pull Requests on GitHub with AI-generated fixes and detailed remediation instructions.
 
-## Creating a Bot Account
+## How It Works
 
-1.  Create a new GitHub account (e.g., `my-org-aia-bot`).
-2.  Add this account as a collaborator to your repositories with **Write** access.
+When an incident is detected and analyzed:
 
-## Generating a Personal Access Token (PAT)
+1. **Git Service** clones your repository
+2. Creates a new branch: `aia/incident-{uuid}`
+3. Attempts to apply the AI-generated patch
+4. Commits changes (or saves failed patch)
+5. Pushes to GitHub
+6. Creates a Pull Request with:
+   - Root cause analysis
+   - AI fix prompt (for copy-paste to AI assistants)
+   - Step-by-step manual instructions
+   - Patch file (if auto-application failed)
 
-We recommend using a fine-grained Personal Access Token for better security.
+## Setup
 
-1.  Go to **Settings > Developer settings > Personal access tokens > Fine-grained tokens**.
-2.  Click **Generate new token**.
-3.  Name the token (e.g., `aia-agent-token`).
-4.  **Expiration**: Set an appropriate expiration (e.g., 90 days).
-5.  **Repository access**: Select **All repositories** or specific repositories.
+### Step 1: Create GitHub Personal Access Token
 
-### Required Scopes
+1. Go to [GitHub Settings → Tokens](https://github.com/settings/tokens)
+2. Click **"Generate new token (classic)"**
+3. Name it (e.g., "AIA Bot")
+4. Select scope: **`repo`** (Full control of private repositories)
+5. Click **"Generate token"**
+6. **Copy the token** (starts with `ghp_`)
 
-Grant the following permissions:
+### Step 2: Configure Environment
 
-| Scope | Access | Reason |
-| :--- | :--- | :--- |
-| **Contents** | Read and Write | To read code and push branches. |
-| **Issues** | Read and Write | To create incident issues. |
-| **Pull Requests** | Read and Write | To open and comment on PRs. |
-| **Workflows** | Read and Write | To trigger CI/CD checks. |
-
-## Configuring the Agent
-
-Add the token to your environment variables or `aia.config.ts`:
+Add to `.env`:
 
 <Tabs defaultValue="bash">
   <TabsList>
@@ -41,32 +41,166 @@ Add the token to your environment variables or `aia.config.ts`:
   </TabsList>
   <TabsContent value="bash">
     ```bash
-    GITHUB_TOKEN=your_pat_token
+    GITHUB_TOKEN=ghp_your_actual_token_here
     ```
   </TabsContent>
 </Tabs>
 
-And in your config:
+### Step 3: Configure Repository
 
-<Tabs defaultValue="terminal">
+Create `aia.config.local.yaml`:
+
+<Tabs defaultValue="yaml">
   <TabsList>
     <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
-      <TabsTrigger value="terminal">Terminal</TabsTrigger>
+      <TabsTrigger value="yaml">yaml</TabsTrigger>
     </div>
     <TabsCopyButton />
   </TabsList>
-  <TabsContent value="terminal">
-    ```typescript
-    github: {
-      // ...
-      token: process.env.GITHUB_TOKEN,
-      username: "aia-bot-account",
-    }
+  <TabsContent value="yaml">
+    ```yaml
+    github:
+      provider: "github"
+      token: "PLACEHOLDER"  # Read from .env
+      owner: "your-github-username"
+      repo: "your-repo-name"
+      base_branch: "main"
     ```
   </TabsContent>
 </Tabs>
 
+**Example:**
+- Repo: `https://github.com/johndoe/my-app`
+- Set `owner: "johndoe"`
+- Set `repo: "my-app"`
+
+## Pull Request Structure
+
+Each PR created by AIA includes:
+
+### 1. Title
+```
+fix: resolve incident {incident-id}
+```
+
+### 2. Description
+
+**Root Cause:**
+AI-generated explanation of what caused the error.
+
+**AI Fix Prompt:**
+A detailed, copy-paste ready prompt for AI coding assistants (Cursor, GitHub Copilot, etc.).
+
+**Manual Steps:**
+Step-by-step instructions for manual remediation.
+
+**Patch:**
+If patch auto-application failed, the patch is saved as `patch_failed_{timestamp}.diff` in the commit.
+
+### 3. Files Changed
+
+- **If patch succeeded**: The actual code changes
+- **If patch failed**: `patch_failed_*.diff` file with the patch content
+
+### 4. Branch Name
+```
+aia/incident-{uuid}
+```
+
+## Patch Handling
+
+### Automatic Application
+
+The Git service attempts to automatically apply patches using `git apply`:
+
+```bash
+git apply --ignore-space-change --ignore-whitespace patch.diff
+```
+
+**Success Rate:** ~40-60% (depends on AI patch quality)
+
+### When Patches Fail
+
+If `git apply` fails:
+1. Patch is saved as `patch_failed_{timestamp}.diff`
+2. File is committed to the branch
+3. PR still created with:
+   - AI fix prompt
+   - Manual steps
+   - Failed patch for reference
+
+**Users can:**
+- Use the AI fix prompt with their preferred AI assistant
+- Follow manual steps
+- Manually apply the patch
+- Review and modify the suggested fix
+
+## Token Permissions
+
+The GitHub token needs:
+
+| Permission | Required | Reason |
+| :--- | :--- | :--- |
+| **repo** | ✅ Yes | Clone, push, create PRs |
+| **Contents** | ✅ (included in repo) | Read/write code |
+| **Pull Requests** | ✅ (included in repo) | Create and manage PRs |
+
+**Note:** Classic tokens with `repo` scope include all necessary permissions.
+
 ## Security Best Practices
 
-*   **Least Privilege**: Only grant access to repositories the agent needs to monitor.
-*   **Rotation**: Rotate tokens regularly (every 60-90 days).
+### Token Security
+- **Never commit** tokens to git
+- Store in `.env` (gitignored)
+- Use environment variables in production
+- Rotate tokens every 90 days
+
+### Repository Access
+- Token has access to **all repos** the user owns
+- For organizations, use a dedicated bot account
+- Limit token to specific repos if possible
+
+### Local Testing
+- Use `aia.config.local.yaml` (gitignored)
+- Keep production config with PLACEHOLDER values
+- Never commit real credentials
+
+## Troubleshooting
+
+### "Repository not found"
+- Check `owner` and `repo` in config
+- Verify token has access to the repository
+- Ensure repository exists
+
+### "Permission denied"
+- Token needs `repo` scope
+- Check token hasn't expired
+- Verify token is correctly set in `.env`
+
+### "Failed to push"
+- Check branch doesn't already exist
+- Verify network connectivity
+- Ensure repository allows pushes
+
+### "PR creation failed"
+- Check GitHub API rate limits
+- Verify token permissions
+- Check repository settings allow PRs
+
+## Example Workflow
+
+1. **Incident detected** → Agent receives error
+2. **Autopsy analyzes** → AI generates fix
+3. **Git clones repo** → `git clone https://TOKEN@github.com/owner/repo.git`
+4. **Create branch** → `git checkout -b aia/incident-abc123`
+5. **Apply patch** → `git apply patch.diff` (or save if fails)
+6. **Commit** → `git commit -m "fix: resolve incident abc123"`
+7. **Push** → `git push origin aia/incident-abc123`
+8. **Create PR** → GitHub API call with description
+9. **Dashboard updates** → Shows PR link
+
+## Next Steps
+
+- [Configuration Reference](/docs/reference/config) - Full config options
+- [Architecture](/docs/architecture) - How Git service works
+- [Troubleshooting](/docs/troubleshooting) - Common issues

@@ -1,15 +1,217 @@
 # Architecture Overview
 
-For a detailed breakdown of the services, please see [Architecture](./Architecture.mdx).
+AIA is a microservices-based system that automatically detects, analyzes, and creates fixes for production incidents.
 
-For a step-by-step guide on how data moves through the system, please see [Data Flow](./DataFlow.mdx).
+## Quick Overview
+
+```
+Your App → Agent → Router → Autopsy → State → Git → GitHub PR
+            ↓         ↓         ↓         ↓      ↓
+         OTEL    Enrich     AI      Database  Patch
+```
+
+## Core Services
+
+### 1. Agent (Port 4318)
+**Purpose:** OpenTelemetry receiver and error detection
+
+- Receives traces and logs from your application
+- Runs error detectors (HTTP 5xx, exceptions, latency, crashes)
+- Deduplicates incidents by trace ID
+- Forwards detected incidents to Router
+
+### 2. Router (Port 3001)
+**Purpose:** Incident orchestration and enrichment
+
+- Enriches incidents with code snapshots
+- Extracts file paths from stack traces
+- Reads relevant source code
+- Coordinates workflow between services
+
+### 3. Autopsy (Port 3002)
+**Purpose:** AI-powered analysis
+
+- Calls You.com API for analysis
+- Generates root cause explanations
+- Creates code patches (git diff)
+- Produces AI fix prompts
+- Provides manual remediation steps
+
+### 4. State (Port 3003)
+**Purpose:** Data persistence
+
+- PostgreSQL database interface
+- Stores incidents and autopsy results
+- Provides query API for Dashboard
+- Manages data retention
+
+### 5. Git (Port 3004)
+**Purpose:** GitHub integration
+
+- Clones repositories
+- Applies patches
+- Creates branches
+- Pushes changes
+- Creates Pull Requests
+
+### 6. Dashboard (Port 3000)
+**Purpose:** Web UI
+
+- Displays incidents
+- Shows autopsy results
+- Provides AI fix prompt copy button
+- Links to GitHub PRs
+- Generates PDF reports
+
+## Supporting Services
+
+### 7. Web (Port 3006)
+Marketing and landing page
+
+### 8. Docs (Port 3007)
+This documentation site
+
+### 9. Sample App (Port 3008)
+Demo application for testing
 
 ## Why Microservices?
 
-AIA is split into microservices to allow independent scaling and fault tolerance.
+### Independent Scaling
+- **Agent**: High throughput (many traces)
+- **Autopsy**: CPU-bound (AI analysis)
+- **Git**: I/O-bound (GitHub operations)
 
-*   **Router**: High throughput, strictly I/O bound.
-*   **Autopsy**: CPU and latency bound (LLM calls).
-*   **Repro**: High risk, requires isolation (runs untrusted/crashing code).
+Each can scale independently based on load.
 
-By separating `Repro`, we ensure that a crashing reproduction script does not bring down the main Agent or Router.
+### Fault Isolation
+- If Autopsy fails, incidents still get stored
+- If Git fails, analysis still completes
+- Services can restart without affecting others
+
+### Technology Flexibility
+- Each service can use different tech stack
+- Easy to swap implementations
+- Can optimize per-service
+
+### Development Velocity
+- Teams can work on different services
+- Deploy services independently
+- Test in isolation
+
+## Data Flow
+
+1. **Error Occurs** → Your app encounters an error
+2. **Trace Sent** → OTEL SDK sends trace to Agent
+3. **Detection** → Agent detects error pattern
+4. **Enrichment** → Router adds code context
+5. **Storage** → State saves incident
+6. **Analysis** → Autopsy generates fix
+7. **Storage** → State saves autopsy result
+8. **Git Ops** → Git creates PR
+9. **Display** → Dashboard shows results
+
+**Total Time:** ~8-22 seconds from error to PR
+
+## Communication
+
+Services communicate via HTTP REST APIs:
+
+```typescript
+// Router → State
+POST http://localhost:3003/incidents
+{
+  "id": "inc_abc123",
+  "error_type": "exception",
+  "error_message": "...",
+  ...
+}
+
+// Router → Autopsy
+POST http://localhost:3002/analyze
+{
+  "incident_id": "inc_abc123",
+  "file_context": [...]
+}
+
+// Autopsy → State
+POST http://localhost:3003/autopsy
+{
+  "incident_id": "inc_abc123",
+  "root_cause": "...",
+  "patch_diff": "...",
+  ...
+}
+
+// Router → Git
+POST http://localhost:3004/create-pr
+{
+  "incident_id": "inc_abc123"
+}
+```
+
+## Storage
+
+### PostgreSQL (Primary)
+- Incidents table
+- Autopsy results table
+- Indexed for fast queries
+
+### Cloudflare R2 (Optional)
+- Autopsy result backups
+- Patch file storage
+- Long-term archival
+
+### Local Filesystem
+- Git workspace
+- Service logs
+- Temporary files
+
+## Deployment Options
+
+### Development
+```bash
+bun run dev  # All services on localhost
+```
+
+### Production - Monolith
+```bash
+# All services on one server
+pm2 start ecosystem.config.js
+```
+
+### Production - Distributed
+```bash
+# Each service on separate container/VM
+docker-compose up -d
+```
+
+### Production - Serverless
+```bash
+# Deploy to Vercel, Railway, Fly.io
+# Each service as separate deployment
+```
+
+## Performance Characteristics
+
+| Service | Latency | Throughput | Resource |
+| :--- | :--- | :--- | :--- |
+| Agent | 5-10ms | High | CPU (detection) |
+| Router | 50-100ms | Medium | I/O (file reads) |
+| Autopsy | 2-5s | Low | Network (AI API) |
+| State | 10-20ms | High | I/O (database) |
+| Git | 5-15s | Low | Network (GitHub) |
+| Dashboard | 50-100ms | Medium | I/O (database) |
+
+## Monitoring
+
+Each service exposes:
+- `/health` - Health check endpoint
+- Logs to console and file
+- Metrics (requests, latency, errors)
+
+## Next Steps
+
+- [Architecture](/docs/architecture) - Detailed service descriptions
+- [Data Flow](/docs/architecture/data-flow) - Step-by-step data movement
+- [Running Agent](/docs/running-agent) - Deployment guide
+- [Configuration](/docs/reference/config) - Service configuration
