@@ -1,0 +1,43 @@
+--- a/apps/sample-app/src/index.ts
++++ b/apps/sample-app/src/index.ts
+@@ -38,11 +38,15 @@
+       if (payload.action === "cause_crash") {
+         throw new ReferenceError("config_is_undefined is not defined");
+         return new Response("Crashed", { status: 500 });
+       }
+
+       if (payload.action === "cause_cpu") {
+         const start = Date.now();
+         while (Date.now() - start < 3000) {}
+         throw new Error("Request Timeout - CPU Limit Exceeded");
+       }
+
+-      if (payload?.action === "cause_error") {
+-        console.log("Triggering intentional failure scenario...");
+-        const error = new Error(
+-          "SeededDemoFailure: deterministic bug for AIA demo",
+-        );
+-        console.log(error.stack);
+-        throw error;
+-      }
++      if (payload?.action === "cause_error") {
++        console.log("Triggering intentional failure scenario...");
++        const error = new Error(
++          "SeededDemoFailure: deterministic bug for AIA demo",
++        );
++        console.log(error.stack);
++        return Promise.reject(error);
++      }
+
+       const response: TriggerResponse = { status: "ok" };
+       return new Response(JSON.stringify(response), {
+@@ -52,7 +56,7 @@
+         console.log("Unhandled error processing request:");
+         console.log(err);
+
+-        await tracer.recordError(err, {
++        await tracer.recordError(err, {
+           method: req.method,
+           route: url.pathname,
+           statusCode: 500,
+         });
