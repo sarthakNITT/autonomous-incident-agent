@@ -1,0 +1,17 @@
+--- a/unknown
++++ b/unknown
+@@ -10,9 +10,11 @@
+ 
+ function errorHandler(err, req, res, next) {
+-  // Current error handler that throws or fails
+-  throw new Error('error.handler');
++  if (!err) {
++    res.status(500).send('Unknown error occurred');
++    return;
++  }
++  // Safely handle error and respond
++  res.status(err.status || 500).send(err.message || 'Internal Server Error');
+ }
+ 
+-// other unrelated code
++// other unrelated code
