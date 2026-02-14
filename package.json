@@ -7,7 +7,12 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test": "bun test",
+    "test:health": "bun test apps/*/src/health.test.ts",
+    "test:e2e": "bun test test/e2e.test.ts",
+    "validate": "./scripts/validate-deployment.sh",
+    "deploy:prod": "./scripts/deploy-production.sh"
   },
   "lint-staged": {
     "**/*.{ts,tsx,md,json}": "prettier --write"

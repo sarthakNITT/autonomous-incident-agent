@@ -157,6 +157,9 @@ http://localhost:3006
 
 - **[QUICKSTART.md](./QUICKSTART.md)** - Quick deployment guide
 - **[PRODUCTION_DEPLOYMENT.md](./PRODUCTION_DEPLOYMENT.md)** - Detailed deployment instructions
+- **[PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md)** - Pre-deployment checklist
+- **[SECURITY.md](./SECURITY.md)** - Security policy and best practices
+- **[MONITORING.md](./MONITORING.md)** - Monitoring and observability guide
 - **[PROJECT_CREDENTIALS_INTEGRATION.md](./PROJECT_CREDENTIALS_INTEGRATION.md)** - How credentials work
 - **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Contribution guidelines
 
@@ -320,14 +323,40 @@ docker-compose -f docker-compose.prod.yml down
 
 ## 🧪 Testing
 
+### Run All Tests
+
 ```bash
+# All tests
 bun test
 
+# Health check tests only
+bun test:health
 
-cd apps/autopsy
-bun test
-
+# End-to-end integration tests
 bun test:e2e
+```
+
+### Individual Service Tests
+
+```bash
+# State service
+bun test apps/state/src/health.test.ts
+
+# Router service
+bun test apps/router/src/health.test.ts
+
+# Autopsy service
+bun test apps/autopsy/src/health.test.ts
+
+# Agent service
+bun test apps/agent/src/health.test.ts
+```
+
+### Pre-Deployment Validation
+
+```bash
+# Validate everything before deploying
+./scripts/validate-deployment.sh
 ```
 
 ## 📊 Monitoring
