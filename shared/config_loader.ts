@@ -15,6 +15,13 @@ export function loadConfig(): Config {
 
   const possiblePaths = [
     process.env.AIA_CONFIG_PATH,
+    // Local config takes priority (gitignored, for testing)
+    join(process.cwd(), "aia.config.local.yaml"),
+    join(process.cwd(), "../aia.config.local.yaml"),
+    join(process.cwd(), "../../aia.config.local.yaml"),
+    join(process.cwd(), "../../../aia.config.local.yaml"),
+    join(process.cwd(), "config", "aia.config.local.yaml"),
+    // Then check standard config locations
     join(process.cwd(), "config", "aia.config.yaml"),
     join(process.cwd(), "aia.config.yaml"),
     join(process.cwd(), "../aia.config.yaml"),
@@ -84,7 +91,7 @@ export function loadConfig(): Config {
         provider: "github",
         token: "",
         base_branch: "main",
-        org: "mock-org",
+        owner: "mock-owner",
         repo: "mock-repo",
         username: "aia-bot",
         email: "bot@aia.local",

@@ -26,10 +26,17 @@ ${contextStr}
 Task:
 1. Explain the root cause concisely.
 2. Provide a valid Unified Diff patch to fix the issue.
-   - The patch MUST start with '--- a/{file_path}' and '+++ b/{file_path}'.
-   - The file path in the diff must match exactly: ${req.file_context[0]?.path || "unknown"}.
-   - Include at least 4-5 lines of context (unchanged lines) around the changes.
-   - Ensure typical git diff header format (@@ -start,count +start,count @@).
+   CRITICAL PATCH FORMAT REQUIREMENTS:
+   - The patch MUST start with exactly: --- a/${req.file_context[0]?.path || "unknown"}
+   - Followed by exactly: +++ b/${req.file_context[0]?.path || "unknown"}
+   - Then the hunk header: @@ -startLine,lineCount +startLine,lineCount @@
+   - Include at least 3 lines of unchanged context BEFORE the change
+   - Include at least 3 lines of unchanged context AFTER the change
+   - Unchanged lines start with a space character
+   - Removed lines start with a minus sign (-)
+   - Added lines start with a plus sign (+)
+   - DO NOT include any markdown formatting, code blocks, or explanatory text
+   - The patch must be a valid git diff that can be applied with 'git apply'
 3. Provide a deterministic test case (TypeScript) to reproduce and verify the fix.
 4. Estimate confidence score (0-1).
 5. Provide a "fix_prompt" (string): A comprehensive, detailed prompt that includes:

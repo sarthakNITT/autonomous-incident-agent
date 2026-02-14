@@ -53,6 +53,27 @@ bun run apps/web/src/server.ts
 
 Visit `http://localhost:3007`.
 
+## For Contributors
+
+If you're contributing to this project, you'll need to set up your local environment:
+
+1. **Clone the repository**
+2. **Create `.env` file** with your API keys:
+   ```bash
+   YOU_API_KEY=ydc_your_key_here
+   GITHUB_TOKEN=ghp_your_token_here
+   ```
+3. **Create `aia.config.local.yaml`** (gitignored) with your GitHub details:
+   ```yaml
+   # Copy from aia.config.yaml and update these fields:
+   github:
+     owner: "your-github-username"
+     repo: "your-test-repo-name"
+   ```
+4. **Run the dev server**: `bun run dev`
+
+The system will automatically use `aia.config.local.yaml` if it exists, allowing you to test without modifying the main config file.
+
 ### AI (You.com)
 
 The Autopsy engine uses You.com API for reasoning.
@@ -114,6 +135,8 @@ The system creates Pull Requests automatically when incidents are detected and a
    - If your repo is `https://github.com/johndoe/my-awesome-app`
    - Set `owner: "johndoe"`
    - Set `repo: "my-awesome-app"`
+
+   **💡 Tip for Local Testing**: Create a `aia.config.local.yaml` file (gitignored) with your actual values to test without modifying the main config.
 
 #### Step 3: Verify Token Permissions
 

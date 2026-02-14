@@ -49,3 +49,6 @@ git_workspace/
 # Logs
 verification_logs.txt
 *.log
+
+# Local Config Override (for testing with real credentials)
+aia.config.local.yaml

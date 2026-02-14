@@ -15,7 +15,8 @@ const DEDUPE_WINDOW_MS = 30000;
 console.log("Starting Autonomous Observability Agent (OTel Receiver)...");
 
 const onIncident = async (result: DetectorResult) => {
-  const dedupeKey = `${result.type}:${result.reason}`;
+  // Use just the reason for deduplication to catch same error detected in different ways
+  const dedupeKey = result.reason || "unknown";
   const now = Date.now();
 
   if (incidentCache.has(dedupeKey)) {
