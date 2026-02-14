@@ -6,6 +6,8 @@ import { Check, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
+import { useFileBlock } from "@/lib/file-block-context";
+
 interface CodeBlockProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string;
   icon?: React.ReactNode;
@@ -20,6 +22,11 @@ export function CodeBlock({
 }: CodeBlockProps) {
   const [isCopied, setIsCopied] = React.useState(false);
   const ref = React.useRef<HTMLDivElement>(null);
+  const { isInFileBlock } = useFileBlock();
+
+  if (isInFileBlock) {
+    return <>{children}</>;
+  }
 
   const onCopy = () => {
     if (ref.current) {
@@ -32,12 +39,12 @@ export function CodeBlock({
   return (
     <div
       className={cn(
-        "code-block relative mb-4 mt-6 overflow-hidden rounded-lg border bg-[#0c0c0c] text-foreground",
+        "code-block relative mb-4 mt-6 overflow-hidden rounded-lg bg-[#0c0c0c] text-foreground",
         className,
       )}
       {...props}
     >
-      <div className="flex items-center justify-between border-b bg-[#1a1a1a] px-4 py-2.5">
+      <div className="flex items-center justify-between bg-[#1a1a1a] px-4 py-2.5">
         <div className="flex items-center gap-2">
           {icon}
           <span className="text-xs font-medium text-foreground/80">

@@ -168,7 +168,7 @@ Use PM2 for production process management:
     npm install -g pm2
 
     # Create ecosystem file
-    cat > ecosystem.config.js << 'EOF'
+    <FileBlock filename="ecosystem.config.js">
     module.exports = {
       apps: [
         {
@@ -209,7 +209,7 @@ Use PM2 for production process management:
         }
       ]
     };
-    EOF
+    </FileBlock>
 
     # Start all services
     pm2 start ecosystem.config.js
@@ -257,7 +257,7 @@ Use PM2 for production process management:
 
 Create `docker-compose.yml`:
 
-```yaml
+<FileBlock filename="docker-compose.yml">
 version: '3.8'
 
 services:
@@ -321,7 +321,7 @@ services:
 networks:
   aia-network:
     driver: bridge
-```
+</FileBlock>
 
 Run with Docker Compose:
 
@@ -333,7 +333,8 @@ docker-compose up -d
 
 ### Required
 
-```bash
+<FileBlock filename=".env">
+```ini
 # AI Configuration
 YOU_API_KEY=ydc_your_key_here
 
@@ -343,6 +344,7 @@ GITHUB_TOKEN=ghp_your_token_here
 # Database
 DATABASE_URL=postgresql://user:pass@host/db
 ```
+</FileBlock>
 
 ### Optional
 
@@ -405,6 +407,7 @@ curl http://localhost:3004/health
 
 Create `scripts/health-check.sh`:
 
+<FileBlock filename="scripts/health-check.sh">
 ```bash
 #!/bin/bash
 
@@ -428,6 +431,7 @@ for service in "${services[@]}"; do
   fi
 done
 ```
+</FileBlock>
 
 Run:
 ```bash

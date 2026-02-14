@@ -92,6 +92,7 @@ postgresql://localhost/aia_db
 
 Create a `.env` file in the project root:
 
+<FileBlock filename=".env">
 ```bash
 # AI Configuration
 YOU_API_KEY=ydc_your_actual_key_here
@@ -108,11 +109,13 @@ R2_SECRET_ACCESS_KEY=your_r2_secret_key
 R2_BUCKET_NAME=aia
 R2_ACCOUNT_ID=your_account_id
 ```
+</FileBlock>
 
 ## Step 7: Configure GitHub Repository
 
 Create `aia.config.local.yaml` (gitignored):
 
+<FileBlock filename="aia.config.local.yaml">
 ```yaml
 github:
   provider: "github"
@@ -121,6 +124,7 @@ github:
   repo: "your-repo-name"  # REQUIRED
   base_branch: "main"
 ```
+</FileBlock>
 
 **Example:**
 - If your repo is `https://github.com/johndoe/my-app`

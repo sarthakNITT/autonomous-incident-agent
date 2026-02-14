@@ -11,6 +11,7 @@ import {
   TabsCopyButton,
 } from "@/components/ui/tabs";
 import { Steps, Step } from "@/components/step";
+import { FileBlock } from "@/components/file-block";
 import { cn } from "@/lib/utils";
 
 function slugify(str: string) {
@@ -228,4 +229,5 @@ export const components: MDXComponents = {
   TabsCopyButton,
   Steps,
   Step,
+  FileBlock,
 };
