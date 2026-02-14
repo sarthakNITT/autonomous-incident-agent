@@ -46,7 +46,7 @@ const onIncident = async (result: DetectorResult) => {
 
   const event: IncidentEvent = {
     id: crypto.randomUUID(),
-    service_name: config.project_name,
+    service_name: result.projectId || config.project_name || "unknown-service",
     environment: { env: config.environment, version: "v1.2.0" },
     timestamp: new Date().toISOString(),
     severity: "critical",
@@ -56,6 +56,7 @@ const onIncident = async (result: DetectorResult) => {
     stacktrace: getDetailsFromSignal(result),
     last_logs: [],
     request_id: getRequestId(result),
+    project_id: result.projectId,
   };
 
   const key = `incidents/${event.id}/event.json`;

@@ -1,5 +1,5 @@
 import { loadConfig } from "../../../shared/config_loader";
-import { IncidentModel } from "./models";
+import { IncidentModel, ProjectModel } from "./models";
 import type { CreateIncidentRequest, UpdateIncidentRequest } from "@repo/types";
 
 const config = loadConfig();
@@ -11,6 +11,16 @@ const server = Bun.serve({
     const url = new URL(req.url);
 
     try {
+      if (req.method === "OPTIONS") {
+        return new Response("OK", {
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+          },
+        });
+      }
+
       if (req.method === "GET" && url.pathname === "/incidents") {
         console.log(`[State] GET /incidents - Listing incidents`);
         const incidents = await IncidentModel.list();
@@ -25,6 +35,24 @@ const server = Bun.serve({
         );
         const incident = await IncidentModel.create(body);
         return returnResponse(incident);
+      }
+
+      if (req.method === "POST" && url.pathname === "/projects") {
+        const body = await req.json();
+        const project = await ProjectModel.create(body);
+        return returnResponse(project);
+      }
+
+      if (req.method === "GET" && url.pathname.startsWith("/projects/user/")) {
+        const userId = url.pathname.split("/")[3];
+        const projects = await ProjectModel.listByUser(userId);
+        return returnResponse(projects);
+      }
+
+      if (req.method === "GET" && url.pathname.startsWith("/projects/")) {
+        const id = url.pathname.split("/")[2];
+        const project = await ProjectModel.get(id);
+        return returnResponse(project);
       }
 
       if (url.pathname.startsWith("/incidents/")) {

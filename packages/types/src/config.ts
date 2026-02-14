@@ -4,7 +4,7 @@ import type { GitHubConfig } from "./git";
 export type ServiceConfig = { port: number; base_url: string };
 
 export interface Config {
-  project_name: string;
+  project_name?: string;
   environment: string;
   paths: {
     repo_root: string;
@@ -49,5 +49,5 @@ export interface Config {
     api_key: string;
     model: string;
   };
-  github: GitHubConfig;
+  github?: GitHubConfig;
 }

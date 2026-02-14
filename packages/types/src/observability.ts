@@ -44,6 +44,7 @@ export interface DetectorResult {
   scope: "span" | "log";
   signal: OtelSpan | OtelLog;
   stacktrace?: string;
+  projectId?: string;
 }
 
 export interface DetectionConfig {

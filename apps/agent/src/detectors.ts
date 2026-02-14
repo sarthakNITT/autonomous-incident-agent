@@ -8,7 +8,7 @@ import type {
 export class Detectors {
   constructor(private config: DetectionConfig) {}
 
-  checkSpan(span: OtelSpan): DetectorResult[] {
+  checkSpan(span: OtelSpan, projectId?: string): DetectorResult[] {
     const results: DetectorResult[] = [];
 
     const getAttr = (key: string) => {
@@ -38,6 +38,7 @@ export class Detectors {
           type: "http_error",
           scope: "span",
           signal: span,
+          projectId,
         });
       }
     }
@@ -54,6 +55,7 @@ export class Detectors {
         type: "latency",
         scope: "span",
         signal: span,
+        projectId,
       });
     }
 
@@ -87,6 +89,7 @@ export class Detectors {
             scope: "span",
             signal: span,
             stacktrace: stacktrace,
+            projectId,
           });
         }
       }
@@ -95,7 +98,7 @@ export class Detectors {
     return results;
   }
 
-  checkLog(log: OtelLog): DetectorResult[] {
+  checkLog(log: OtelLog, projectId?: string): DetectorResult[] {
     const results: DetectorResult[] = [];
 
     if (log.severityNumber >= 17) {
@@ -105,6 +108,7 @@ export class Detectors {
         type: "exception",
         scope: "log",
         signal: log,
+        projectId,
       });
     }
 
@@ -118,6 +122,7 @@ export class Detectors {
         type: "crash",
         scope: "log",
         signal: log,
+        projectId,
       });
     }
 

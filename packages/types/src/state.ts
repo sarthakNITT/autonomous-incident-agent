@@ -39,3 +39,24 @@ export interface UpdateIncidentRequest {
   file_path?: string;
   snapshot_id?: string;
 }
+
+export interface Project {
+  id: string;
+  user_id: string;
+  name: string;
+  repo_url: string;
+  github_token?: string;
+  openai_api_key?: string;
+  base_branch: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateProjectRequest {
+  user_id: string;
+  name: string;
+  repo_url: string;
+  github_token?: string;
+  openai_api_key?: string;
+  base_branch?: string;
+}

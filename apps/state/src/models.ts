@@ -86,3 +86,59 @@ export class IncidentModel {
     };
   }
 }
+
+export class ProjectModel {
+  static async create(req: {
+    userId: string;
+    name: string;
+    repoUrl: string;
+    githubToken?: string;
+    openaiApiKey?: string;
+    baseBranch?: string;
+  }): Promise<any> {
+    const prisma = getPrisma();
+    const project = await prisma.project.create({
+      data: {
+        userId: req.userId,
+        name: req.name,
+        repoUrl: req.repoUrl,
+        githubToken: req.githubToken,
+        openaiApiKey: req.openaiApiKey,
+        baseBranch: req.baseBranch || "main",
+      },
+    });
+    return this.mapToProject(project);
+  }
+
+  static async get(id: string): Promise<any> {
+    const prisma = getPrisma();
+    const project = await prisma.project.findUnique({
+      where: { id },
+    });
+    if (!project) throw new Error(`Project ${id} not found`);
+    return this.mapToProject(project);
+  }
+
+  static async listByUser(userId: string): Promise<any[]> {
+    const prisma = getPrisma();
+    const projects = await prisma.project.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+    });
+    return projects.map(this.mapToProject);
+  }
+
+  private static mapToProject(p: any) {
+    return {
+      id: p.id,
+      user_id: p.userId,
+      name: p.name,
+      repo_url: p.repoUrl,
+      github_token: p.githubToken,
+      openai_api_key: p.openaiApiKey,
+      base_branch: p.baseBranch,
+      created_at: p.createdAt.toISOString(),
+      updated_at: p.updatedAt.toISOString(),
+    };
+  }
+}
