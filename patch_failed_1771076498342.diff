@@ -1,0 +1,19 @@
+--- a/unknown
++++ b/unknown
+@@ -10,10 +10,12 @@
+ 
+ function errorHandler(err, req, res, next) {
+-  // Current error handler that throws or fails
+-  throw new Error('error.handler');
++  try {
++    // Properly handle the error without throwing
++    console.error('Handling error:', err);
++    res.status(500).json({ message: 'Internal Server Error' });
++  } catch (handlerErr) {
++    // Fallback to avoid recursive error
++    console.error('Error in error handler:', handlerErr);
++    res.status(500).send('Internal Server Error');
++  }
+ }
+ 
+ module.exports = errorHandler;
