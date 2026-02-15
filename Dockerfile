@@ -9,6 +9,8 @@ COPY apps/state/package.json ./apps/state/
 COPY apps/autopsy/package.json ./apps/autopsy/
 COPY packages/types/package.json ./packages/types/
 COPY packages/storage/package.json ./packages/storage/
+COPY packages/eslint-config/package.json ./packages/eslint-config/
+COPY packages/typescript-config/package.json ./packages/typescript-config/
 
 # Install dependencies
 RUN bun install --frozen-lockfile
