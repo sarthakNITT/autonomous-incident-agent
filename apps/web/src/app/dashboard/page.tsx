@@ -53,9 +53,8 @@ export default function DashboardPage() {
 
   const loadProjects = async (userId: string) => {
     try {
-      const response = await axios.get(
-        `http://localhost:3003/projects/user/${userId}`,
-      );
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3003";
+      const response = await axios.get(`${apiUrl}/projects/user/${userId}`);
       setProjects(response.data);
     } catch (error) {
       console.error("Failed to load projects", error);
@@ -71,7 +70,8 @@ export default function DashboardPage() {
 
     setIsCreating(true);
     try {
-      const response = await axios.post("http://localhost:3003/projects", {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3003";
+      const response = await axios.post(`${apiUrl}/projects`, {
         userId: user.id,
         name,
         repoUrl,
