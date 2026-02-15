@@ -182,11 +182,17 @@ export function loadConfig(): Config {
       config.services.autopsy = { port: 3002, base_url: "" };
     if (!config.services.git)
       config.services.git = { port: 3004, base_url: "" };
+    if (!config.services.repro)
+      config.services.repro = { port: 3005, base_url: "" };
+    if (!config.services.dashboard)
+      config.services.dashboard = { port: 3000, base_url: "" };
 
     config.services.state.base_url = "http://localhost:3003";
     config.services.router.base_url = "http://localhost:3001";
     config.services.autopsy.base_url = "http://localhost:3002";
     config.services.git.base_url = "http://localhost:3004";
+    config.services.repro.base_url = "http://localhost:3005";
+    config.services.dashboard.base_url = "http://localhost:3000";
   }
 
   if (!isDocker && process.env.NODE_ENV !== "production") {
@@ -251,7 +257,6 @@ export function loadConfig(): Config {
     };
   }
 
-  // Override service URLs from environment variables (for Vercel frontend)
   if (process.env.NEXT_PUBLIC_API_URL) {
     console.log(
       `[ConfigLoader] Overriding service URLs with NEXT_PUBLIC_API_URL: ${process.env.NEXT_PUBLIC_API_URL}`,
