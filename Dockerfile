@@ -28,6 +28,9 @@ COPY . .
 COPY aia.config.production.yaml ./aia.config.yaml
 COPY shared ./shared
 
+# Generate Prisma Client
+RUN bunx prisma generate
+
 # Build packages
 RUN cd packages/types && bun run build || true
 RUN cd packages/storage && bun run build || true
