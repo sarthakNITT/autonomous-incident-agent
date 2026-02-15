@@ -38,7 +38,7 @@ export function HeroSection() {
             className="mt-10 flex items-center justify-center gap-x-6"
           >
             <Button asChild size="lg">
-              <a href={DASHBOARD_URL} target="_blank" rel="noopener noreferrer">
+              <a href={"/dashboard"} target="_blank" rel="noopener noreferrer">
                 Get Started <ArrowRight className="ml-2 h-4 w-4" />
               </a>
             </Button>

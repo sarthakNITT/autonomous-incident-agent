@@ -166,7 +166,15 @@ export function loadConfig(): Config {
     }
   }
 
-  if (process.env.PORT) {
+  // Override service URLs for production (all services in same container)
+  if (isDocker || process.env.NODE_ENV === "production") {
+    console.log(
+      "[ConfigLoader] Production mode: using localhost for service URLs",
+    );
+    config.services.state.base_url = "http://localhost:3003";
+    config.services.router.base_url = "http://localhost:3001";
+    config.services.autopsy.base_url = "http://localhost:3002";
+    config.services.git.base_url = "http://localhost:3004";
   }
 
   if (
