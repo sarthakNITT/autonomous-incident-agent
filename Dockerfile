@@ -18,8 +18,8 @@ RUN bun install
 # Copy source code
 COPY . .
 
-# Copy config
-COPY aia.config.yaml ./
+# Copy production config
+COPY aia.config.production.yaml ./aia.config.yaml
 COPY shared ./shared
 
 # Build packages
