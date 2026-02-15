@@ -166,7 +166,6 @@ export function loadConfig(): Config {
     }
   }
 
-  // Override service URLs for production (all services in same container)
   if (isDocker || process.env.NODE_ENV === "production") {
     console.log(
       "[ConfigLoader] Production mode: using localhost for service URLs",
@@ -177,15 +176,17 @@ export function loadConfig(): Config {
     config.services.git.base_url = "http://localhost:3004";
   }
 
-  if (
-    !config.github ||
-    !config.github.token ||
-    config.github.token === "PLACEHOLDER"
-  ) {
-    if (!process.env.GITHUB_TOKEN) {
-      throw new Error(
-        "GitHub Configuration (GITHUB_TOKEN) missing. Mock mode is disabled.",
-      );
+  if (!isDocker && process.env.NODE_ENV !== "production") {
+    if (
+      !config.github ||
+      !config.github.token ||
+      config.github.token === "PLACEHOLDER"
+    ) {
+      if (!process.env.GITHUB_TOKEN) {
+        throw new Error(
+          "GitHub Configuration (GITHUB_TOKEN) missing. Mock mode is disabled.",
+        );
+      }
     }
   }
 
