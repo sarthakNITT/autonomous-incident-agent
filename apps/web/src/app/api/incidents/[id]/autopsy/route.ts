@@ -7,15 +7,16 @@ const storage = new R2Client(config.storage);
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
+  const { id } = await params;
   try {
     const autopsyJson = await storage.downloadJSON(
-      `incidents/${params.id}/autopsy.json`,
+      `incidents/${id}/autopsy.json`,
     );
     return NextResponse.json(autopsyJson);
   } catch (e) {
-    console.error(`Failed to fetch autopsy for ${params.id}:`, e);
+    console.error(`Failed to fetch autopsy for ${id}:`, e);
     return NextResponse.json({}, { status: 404 });
   }
 }

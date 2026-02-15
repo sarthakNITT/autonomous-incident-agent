@@ -170,7 +170,6 @@ export function loadConfig(): Config {
     config.services = {} as any;
   }
 
-  // Override service URLs for production (all services in same container)
   if (isDocker || process.env.NODE_ENV === "production") {
     console.log(
       "[ConfigLoader] Production mode: using localhost for service URLs",
