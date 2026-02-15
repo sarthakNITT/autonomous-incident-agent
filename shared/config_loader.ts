@@ -251,6 +251,23 @@ export function loadConfig(): Config {
     };
   }
 
+  // Override service URLs from environment variables (for Vercel frontend)
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    console.log(
+      `[ConfigLoader] Overriding service URLs with NEXT_PUBLIC_API_URL: ${process.env.NEXT_PUBLIC_API_URL}`,
+    );
+    if (!config.services.state)
+      config.services.state = { port: 0, base_url: "" };
+    if (!config.services.router)
+      config.services.router = { port: 0, base_url: "" };
+    if (!config.services.autopsy)
+      config.services.autopsy = { port: 0, base_url: "" };
+
+    config.services.state.base_url = process.env.NEXT_PUBLIC_API_URL;
+    config.services.router.base_url = process.env.NEXT_PUBLIC_API_URL;
+    config.services.autopsy.base_url = process.env.NEXT_PUBLIC_API_URL;
+  }
+
   if (!config.database) {
     config.database = {
       provider: "postgres",
