@@ -10,7 +10,6 @@
   "dependencies": {
     "@repo/types": "workspace:*",
     "@repo/storage": "workspace:*",
-    "bun": "latest",
     "diff": "^5.1.0"
   },
   "devDependencies": {

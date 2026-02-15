@@ -8,8 +8,7 @@
   },
   "dependencies": {
     "@repo/types": "workspace:*",
-    "@repo/storage": "workspace:*",
-    "bun": "latest"
+    "@repo/storage": "workspace:*"
   },
   "devDependencies": {
     "@types/bun": "latest"

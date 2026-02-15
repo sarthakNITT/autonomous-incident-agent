@@ -8,7 +8,6 @@
   },
   "dependencies": {
     "@repo/types": "workspace:*",
-    "bun": "latest",
     "@prisma/client": "^6.2.0"
   },
   "devDependencies": {
