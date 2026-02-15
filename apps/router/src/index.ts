@@ -9,7 +9,7 @@ import { loadConfig } from "../../../shared/config_loader";
 import { R2Client } from "@repo/storage";
 
 const config = loadConfig();
-const PORT = config.services.router.port;
+const PORT = process.env.PORT || config.services.router.port;
 const STATE_SERVICE_URL = config.services.state.base_url;
 
 const storage = new R2Client(config.storage);
