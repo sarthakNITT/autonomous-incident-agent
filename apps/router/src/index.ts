@@ -28,6 +28,71 @@ const server = Bun.serve({
       );
     }
 
+    if (
+      url.pathname === "/incidents" ||
+      url.pathname.startsWith("/incidents/")
+    ) {
+      try {
+        const stateUrl = `${STATE_SERVICE_URL}${url.pathname}${url.search}`;
+        console.log(`[Router] Proxying to state service: ${stateUrl}`);
+
+        const stateRes = await fetch(stateUrl, {
+          method: req.method,
+          headers: req.headers,
+          body: req.method !== "GET" ? await req.text() : undefined,
+        });
+
+        const data = await stateRes.text();
+        return new Response(data, {
+          status: stateRes.status,
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+        });
+      } catch (e) {
+        console.error(`[Router] Failed to proxy to state service:`, e);
+        return new Response(
+          JSON.stringify({ error: "State service unavailable" }),
+          {
+            status: 503,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+      }
+    }
+
+    if (url.pathname === "/projects" || url.pathname.startsWith("/projects/")) {
+      try {
+        const stateUrl = `${STATE_SERVICE_URL}${url.pathname}${url.search}`;
+        console.log(`[Router] Proxying to state service: ${stateUrl}`);
+
+        const stateRes = await fetch(stateUrl, {
+          method: req.method,
+          headers: req.headers,
+          body: req.method !== "GET" ? await req.text() : undefined,
+        });
+
+        const data = await stateRes.text();
+        return new Response(data, {
+          status: stateRes.status,
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+        });
+      } catch (e) {
+        console.error(`[Router] Failed to proxy to state service:`, e);
+        return new Response(
+          JSON.stringify({ error: "State service unavailable" }),
+          {
+            status: 503,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+      }
+    }
+
     if (req.method === "POST" && url.pathname === "/ingest") {
       try {
         const event = (await req.json()) as IncidentEvent;

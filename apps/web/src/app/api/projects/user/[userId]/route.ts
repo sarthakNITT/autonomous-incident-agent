@@ -21,13 +21,24 @@ export async function GET(
       );
     }
 
-    const response = await axios.get(
-      `${config.services.state.base_url}/projects/user/${userId}`,
+    console.log(
+      `[Projects API] Fetching projects for user: ${userId} from ${STATE_SERVICE_URL}`,
     );
+
+    const response = await axios.get(
+      `${STATE_SERVICE_URL}/projects/user/${userId}`,
+    );
+
+    console.log(`[Projects API] Found ${response.data?.length || 0} projects`);
 
     return NextResponse.json(response.data || []);
   } catch (error: any) {
-    console.error("Failed to fetch user projects", error);
+    console.error(
+      "[Projects API] Failed to fetch user projects:",
+      error.message,
+    );
+    console.error("[Projects API] State service URL:", STATE_SERVICE_URL);
+    console.error("[Projects API] Full error:", error);
 
     if (error.response?.status === 404 || error.response?.data?.length === 0) {
       return NextResponse.json([]);
