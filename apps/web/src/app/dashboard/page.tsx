@@ -19,6 +19,7 @@ import { Plus, Github, Lock, Copy, Check, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 import { ProjectsGridSkeleton } from "@/components/skeletons/project-skeleton";
+import { BackendStatusBanner } from "@/components/ui/backend-status-banner";
 
 import { Project } from "@repo/types";
 
@@ -113,6 +114,8 @@ export default function DashboardPage() {
       <main className="flex-1 bg-muted/30 py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <SignedIn>
+            <BackendStatusBanner checkInterval={30000} />
+
             <div className="flex items-center justify-between mb-8">
               <div>
                 <h1 className="text-3xl font-bold tracking-tight text-foreground">
