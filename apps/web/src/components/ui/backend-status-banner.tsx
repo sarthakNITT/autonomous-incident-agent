@@ -20,11 +20,13 @@ export function BackendStatusBanner({
   const checkBackendHealth = async () => {
     setIsChecking(true);
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3003";
+      const apiUrl = process.env.NEXT_PUBLIC_ROUTER_URL || "";
+      const healthUrl = apiUrl ? `${apiUrl}/health` : "/api/health-check";
+
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-      const response = await fetch(`${apiUrl}/health`, {
+      const response = await fetch(healthUrl, {
         signal: controller.signal,
         cache: "no-store",
       });
