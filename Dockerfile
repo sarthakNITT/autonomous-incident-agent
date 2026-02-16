@@ -18,7 +18,10 @@ COPY packages/storage/package.json ./packages/storage/
 COPY packages/eslint-config/package.json ./packages/eslint-config/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 
-# Install dependencies
+# Copy Prisma schema (needed for postinstall script)
+COPY prisma ./prisma
+
+# Install dependencies (this will run postinstall and generate Prisma client)
 RUN bun install
 
 # Copy source code
@@ -27,9 +30,6 @@ COPY . .
 # Copy production config
 COPY aia.config.production.yaml ./aia.config.yaml
 COPY shared ./shared
-
-# Generate Prisma Client
-RUN bunx prisma generate
 
 # Build packages
 RUN cd packages/types && bun run build || true
