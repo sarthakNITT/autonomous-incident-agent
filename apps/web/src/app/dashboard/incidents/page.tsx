@@ -26,7 +26,6 @@ import {
 import { toast } from "sonner";
 import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/nextjs";
 import { IncidentsListSkeleton } from "@/components/skeletons/incident-skeleton";
-import { BackendStatusBanner } from "@/components/ui/backend-status-banner";
 
 interface Incident {
   id: string;
@@ -113,8 +112,6 @@ export default function IncidentsPage() {
       <main className="flex-1 bg-muted/30 py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <SignedIn>
-            <BackendStatusBanner checkInterval={30000} />
-
             <div className="mb-8">
               <h1 className="text-3xl font-bold tracking-tight text-foreground">
                 Incidents
