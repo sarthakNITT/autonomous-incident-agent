@@ -53,12 +53,17 @@ export default function DashboardPage() {
 
   const loadProjects = async (userId: string) => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3003";
-      const response = await axios.get(`${apiUrl}/projects/user/${userId}`);
-      setProjects(response.data);
+      const response = await axios.get(`/api/projects/user/${userId}`);
+      const projectsData = Array.isArray(response.data)
+        ? response.data
+        : response.data.projects || [];
+      setProjects(projectsData);
     } catch (error) {
       console.error("Failed to load projects", error);
-      toast.error("Failed to load projects");
+      if (error && (error as any).response?.status !== 404) {
+        toast.error("Failed to load projects");
+      }
+      setProjects([]);
     } finally {
       setIsLoading(false);
     }

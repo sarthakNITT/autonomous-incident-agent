@@ -42,6 +42,6 @@ export async function GET() {
     return NextResponse.json({ incidents: enrichedIncidents });
   } catch (e) {
     console.error("Failed to fetch incidents", e);
-    return NextResponse.json({ incidents: [] }, { status: 500 });
+    return NextResponse.json({ incidents: [] });
   }
 }
