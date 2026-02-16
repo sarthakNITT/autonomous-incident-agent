@@ -4,6 +4,9 @@ import { loadConfig } from "../../../../../../../../shared/config_loader";
 
 const config = loadConfig();
 
+const STATE_SERVICE_URL =
+  process.env.STATE_SERVICE_URL || config.services.state.base_url;
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ userId: string }> },
