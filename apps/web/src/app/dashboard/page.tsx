@@ -33,7 +33,7 @@ export default function DashboardPage() {
   const [name, setName] = useState("");
   const [repoUrl, setRepoUrl] = useState("");
   const [githubToken, setGithubToken] = useState("");
-  const [openaiKey, setOpenaiKey] = useState("");
+
   const [baseBranch, setBaseBranch] = useState("main");
 
   useEffect(() => {
@@ -82,7 +82,7 @@ export default function DashboardPage() {
         name,
         repoUrl,
         githubToken,
-        openaiApiKey: openaiKey,
+
         baseBranch,
       });
 
@@ -92,7 +92,7 @@ export default function DashboardPage() {
         setName("");
         setRepoUrl("");
         setGithubToken("");
-        setOpenaiKey("");
+
         loadProjects(user.id);
       } else {
         toast.error("Failed to create project");
@@ -185,21 +185,6 @@ export default function DashboardPage() {
                         <p className="text-xs text-muted-foreground">
                           Required for creating PRs. Can be set globally via
                           env.
-                        </p>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="openai">
-                          OpenAI Format Key (Optional)
-                        </Label>
-                        <Input
-                          id="openai"
-                          type="password"
-                          placeholder="sk-..."
-                          value={openaiKey}
-                          onChange={(e) => setOpenaiKey(e.target.value)}
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          Override default AI provider key.
                         </p>
                       </div>
                     </div>
