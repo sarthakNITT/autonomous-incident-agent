@@ -6,7 +6,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 
 interface BackendStatusBannerProps {
-  checkInterval?: number; // in milliseconds, default 30s
+  checkInterval?: number;
 }
 
 export function BackendStatusBanner({
@@ -22,7 +22,7 @@ export function BackendStatusBanner({
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3003";
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
 
       const response = await fetch(`${apiUrl}/health`, {
         signal: controller.signal,
@@ -60,10 +60,8 @@ export function BackendStatusBanner({
   };
 
   useEffect(() => {
-    // Initial check
     checkBackendHealth();
 
-    // Set up periodic health checks
     const interval = setInterval(checkBackendHealth, checkInterval);
 
     return () => clearInterval(interval);

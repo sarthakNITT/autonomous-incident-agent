@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import axios from "axios";
 import { loadConfig } from "../../../../../../../../shared/config_loader";
+import { ensureUserInDatabase } from "@/lib/user-sync";
+import { auth } from "@clerk/nextjs/server";
 
 const config = loadConfig();
 
@@ -13,6 +15,13 @@ export async function GET(
 ) {
   try {
     const { userId } = await params;
+
+    const { userId: authUserId } = await auth();
+    if (!authUserId || authUserId !== userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    await ensureUserInDatabase();
 
     if (!userId) {
       return NextResponse.json(

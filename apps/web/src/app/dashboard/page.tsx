@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import Link from "next/link";
 import { ProjectsGridSkeleton } from "@/components/skeletons/project-skeleton";
 import { BackendStatusBanner } from "@/components/ui/backend-status-banner";
+import { UserProfileCard } from "@/components/dashboard/user-profile-card";
 
 import { Project } from "@repo/types";
 
@@ -115,6 +116,8 @@ export default function DashboardPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <SignedIn>
             <BackendStatusBanner checkInterval={30000} />
+
+            <UserProfileCard />
 
             <div className="flex items-center justify-between mb-8">
               <div>
