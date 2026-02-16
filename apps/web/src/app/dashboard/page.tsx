@@ -18,6 +18,7 @@ import {
 import { Plus, Github, Lock, Copy, Check, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { ProjectsGridSkeleton } from "@/components/skeletons/project-skeleton";
 
 import { Project } from "@repo/types";
 
@@ -248,28 +249,26 @@ export default function DashboardPage() {
               </Card>
             )}
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {isLoading ? (
-                <div className="col-span-full text-center py-12 text-muted-foreground">
-                  Loading projects...
-                </div>
-              ) : projects.length === 0 ? (
-                <div className="col-span-full text-center py-12 border rounded-lg border-dashed">
-                  <h3 className="text-lg font-medium">No projects yet</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Create your first project to get started.
-                  </p>
-                  <Button onClick={() => setShowForm(true)}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    New Project
-                  </Button>
-                </div>
-              ) : (
-                projects.map((project) => (
+            {isLoading ? (
+              <ProjectsGridSkeleton count={3} />
+            ) : projects.length === 0 ? (
+              <div className="text-center py-12 border rounded-lg border-dashed">
+                <h3 className="text-lg font-medium">No projects yet</h3>
+                <p className="text-muted-foreground mb-4">
+                  Create your first project to get started.
+                </p>
+                <Button onClick={() => setShowForm(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  New Project
+                </Button>
+              </div>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {projects.map((project) => (
                   <ProjectCard key={project.id} project={project} />
-                ))
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </SignedIn>
 
           <SignedOut>

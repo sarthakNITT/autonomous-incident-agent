@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/nextjs";
+import { IncidentsListSkeleton } from "@/components/skeletons/incident-skeleton";
 
 interface Incident {
   id: string;
@@ -121,9 +122,7 @@ export default function IncidentsPage() {
             </div>
 
             {isLoading ? (
-              <div className="text-center py-12 text-muted-foreground">
-                Loading incidents...
-              </div>
+              <IncidentsListSkeleton count={3} />
             ) : incidents.length === 0 ? (
               <Card className="border-dashed">
                 <CardContent className="flex flex-col items-center justify-center py-12">
