@@ -11,10 +11,14 @@ const STATE_SERVICE_URL =
 
 export async function GET() {
   try {
-    const response = await axios.get(
-      `${config.services.state.base_url}/incidents`,
+    console.log(
+      `[Incidents API] Fetching from: ${STATE_SERVICE_URL}/incidents`,
     );
+
+    const response = await axios.get(`${STATE_SERVICE_URL}/incidents`);
     const incidents = response.data;
+
+    console.log(`[Incidents API] Fetched ${incidents.length} incidents`);
 
     const enrichedIncidents = await Promise.all(
       incidents.map(async (incident: any) => {
@@ -42,9 +46,14 @@ export async function GET() {
       }),
     );
 
+    console.log(
+      `[Incidents API] Returning ${enrichedIncidents.length} enriched incidents`,
+    );
     return NextResponse.json({ incidents: enrichedIncidents });
-  } catch (e) {
-    console.error("Failed to fetch incidents", e);
+  } catch (e: any) {
+    console.error("[Incidents API] Failed to fetch incidents:", e.message);
+    console.error("[Incidents API] State service URL:", STATE_SERVICE_URL);
+    console.error("[Incidents API] Full error:", e);
     return NextResponse.json({ incidents: [] });
   }
 }
