@@ -33,8 +33,11 @@ export default function DashboardPage() {
   const [name, setName] = useState("");
   const [repoUrl, setRepoUrl] = useState("");
   const [githubToken, setGithubToken] = useState("");
-
   const [baseBranch, setBaseBranch] = useState("main");
+  const [resolutionMode, setResolutionMode] = useState("manual");
+  const [branches, setBranches] = useState<string[]>([]);
+  const [isConnected, setIsConnected] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
 
   useEffect(() => {
     if (user?.id) {
@@ -70,6 +73,35 @@ export default function DashboardPage() {
     }
   };
 
+  const handleConnectRepo = async () => {
+    if (!repoUrl) {
+      toast.error("Please enter a repository URL");
+      return;
+    }
+
+    setIsConnecting(true);
+    try {
+      const response = await axios.post("/api/github/branches", {
+        repoUrl,
+        githubToken,
+      });
+
+      setBranches(response.data.branches);
+      setIsConnected(true);
+      if (response.data.branches.length > 0) {
+        setBaseBranch(response.data.branches[0]);
+      }
+      toast.success("Repository connected successfully");
+    } catch (error: any) {
+      console.error("Failed to connect repository", error);
+      toast.error(
+        error.response?.data?.error || "Failed to connect to repository",
+      );
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user?.id) return;
@@ -82,8 +114,8 @@ export default function DashboardPage() {
         name,
         repoUrl,
         githubToken,
-
         baseBranch,
+        resolutionMode,
       });
 
       if (response.status === 200 || response.status === 201) {
@@ -92,7 +124,10 @@ export default function DashboardPage() {
         setName("");
         setRepoUrl("");
         setGithubToken("");
-
+        setBaseBranch("main");
+        setResolutionMode("manual");
+        setBranches([]);
+        setIsConnected(false);
         loadProjects(user.id);
       } else {
         toast.error("Failed to create project");
@@ -139,27 +174,9 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleCreateProject} className="space-y-4">
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    {/* Step 1: Repository Connection */}
+                    <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="name">Project Name</Label>
-                        <Input
-                          id="name"
-                          placeholder="e.g. My Website"
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="branch">Base Branch</Label>
-                        <Input
-                          id="branch"
-                          placeholder="main"
-                          value={baseBranch}
-                          onChange={(e) => setBaseBranch(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2 md:col-span-2">
                         <Label htmlFor="repo">GitHub Repository URL</Label>
                         <div className="relative">
                           <Github className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -168,11 +185,17 @@ export default function DashboardPage() {
                             className="pl-9"
                             placeholder="https://github.com/username/repo"
                             value={repoUrl}
-                            onChange={(e) => setRepoUrl(e.target.value)}
+                            onChange={(e) => {
+                              setRepoUrl(e.target.value);
+                              setIsConnected(false);
+                              setBranches([]);
+                            }}
                             required
+                            disabled={isConnected}
                           />
                         </div>
                       </div>
+
                       <div className="space-y-2">
                         <Label htmlFor="token">GitHub Token (Optional)</Label>
                         <Input
@@ -181,25 +204,99 @@ export default function DashboardPage() {
                           placeholder="ghp_..."
                           value={githubToken}
                           onChange={(e) => setGithubToken(e.target.value)}
+                          disabled={isConnected}
                         />
                         <p className="text-xs text-muted-foreground">
-                          Required for creating PRs. Can be set globally via
-                          env.
+                          Recommended for private repos and creating PRs
                         </p>
                       </div>
+
+                      {!isConnected && (
+                        <Button
+                          type="button"
+                          onClick={handleConnectRepo}
+                          disabled={isConnecting || !repoUrl}
+                          className="w-full"
+                        >
+                          {isConnecting
+                            ? "Connecting..."
+                            : "Connect Repository"}
+                        </Button>
+                      )}
                     </div>
-                    <div className="flex justify-end gap-2 pt-4">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        onClick={() => setShowForm(false)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button type="submit" disabled={isCreating}>
-                        {isCreating ? "Creating..." : "Create Project"}
-                      </Button>
-                    </div>
+
+                    {/* Step 2: Expanded Form (after connection) */}
+                    {isConnected && (
+                      <div className="space-y-4 pt-4 border-t">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                          <div className="space-y-2">
+                            <Label htmlFor="name">Project Name</Label>
+                            <Input
+                              id="name"
+                              placeholder="e.g. My Website"
+                              value={name}
+                              onChange={(e) => setName(e.target.value)}
+                              required
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="branch">Base Branch</Label>
+                            <select
+                              id="branch"
+                              value={baseBranch}
+                              onChange={(e) => setBaseBranch(e.target.value)}
+                              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                            >
+                              {branches.map((branch) => (
+                                <option key={branch} value={branch}>
+                                  {branch}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="resolution">Resolution Mode</Label>
+                          <select
+                            id="resolution"
+                            value={resolutionMode}
+                            onChange={(e) => setResolutionMode(e.target.value)}
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          >
+                            <option value="manual">
+                              Manual Fix (Provide instructions)
+                            </option>
+                            <option value="auto">
+                              Auto PR (Automatically create pull requests)
+                            </option>
+                          </select>
+                          <p className="text-xs text-muted-foreground">
+                            Choose how incidents should be resolved
+                          </p>
+                        </div>
+
+                        <div className="flex justify-end gap-2 pt-4">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() => {
+                              setShowForm(false);
+                              setIsConnected(false);
+                              setBranches([]);
+                              setRepoUrl("");
+                              setGithubToken("");
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                          <Button type="submit" disabled={isCreating}>
+                            {isCreating ? "Creating..." : "Create Project"}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </form>
                 </CardContent>
               </Card>

@@ -41,17 +41,18 @@ model Incident {
 }
 
 model Project {
-  id           String     @id @default(uuid())
-  userId       String     @map("user_id")
-  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name         String
-  repoUrl      String     @map("repo_url")
-  githubToken  String?    @map("github_token")
-  openaiApiKey String?    @map("openai_api_key")
-  baseBranch   String     @default("main") @map("base_branch")
-  createdAt    DateTime   @default(now()) @map("created_at")
-  updatedAt    DateTime   @updatedAt @map("updated_at")
-  incidents    Incident[]
+  id              String     @id @default(uuid())
+  userId          String     @map("user_id")
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  repoUrl         String     @map("repo_url")
+  githubToken     String?    @map("github_token")
+  openaiApiKey    String?    @map("openai_api_key")
+  baseBranch      String     @default("main") @map("base_branch")
+  resolutionMode  String     @default("manual") @map("resolution_mode")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+  incidents       Incident[]
 
   @@map("projects")
 }

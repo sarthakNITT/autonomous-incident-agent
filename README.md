@@ -1,6 +1,6 @@
 # 🤖 Autonomous Incident Agent (AIA)
 
-**AI-powered incident detection, root cause analysis, and automated fixes for your applications.**
+**AI-powered deployment monitoring and automated incident resolution for your applications.**
 
 [![Production Ready](https://img.shields.io/badge/production-ready-green.svg)](./QUICKSTART.md)
 [![Docker](https://img.shields.io/badge/docker-supported-blue.svg)](./docker-compose.prod.yml)
@@ -8,241 +8,266 @@
 
 ## 🌟 What is AIA?
 
-AIA is an autonomous system that:
+AIA is an autonomous incident resolution service that monitors your deployments and automatically fixes errors:
 
-- 🔍 **Detects incidents** in real-time using OpenTelemetry
-- 🧠 **Analyzes root causes** using AI (GPT-4)
-- 🔧 **Generates fixes** with AI prompts and manual steps
-- 📊 **Provides insights** through a modern dashboard
-- 🔐 **Supports multi-tenancy** with per-project credentials
+- 🚀 **Monitors Deployments** - Integrates with Vercel & GitHub Pages via webhooks
+- 🔍 **Detects Failures** - Catches deployment errors in real-time
+- 🧠 **Analyzes Root Causes** - AI-powered error analysis using GPT-4
+- 🔧 **Generates Fixes** - Automatic PR creation or manual fix instructions
+- 📊 **Beautiful Dashboard** - Modern UI to manage projects and view incidents
 
 ## 🚀 Quick Start
 
-### For Users (Deploy as a Service)
+### For Users (Using AIA as a Service)
 
-Deploy AIA to monitor your applications:
+**No infrastructure setup needed!** Just:
+
+1. **Sign up** at the AIA dashboard
+2. **Create a project** - Enter your GitHub repo URL and token
+3. **Configure webhook** - Add AIA's webhook to Vercel/GitHub Pages
+4. **Done!** - AIA monitors your deployments automatically
+
+#### Step-by-Step:
+
+```bash
+# 1. Visit the dashboard
+open https://your-aia-instance.com
+
+# 2. Create a project with:
+#    - Project Name
+#    - GitHub Repository URL
+#    - GitHub Token (for private repos & PRs)
+#    - Base Branch (auto-detected from your repo)
+#    - Resolution Mode (Auto PR or Manual Fix)
+
+# 3. Copy the webhook URL from dashboard and add to:
+#    - Vercel: Settings → Git → Deploy Hooks
+#    - GitHub Pages: Settings → Webhooks
+```
+
+**That's it!** No database setup, no API keys to manage, no storage configuration needed.
+
+### For Developers (Self-Hosting AIA)
+
+Deploy your own AIA instance:
 
 ```bash
 git clone https://github.com/sarthakNITT/autonomous-incident-agent.git
 cd autonomous-incident-agent
 
+# Configure environment
 cp .env.production.template .env.production
+nano .env.production  # Add your credentials
 
+# Deploy with Docker
 ./scripts/deploy-production.sh
 
+# Access dashboard
 open http://localhost:3006
 ```
 
-**See [QUICKSTART.md](./QUICKSTART.md) for detailed deployment instructions.**
+**See [QUICKSTART.md](./QUICKSTART.md) for detailed self-hosting instructions.**
 
 ### For Contributors (Local Development)
-
-Set up the development environment:
 
 ```bash
 git clone https://github.com/sarthakNITT/autonomous-incident-agent.git
 cd autonomous-incident-agent
 
 bun install
-
 cp .env.local.example .env.local
 
+# Setup database
 cd apps/state
-npx prisma migrate dev
-npx prisma generate
+bunx prisma migrate dev
+bunx prisma generate
 cd ../..
 
+# Start all services
 bun run dev
 
-http://localhost:3006
+# Dashboard: http://localhost:3006
 ```
 
-## 📋 Prerequisites
+## 📋 What Users Need
 
-### For Production Deployment:
+### As a Service User (Zero Infrastructure):
 
-- Docker and Docker Compose
-- PostgreSQL database (or use included Docker Postgres)
-- Cloudflare R2 account (for storage)
-- You.com API key (or OpenAI-compatible API)
+- ✅ GitHub account
+- ✅ GitHub Personal Access Token (for private repos & PR creation)
+- ✅ Vercel or GitHub Pages deployment
+
+### As a Self-Hoster (Full Control):
+
+- Docker & Docker Compose
+- PostgreSQL database (Neon, Supabase, or self-hosted)
+- Cloudflare R2 or S3-compatible storage
+- AI API key (You.com, OpenAI, or compatible)
 - Clerk account (for authentication)
-- GitHub token (optional, for default)
 
-### For Local Development:
+## 🎯 Key Features
 
-- Bun runtime (v1.0+)
-- PostgreSQL database
-- Node.js 20+ (for some tools)
-- Git
+### 🚀 Deployment Monitoring
+
+- **Webhook Integration** - Vercel & GitHub Pages support
+- **Real-time Detection** - Instant failure notifications
+- **Error Extraction** - Automatic log parsing and analysis
+
+### 🤖 Intelligent Resolution
+
+- **Auto PR Mode** - Automatically creates pull requests with fixes
+- **Manual Mode** - Provides AI prompts and step-by-step instructions
+- **Per-Project Settings** - Choose resolution mode for each project
+
+### 📊 Smart Dashboard
+
+- **Project Management** - Connect repos with one click
+- **Branch Auto-Discovery** - Fetches real branches from GitHub
+- **Incident Tracking** - View all deployment failures and fixes
+- **Profile Management** - Update your account settings
+
+### 🔐 Security & Privacy
+
+- **Per-Project Credentials** - Each project uses its own GitHub token
+- **Secure Authentication** - Clerk-powered user management
+- **Encrypted Storage** - All credentials encrypted at rest
+
+## 🎓 How It Works
+
+### For Service Users:
+
+```
+1. CREATE PROJECT
+   ↓
+   User enters GitHub repo URL
+   ↓
+   AIA connects & fetches branches
+   ↓
+   User selects branch & resolution mode
+   ↓
+   Project created ✓
+
+2. CONFIGURE WEBHOOK
+   ↓
+   Copy webhook URL from dashboard
+   ↓
+   Add to Vercel/GitHub Pages settings
+   ↓
+   Webhook active ✓
+
+3. AUTOMATIC MONITORING
+   ↓
+   Deployment fails on Vercel/GitHub
+   ↓
+   Webhook triggers AIA
+   ↓
+   AIA analyzes error with AI
+   ↓
+   [Auto PR Mode] → Creates PR with fix
+   [Manual Mode] → Shows fix in dashboard
+   ↓
+   Incident resolved ✓
+```
+
+### Example: Creating a Project
+
+```typescript
+// User fills the form:
+{
+  name: "My Website",
+  repoUrl: "https://github.com/user/repo",
+  githubToken: "ghp_...",  // Optional, for private repos
+  baseBranch: "main",      // Auto-populated from GitHub
+  resolutionMode: "auto"   // or "manual"
+}
+
+// AIA handles everything else:
+// - Validates GitHub access
+// - Fetches available branches
+// - Stores encrypted credentials
+// - Generates webhook URL
+```
 
 ## 🏗️ Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                  USER'S APPLICATION                      │
-│        (Instrumented with OpenTelemetry)                │
-└────────────────────┬────────────────────────────────────┘
-                     │ Sends traces/logs
-                     ▼
-┌────────────────────────────────────────────────────────┐
-│  AGENT (Port 4318) - OTel Receiver                      │
-│  • Detects incidents from telemetry data               │
-│  • Tags with project_id                                 │
-└────────────────────┬───────────────────────────────────┘
-                     │
-                     ▼
-┌────────────────────────────────────────────────────────┐
-│  ROUTER (Port 3001) - Incident Router                   │
-│  • Fetches project credentials                          │
-│  • Creates snapshots                                     │
-│  • Triggers autopsy with project-specific credentials   │
-└────────────────────┬───────────────────────────────────┘
-                     │
-        ┌────────────┴────────────┐
-        ▼                         ▼
-┌──────────────────┐    ┌──────────────────────┐
-│  STATE (3003)    │    │  AUTOPSY (3002)      │
-│  • PostgreSQL    │    │  • AI analysis       │
-│  • Projects      │    │  • Root cause        │
-│  • Incidents     │    │  • Fix generation    │
-└──────────────────┘    └──────────┬───────────┘
-                                   │
-                                   ▼
-                        ┌──────────────────────┐
-                        │  R2 STORAGE          │
-                        │  • Snapshots         │
-                        │  • Autopsy results   │
-                        │  • Patches & logs    │
-                        └──────────────────────┘
-                                   │
-                                   ▼
-                        ┌──────────────────────┐
-                        │  WEB (3006)          │
-                        │  • Dashboard UI      │
-                        │  • Project mgmt      │
-                        │  • Incident view     │
-                        └──────────────────────┘
+┌─────────────────────────────────────────┐
+│   VERCEL / GITHUB PAGES DEPLOYMENT      │
+│         (User's Application)            │
+└──────────────┬──────────────────────────┘
+               │ Deployment fails
+               │ Sends webhook
+               ▼
+┌──────────────────────────────────────────┐
+│  WEBHOOK ENDPOINT (/api/webhooks/...)    │
+│  • Receives failure notification         │
+│  • Extracts error logs                   │
+│  • Creates incident                      │
+└──────────────┬───────────────────────────┘
+               │
+               ▼
+┌──────────────────────────────────────────┐
+│  AUTOPSY SERVICE (AI Analysis)           │
+│  • Analyzes error with GPT-4             │
+│  • Generates fix                         │
+│  • Uses project's GitHub token           │
+└──────────────┬───────────────────────────┘
+               │
+        ┌──────┴──────┐
+        ▼             ▼
+┌─────────────┐  ┌──────────────┐
+│  AUTO PR    │  │  MANUAL FIX  │
+│  • Create   │  │  • Show in   │
+│    PR with  │  │    dashboard │
+│    fix      │  │  • AI prompt │
+└─────────────┘  └──────────────┘
 ```
-
-## 🎯 Features
-
-### Core Features
-
-- ✅ **Real-time Incident Detection** - OpenTelemetry integration
-- ✅ **AI-Powered Analysis** - Root cause identification using GPT-4
-- ✅ **Automated Fix Suggestions** - AI-generated prompts and manual steps
-- ✅ **Multi-Project Support** - Manage multiple applications
-- ✅ **Credential Isolation** - Each project uses its own API keys
-- ✅ **PDF Reports** - Generate incident reports on-demand
-- ✅ **Modern Dashboard** - Beautiful UI with dark mode
-
-### For Users
-
-- 🔐 **Secure Authentication** - Clerk-powered auth
-- 📊 **Incident Dashboard** - View all incidents with details
-- 🤖 **AI Fix Prompts** - Copy-paste ready prompts for AI agents
-- 📝 **Manual Steps** - Step-by-step fix instructions
-- 📄 **PDF Export** - Download incident reports
-- 🔔 **Real-time Updates** - See incidents as they happen
-
-### For Developers
-
-- 🐳 **Docker Support** - Easy deployment with Docker Compose
-- 🏥 **Health Checks** - All services have health endpoints
-- 📚 **Comprehensive Docs** - Detailed guides and API docs
-- 🔧 **TypeScript** - Full type safety
-- 🧪 **Testable** - Modular architecture
 
 ## 📚 Documentation
 
-- **[QUICKSTART.md](./QUICKSTART.md)** - Quick deployment guide
-- **[PRODUCTION_DEPLOYMENT.md](./PRODUCTION_DEPLOYMENT.md)** - Detailed deployment instructions
-- **[PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md)** - Pre-deployment checklist
-- **[SECURITY.md](./SECURITY.md)** - Security policy and best practices
-- **[MONITORING.md](./MONITORING.md)** - Monitoring and observability guide
-- **[PROJECT_CREDENTIALS_INTEGRATION.md](./PROJECT_CREDENTIALS_INTEGRATION.md)** - How credentials work
+### For Users:
+
+- **[DEPLOYMENT_MONITORING.md](./DEPLOYMENT_MONITORING.md)** - Webhook setup guide
+- **[QUICKSTART.md](./QUICKSTART.md)** - Getting started
+
+### For Self-Hosters:
+
+- **[PRODUCTION_DEPLOYMENT.md](./PRODUCTION_DEPLOYMENT.md)** - Self-hosting guide
+- **[SECURITY.md](./SECURITY.md)** - Security best practices
+- **[MONITORING.md](./MONITORING.md)** - System monitoring
+
+### For Contributors:
+
 - **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Contribution guidelines
+- **[PROJECT_CREDENTIALS_INTEGRATION.md](./PROJECT_CREDENTIALS_INTEGRATION.md)** - Credential system
 
-## 🔧 Configuration
+## 🔧 Configuration (Self-Hosting Only)
 
-### Environment Variables
-
-#### Required for Production:
+Users of the service **don't need to configure these**. Only required for self-hosting:
 
 ```bash
+# Database (Neon, Supabase, etc.)
 DATABASE_URL=postgresql://user:password@host:5432/dbname
 
+# Storage (Cloudflare R2, S3, etc.)
 R2_ACCOUNT_ID=your_account_id
 R2_ACCESS_KEY_ID=your_access_key
 R2_SECRET_ACCESS_KEY=your_secret_key
 R2_BUCKET_NAME=autonomous-incidents
 
+# AI Provider (You.com, OpenAI, etc.)
 YOU_API_KEY=your_api_key
 
+# Authentication (Clerk)
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_...
 CLERK_SECRET_KEY=sk_live_...
 ```
 
-#### Optional:
-
-```bash
-GITHUB_TOKEN=ghp_your_token
-AI_MODEL=gpt-4o
-```
-
 **See [.env.production.template](./.env.production.template) for complete configuration.**
-
-### For Local Development:
-
-Create `.env.local` with your development credentials:
-
-```bash
-cp .env.local.example .env.local
-nano .env.local
-```
-
-## 🎓 How It Works
-
-### 1. Instrument Your Application
-
-Add OpenTelemetry to your application:
-
-```typescript
-import { NodeSDK } from "@opentelemetry/sdk-node";
-import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
-
-const sdk = new NodeSDK({
-  traceExporter: new OTLPTraceExporter({
-    url: "http://localhost:4318/v1/traces",
-  }),
-  serviceName: "my-app",
-});
-
-sdk.start();
-```
-
-### 2. Create a Project
-
-Sign in to the dashboard and create a project:
-
-- Name: Your application name
-- Repository URL: GitHub repo URL
-- GitHub Token: (optional) Your GitHub token
-- OpenAI API Key: (optional) Your OpenAI key
-
-### 3. Monitor Incidents
-
-When an error occurs:
-
-1. Agent detects the incident from telemetry
-2. Router fetches your project credentials
-3. Autopsy analyzes using your OpenAI key
-4. Dashboard shows root cause, fix prompt, and manual steps
-5. Download PDF report or view suggested fixes
 
 ## 🤝 Contributing
 
-We welcome contributions! Here's how to get started:
+We welcome contributions! Here's how:
 
 ### Development Setup
 
@@ -251,29 +276,27 @@ git clone https://github.com/YOUR_USERNAME/autonomous-incident-agent.git
 cd autonomous-incident-agent
 
 bun install
-
 cp .env.local.example .env.local
+
+# Setup database
 cd apps/state
-npx prisma migrate dev
+bunx prisma migrate dev
+bunx prisma generate
 cd ../..
+
+# Start development
 bun run dev
 ```
 
 ### Making Changes
 
-1. Create a feature branch: `git checkout -b feature/amazing-feature`
-2. Make your changes
-3. Test thoroughly
-4. Commit: `git commit -m 'Add amazing feature'`
-5. Push: `git push origin feature/amazing-feature`
-6. Open a Pull Request
-
-### Code Style
-
-- TypeScript for all code
-- Prettier for formatting (runs on commit)
-- ESLint for linting
-- Follow existing patterns
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes
+4. Test thoroughly: `bun test`
+5. Commit: `git commit -m 'Add amazing feature'`
+6. Push: `git push origin feature/amazing-feature`
+7. Open a Pull Request
 
 **See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.**
 
@@ -282,131 +305,109 @@ bun run dev
 ```
 autonomous-incident-agent/
 ├── apps/
-│   ├── agent/          # OTel receiver & incident detector
-│   ├── router/         # Incident router & orchestrator
-│   ├── autopsy/        # AI-powered root cause analysis
-│   ├── state/          # State management & database
-│   ├── web/            # Next.js dashboard
+│   ├── web/            # Next.js dashboard (main UI)
+│   ├── state/          # Database & project management
+│   ├── autopsy/        # AI-powered error analysis
+│   ├── router/         # Incident routing & orchestration
+│   ├── agent/          # OpenTelemetry receiver (optional)
 │   └── docs/           # Documentation site
 ├── packages/
-│   ├── storage/        # R2 storage client
 │   ├── types/          # Shared TypeScript types
+│   ├── storage/        # R2/S3 storage client
 │   └── ui/             # Shared UI components
-├── shared/
-│   └── config_loader/  # Configuration loader
+├── prisma/
+│   └── schema.prisma   # Database schema
 ├── scripts/
-│   └── deploy-production.sh  # Deployment script
-├── docker-compose.prod.yml   # Production Docker Compose
-├── .env.production.template  # Environment template
-└── docs/
-    ├── QUICKSTART.md
-    ├── PRODUCTION_DEPLOYMENT.md
-    └── PROJECT_CREDENTIALS_INTEGRATION.md
-```
-
-## 🐳 Docker Deployment
-
-### Quick Deploy
-
-```bash
-./scripts/deploy-production.sh
-```
-
-### Manual Deploy
-
-```bash
-docker-compose -f docker-compose.prod.yml up -d
-
-docker-compose -f docker-compose.prod.yml logs -f
-docker-compose -f docker-compose.prod.yml down
+│   └── deploy-production.sh
+└── DEPLOYMENT_MONITORING.md
 ```
 
 ## 🧪 Testing
-
-### Run All Tests
 
 ```bash
 # All tests
 bun test
 
-# Health check tests only
+# Health checks
 bun test:health
 
-# End-to-end integration tests
+# Integration tests
 bun test:e2e
-```
 
-### Individual Service Tests
-
-```bash
-# State service
+# Specific service
 bun test apps/state/src/health.test.ts
-
-# Router service
-bun test apps/router/src/health.test.ts
-
-# Autopsy service
-bun test apps/autopsy/src/health.test.ts
-
-# Agent service
-bun test apps/agent/src/health.test.ts
 ```
 
-### Pre-Deployment Validation
+## 🐳 Docker Deployment (Self-Hosting)
 
 ```bash
-# Validate everything before deploying
-./scripts/validate-deployment.sh
+# Quick deploy
+./scripts/deploy-production.sh
+
+# Manual deploy
+docker-compose -f docker-compose.prod.yml up -d
+
+# View logs
+docker-compose -f docker-compose.prod.yml logs -f
+
+# Stop services
+docker-compose -f docker-compose.prod.yml down
 ```
 
-## 📊 Monitoring
+## 📊 Monitoring (Self-Hosting)
 
-All services expose health check endpoints:
+Health check endpoints:
 
 ```bash
-curl http://localhost:3003/health
-curl http://localhost:3001/health
-curl http://localhost:3002/health
-curl http://localhost:4318/health
-curl http://localhost:3006/
+curl http://localhost:3006/        # Web dashboard
+curl http://localhost:3003/health  # State service
+curl http://localhost:3002/health  # Autopsy service
+curl http://localhost:3001/health  # Router service
 ```
 
 ## 🔒 Security
 
-- All credentials are encrypted at rest
-- Per-project credential isolation
-- Clerk-powered authentication
-- HTTPS/TLS in production
-- Rate limiting on public endpoints
+- ✅ Per-project credential isolation
+- ✅ Encrypted credentials at rest
+- ✅ Clerk-powered authentication
+- ✅ HTTPS/TLS in production
+- ✅ Rate limiting on webhooks
+- ✅ No shared API keys between projects
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
-- OpenTelemetry for observability
-- Clerk for authentication
-- Cloudflare R2 for storage
-- You.com for AI capabilities
+- **Vercel** & **GitHub** for deployment platforms
+- **Clerk** for authentication
+- **Cloudflare R2** for storage
+- **OpenAI** / **You.com** for AI capabilities
+- **OpenTelemetry** for observability
 
 ## 📞 Support
 
-- **Documentation**: See [docs](./docs) folder
+- **Documentation**: [docs](./docs) folder
 - **Issues**: [GitHub Issues](https://github.com/sarthakNITT/autonomous-incident-agent/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/sarthakNITT/autonomous-incident-agent/discussions)
 
 ## 🗺️ Roadmap
 
+- [x] Vercel deployment monitoring
+- [x] GitHub Pages deployment monitoring
+- [x] Auto PR creation
+- [x] Manual fix instructions
+- [x] Branch auto-discovery
 - [ ] Slack/Discord notifications
-- [ ] GitHub PR auto-creation
+- [ ] GitLab CI/CD support
+- [ ] Netlify integration
 - [ ] Custom detection rules
-- [ ] Multi-cloud storage support
-- [ ] Advanced analytics
 - [ ] Team collaboration features
+- [ ] Advanced analytics dashboard
 
 ---
 
 **Made with ❤️ by the AIA team**
 
-**Status**: ✅ Production Ready | **Version**: 1.0.0
+**Status**: ✅ Production Ready | **Version**: 2.0.0

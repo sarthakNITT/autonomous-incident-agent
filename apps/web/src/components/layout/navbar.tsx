@@ -32,6 +32,14 @@ export function Navbar() {
               >
                 Dashboard
               </Link>
+              <SignedIn>
+                <Link
+                  href="/dashboard/profile"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Profile
+                </Link>
+              </SignedIn>
             </div>
           </div>
 
@@ -70,6 +78,14 @@ export function Navbar() {
                 >
                   Dashboard
                 </Link>
+                <SignedIn>
+                  <Link
+                    href="/dashboard/profile"
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Profile
+                  </Link>
+                </SignedIn>
                 <SignedOut>
                   <Button asChild variant="outline" className="w-full">
                     <Link href="/sign-in">Sign In</Link>

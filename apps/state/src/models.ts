@@ -95,6 +95,7 @@ export class ProjectModel {
     githubToken?: string;
     openaiApiKey?: string;
     baseBranch?: string;
+    resolutionMode?: string;
   }): Promise<any> {
     const prisma = getPrisma();
     const project = await prisma.project.create({
@@ -105,6 +106,7 @@ export class ProjectModel {
         githubToken: req.githubToken,
         openaiApiKey: req.openaiApiKey,
         baseBranch: req.baseBranch || "main",
+        resolutionMode: req.resolutionMode || "manual",
       },
     });
     return this.mapToProject(project);
@@ -137,6 +139,7 @@ export class ProjectModel {
       github_token: p.githubToken,
       openai_api_key: p.openaiApiKey,
       base_branch: p.baseBranch,
+      resolution_mode: p.resolutionMode,
       created_at: p.createdAt.toISOString(),
       updated_at: p.updatedAt.toISOString(),
     };

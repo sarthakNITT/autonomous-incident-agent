@@ -48,6 +48,7 @@ export interface Project {
   github_token?: string;
   openai_api_key?: string;
   base_branch: string;
+  resolution_mode: string;
   created_at: string;
   updated_at: string;
 }
@@ -59,4 +60,5 @@ export interface CreateProjectRequest {
   github_token?: string;
   openai_api_key?: string;
   base_branch?: string;
+  resolution_mode?: string;
 }
