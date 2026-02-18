@@ -11,7 +11,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Extract owner and repo from URL
     const match = repoUrl.match(/github\.com\/([^\/]+)\/([^\/]+)/);
     if (!match) {
       return NextResponse.json(
@@ -23,7 +22,6 @@ export async function POST(req: NextRequest) {
     const [, owner, repo] = match;
     const cleanRepo = repo.replace(/\.git$/, "");
 
-    // Fetch branches from GitHub API
     const headers: HeadersInit = {
       Accept: "application/vnd.github.v3+json",
     };

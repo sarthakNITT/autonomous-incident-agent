@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 
-/**
- * Kilo Integration API
- * Generates Kilo-compatible prompts for incident fixes
- * that can be opened directly in VS Code with Kilo extension
- */
 export async function POST(req: NextRequest) {
   try {
     const {
@@ -23,7 +18,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Generate a structured Kilo prompt for the incident
     const kiloPrompt = buildKiloPrompt({
       incident_id,
       title,
@@ -33,12 +27,9 @@ export async function POST(req: NextRequest) {
       manual_steps,
     });
 
-    // Generate a VS Code deep link that opens Kilo with the prompt
-    // Kilo VS Code extension uses the kilo:// protocol
     const encodedPrompt = encodeURIComponent(kiloPrompt);
     const vsCodeDeepLink = `vscode://kilo-technologies.kilo-code/newTask?prompt=${encodedPrompt}`;
 
-    // Also generate a plain CLI command for Kilo CLI users
     const kiloCliCommand = `kilo ask "${kiloPrompt.replace(/"/g, '\\"').slice(0, 200)}..."`;
 
     return NextResponse.json({
@@ -131,7 +122,6 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  // Fetch incident from state service and generate prompt
   try {
     const STATE_URL = process.env.STATE_SERVICE_URL || "http://localhost:3002";
     const res = await fetch(`${STATE_URL}/incidents/${incident_id}`);

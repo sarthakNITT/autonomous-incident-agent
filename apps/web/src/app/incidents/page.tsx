@@ -23,6 +23,7 @@ import {
   Check,
   Github,
   Zap,
+  Terminal,
 } from "lucide-react";
 import { toast } from "sonner";
 import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/nextjs";
@@ -156,6 +157,7 @@ export default function IncidentsPage() {
 function IncidentCard({ incident }: { incident: Incident }) {
   const [copied, setCopied] = useState(false);
   const [kiloLoading, setKiloLoading] = useState(false);
+  const [clineLoading, setClineLoading] = useState(false);
 
   const copyPrompt = () => {
     if (incident.autopsy?.fix_prompt) {
@@ -192,6 +194,32 @@ function IncidentCard({ incident }: { incident: Incident }) {
       toast.error("Failed to open in Kilo");
     } finally {
       setKiloLoading(false);
+    }
+  };
+
+  const runClinePipeline = async () => {
+    setClineLoading(true);
+    try {
+      const res = await fetch("/api/cline/pipeline", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          incident_id: incident.id,
+          root_cause: incident.autopsy?.root_cause_text,
+          patch_diff:
+            incident.patch_diff ||
+            incident.autopsy?.suggested_patch?.patch_diff,
+          file_path: incident.autopsy?.file_path || incident.file_path,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(`Cline pipeline started! ID: ${data.pipeline_id}`);
+      }
+    } catch {
+      toast.error("Failed to start Cline pipeline");
+    } finally {
+      setClineLoading(false);
     }
   };
 
@@ -382,6 +410,17 @@ function IncidentCard({ incident }: { incident: Incident }) {
             >
               <Zap className="h-4 w-4 mr-2" />
               {kiloLoading ? "Opening..." : "Fix with Kilo"}
+            </Button>
+          )}
+          {incident.autopsy && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={runClinePipeline}
+              disabled={clineLoading}
+            >
+              <Terminal className="h-4 w-4 mr-2" />
+              {clineLoading ? "Starting..." : "Cline Pipeline"}
             </Button>
           )}
           {incident.pr_url && (

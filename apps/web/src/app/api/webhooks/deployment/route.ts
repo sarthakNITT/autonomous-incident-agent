@@ -11,7 +11,6 @@ export async function POST(req: NextRequest) {
     let errorLogs: string | null = null;
     let deploymentUrl: string | null = null;
 
-    // Parse Vercel webhook
     if (source === "vercel" || payload.type === "deployment") {
       const deployment = payload.deployment || payload;
       deploymentStatus = deployment.state || deployment.status;
@@ -24,7 +23,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Parse GitHub Pages webhook (deployment_status event)
     if (payload.deployment_status || payload.deployment) {
       const status = payload.deployment_status || payload;
       deploymentStatus = status.state;
@@ -44,7 +42,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Forward to incident creation system
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3003";
     await axios.post(`${apiUrl}/incidents/deployment-failure`, {
       projectId,

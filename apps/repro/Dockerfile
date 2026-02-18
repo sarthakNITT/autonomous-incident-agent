@@ -5,10 +5,6 @@ RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Copy repo (in context of CI, we might mount it or clone it)
-# For this orchestration, we start from scratch or expect volume mounts.
-# We will use the workspace structure.
-
 COPY package.json bun.lockb ./
 COPY packages/types ./packages/types
 COPY packages/storage ./packages/storage

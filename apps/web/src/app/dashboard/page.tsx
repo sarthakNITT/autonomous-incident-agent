@@ -174,7 +174,6 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleCreateProject} className="space-y-4">
-                    {/* Step 1: Repository Connection */}
                     <div className="space-y-4">
                       <div className="space-y-2">
                         <Label htmlFor="repo">GitHub Repository URL</Label>
@@ -225,7 +224,6 @@ export default function DashboardPage() {
                       )}
                     </div>
 
-                    {/* Step 2: Expanded Form (after connection) */}
                     {isConnected && (
                       <div className="space-y-4 pt-4 border-t">
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

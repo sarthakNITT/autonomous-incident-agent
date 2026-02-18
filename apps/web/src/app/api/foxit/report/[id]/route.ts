@@ -6,17 +6,7 @@ const FOXIT_PDF_CLIENT_ID = process.env.FOXIT_PDF_CLIENT_ID || "";
 const FOXIT_PDF_CLIENT_SECRET = process.env.FOXIT_PDF_CLIENT_SECRET || "";
 const FOXIT_BASE_URL = "https://developer-api.foxit.com";
 
-/**
- * Foxit Integration - Incident PDF Report Generation
- * Uses Foxit Document Generation API + PDF Services API
- * Hackathon: DeveloperWeek 2026
- */
-
-// Minimal DOCX template as base64 - a simple Word XML structure
-// In production this would be a real .docx file uploaded to storage
 function buildDocxTemplateBase64(): string {
-  // This is a minimal valid DOCX XML structure with Foxit merge tokens
-  // Foxit uses [[token]] syntax for merge fields
   const wordXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
   <w:body>
@@ -55,7 +45,6 @@ async function foxitGeneratePdf(incident: any): Promise<ArrayBuffer> {
       : "N/A",
   };
 
-  // Step 1: Generate document using Foxit Document Generation API
   const generateRes = await fetch(
     `${FOXIT_BASE_URL}/document-generation/api/GenerateDocumentBase64`,
     {
@@ -88,7 +77,6 @@ async function foxitGeneratePdf(incident: any): Promise<ArrayBuffer> {
     throw new Error("Foxit returned no PDF data");
   }
 
-  // Step 2: Process with Foxit PDF Services API (add watermark)
   const processRes = await fetch(
     `${FOXIT_BASE_URL}/pdf-services/api/AddWatermark`,
     {
@@ -140,7 +128,6 @@ export async function GET(
   }
 
   try {
-    // Fetch incident from state service
     const STATE_URL = process.env.STATE_SERVICE_URL || "http://localhost:3002";
     let incident: any = { id, title: `Incident ${id}`, status: "unknown" };
 
@@ -149,9 +136,7 @@ export async function GET(
       if (stateRes.ok) {
         incident = await stateRes.json();
       }
-    } catch {
-      // Use minimal incident data if state service unavailable
-    }
+    } catch {}
 
     const pdfBuffer = await foxitGeneratePdf(incident);
 
@@ -172,8 +157,6 @@ export async function GET(
     );
   }
 }
-
-// Health check / info endpoint
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
 
