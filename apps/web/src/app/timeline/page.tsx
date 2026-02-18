@@ -29,41 +29,11 @@ interface Incident {
 }
 
 const STATUS_STEPS = [
-  {
-    key: "detected",
-    label: "Detected",
-    icon: AlertCircle,
-    color: "text-red-500",
-    bg: "bg-red-500",
-  },
-  {
-    key: "analyzing",
-    label: "Analyzing",
-    icon: Search,
-    color: "text-yellow-500",
-    bg: "bg-yellow-500",
-  },
-  {
-    key: "patching",
-    label: "Patching",
-    icon: FileText,
-    color: "text-blue-500",
-    bg: "bg-blue-500",
-  },
-  {
-    key: "validating",
-    label: "Validating",
-    icon: Zap,
-    color: "text-purple-500",
-    bg: "bg-purple-500",
-  },
-  {
-    key: "resolved",
-    label: "Resolved",
-    icon: CheckCircle,
-    color: "text-green-500",
-    bg: "bg-green-500",
-  },
+  { key: "detected", label: "Detected", icon: AlertCircle },
+  { key: "analyzing", label: "Analyzing", icon: Search },
+  { key: "patching", label: "Patching", icon: FileText },
+  { key: "validating", label: "Validating", icon: Zap },
+  { key: "resolved", label: "Resolved", icon: CheckCircle },
 ];
 
 function getStepIndex(status: string) {
@@ -94,7 +64,7 @@ function TimelineItem({ incident }: { incident: Incident }) {
       </div>
 
       {isFailed ? (
-        <div className="flex items-center gap-2 text-red-500 bg-red-50 dark:bg-red-950/20 p-3 rounded-lg">
+        <div className="flex items-center gap-2 text-muted-foreground bg-muted p-3 rounded-lg">
           <AlertCircle className="h-4 w-4" />
           <span className="text-sm font-medium">
             Incident failed to resolve
@@ -127,15 +97,15 @@ function TimelineItem({ incident }: { incident: Incident }) {
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
                       isDone
-                        ? `${step.bg} border-transparent text-white`
+                        ? "bg-foreground border-transparent text-background"
                         : "bg-background border-border text-muted-foreground"
-                    } ${isCurrent ? "ring-4 ring-primary/20 scale-110" : ""}`}
+                    } ${isCurrent ? "ring-4 ring-foreground/20 scale-110" : ""}`}
                   >
                     <Icon className="h-4 w-4" />
                   </div>
                   <span
                     className={`mt-2 text-xs font-medium ${
-                      isDone ? step.color : "text-muted-foreground"
+                      isDone ? "text-foreground" : "text-muted-foreground"
                     }`}
                   >
                     {step.label}
@@ -224,7 +194,7 @@ export default function TimelinePage() {
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <Bell className="h-4 w-4 text-green-500 animate-pulse" />
+                <Bell className="h-4 w-4 text-foreground animate-pulse" />
                 <span className="text-xs text-muted-foreground">Live</span>
               </div>
             </div>
