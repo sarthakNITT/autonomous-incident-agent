@@ -34,6 +34,30 @@ export function Navbar() {
               </Link>
               <SignedIn>
                 <Link
+                  href="/dashboard/incidents"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Incidents
+                </Link>
+                <Link
+                  href="/dashboard/timeline"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Timeline
+                </Link>
+                <Link
+                  href="/dashboard/analytics"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Analytics
+                </Link>
+                <Link
+                  href="/dashboard/chat"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  AI Chat
+                </Link>
+                <Link
                   href="/dashboard/profile"
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
@@ -79,6 +103,30 @@ export function Navbar() {
                   Dashboard
                 </Link>
                 <SignedIn>
+                  <Link
+                    href="/dashboard/incidents"
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Incidents
+                  </Link>
+                  <Link
+                    href="/dashboard/timeline"
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Timeline
+                  </Link>
+                  <Link
+                    href="/dashboard/analytics"
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Analytics
+                  </Link>
+                  <Link
+                    href="/dashboard/chat"
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    AI Chat
+                  </Link>
                   <Link
                     href="/dashboard/profile"
                     className="text-sm text-muted-foreground hover:text-foreground transition-colors"
