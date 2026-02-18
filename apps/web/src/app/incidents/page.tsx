@@ -364,7 +364,13 @@ function IncidentCard({ incident }: { incident: Incident }) {
           <Button variant="outline" size="sm" asChild>
             <a href={`/api/export/${incident.id}`} target="_blank">
               <Download className="h-4 w-4 mr-2" />
-              Download PDF Report
+              Download PDF
+            </a>
+          </Button>
+          <Button variant="outline" size="sm" asChild>
+            <a href={`/api/foxit/report/${incident.id}`} target="_blank">
+              <FileText className="h-4 w-4 mr-2" />
+              Foxit Report
             </a>
           </Button>
           {incident.autopsy && (
