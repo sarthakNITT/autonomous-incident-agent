@@ -22,6 +22,7 @@ import {
   Copy,
   Check,
   Github,
+  Zap,
 } from "lucide-react";
 import { toast } from "sonner";
 import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/nextjs";
@@ -154,6 +155,7 @@ export default function IncidentsPage() {
 
 function IncidentCard({ incident }: { incident: Incident }) {
   const [copied, setCopied] = useState(false);
+  const [kiloLoading, setKiloLoading] = useState(false);
 
   const copyPrompt = () => {
     if (incident.autopsy?.fix_prompt) {
@@ -161,6 +163,35 @@ function IncidentCard({ incident }: { incident: Incident }) {
       setCopied(true);
       toast.success("Fix prompt copied to clipboard");
       setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const openInKilo = async () => {
+    setKiloLoading(true);
+    try {
+      const res = await fetch("/api/kilo/prompt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          incident_id: incident.id,
+          title: incident.title,
+          root_cause: incident.autopsy?.root_cause_text,
+          stack_trace: undefined,
+          patch_diff:
+            incident.patch_diff ||
+            incident.autopsy?.suggested_patch?.patch_diff,
+          manual_steps: incident.autopsy?.manual_steps,
+        }),
+      });
+      const data = await res.json();
+      if (data.vscode_deep_link) {
+        window.open(data.vscode_deep_link, "_blank");
+        toast.success("Opening in Kilo (VS Code)...");
+      }
+    } catch {
+      toast.error("Failed to open in Kilo");
+    } finally {
+      setKiloLoading(false);
     }
   };
 
@@ -258,9 +289,9 @@ function IncidentCard({ incident }: { incident: Incident }) {
             </div>
 
             {incident.autopsy.fix_prompt && (
-              <div className="rounded-lg bg-blue-50 dark:bg-blue-950/20 p-4 border border-blue-200 dark:border-blue-900">
+              <div className="rounded-lg bg-muted p-4 border border-border">
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-medium text-sm text-blue-900 dark:text-blue-100">
+                  <h4 className="font-medium text-sm">
                     🤖 AI Fix Prompt (Paste into Agent)
                   </h4>
                   <Button
@@ -270,14 +301,14 @@ function IncidentCard({ incident }: { incident: Incident }) {
                     className="h-8"
                   >
                     {copied ? (
-                      <Check className="h-4 w-4 text-green-500" />
+                      <Check className="h-4 w-4" />
                     ) : (
                       <Copy className="h-4 w-4" />
                     )}
                     <span className="ml-2">Copy</span>
                   </Button>
                 </div>
-                <pre className="text-xs bg-white dark:bg-gray-900 p-3 rounded overflow-x-auto whitespace-pre-wrap border border-blue-100 dark:border-blue-800">
+                <pre className="text-xs bg-background p-3 rounded overflow-x-auto whitespace-pre-wrap border border-border">
                   {incident.autopsy.fix_prompt}
                 </pre>
               </div>
@@ -285,11 +316,11 @@ function IncidentCard({ incident }: { incident: Incident }) {
 
             {incident.autopsy.manual_steps &&
               incident.autopsy.manual_steps.length > 0 && (
-                <div className="rounded-lg bg-orange-50 dark:bg-orange-950/20 p-4 border border-orange-200 dark:border-orange-900">
-                  <h4 className="font-medium text-sm text-orange-900 dark:text-orange-100 mb-3 flex items-center gap-2">
+                <div className="rounded-lg bg-muted p-4 border border-border">
+                  <h4 className="font-medium text-sm mb-3 flex items-center gap-2">
                     🔧 Manual Fix Steps
                   </h4>
-                  <ul className="list-decimal list-inside space-y-2 text-sm text-orange-900 dark:text-orange-200">
+                  <ul className="list-decimal list-inside space-y-2 text-sm text-foreground">
                     {incident.autopsy.manual_steps.map((step, idx) => (
                       <li key={idx} className="leading-relaxed">
                         {step}
@@ -315,27 +346,38 @@ function IncidentCard({ incident }: { incident: Incident }) {
         )}
 
         {!incident.autopsy && (
-          <div className="rounded-lg bg-yellow-50 dark:bg-yellow-950/20 p-4 border border-yellow-200 dark:border-yellow-900">
-            <div className="flex items-center gap-2 text-yellow-900 dark:text-yellow-100">
+          <div className="rounded-lg bg-muted p-4 border border-border">
+            <div className="flex items-center gap-2 text-muted-foreground">
               <Clock className="h-4 w-4" />
               <span className="text-sm font-medium">
                 Analysis in progress...
               </span>
             </div>
-            <p className="text-xs text-yellow-800 dark:text-yellow-200 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               Root cause analysis and fix suggestions will appear here once
               complete.
             </p>
           </div>
         )}
 
-        <div className="flex gap-2 pt-2 border-t">
+        <div className="flex gap-2 pt-2 border-t flex-wrap">
           <Button variant="outline" size="sm" asChild>
             <a href={`/api/export/${incident.id}`} target="_blank">
               <Download className="h-4 w-4 mr-2" />
               Download PDF Report
             </a>
           </Button>
+          {incident.autopsy && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={openInKilo}
+              disabled={kiloLoading}
+            >
+              <Zap className="h-4 w-4 mr-2" />
+              {kiloLoading ? "Opening..." : "Fix with Kilo"}
+            </Button>
+          )}
           {incident.pr_url && (
             <Button variant="outline" size="sm" asChild>
               <a
