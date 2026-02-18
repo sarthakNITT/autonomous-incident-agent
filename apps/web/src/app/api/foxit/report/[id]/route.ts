@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 const FOXIT_CLIENT_ID = process.env.FOXIT_CLIENT_ID || "";
 const FOXIT_CLIENT_SECRET = process.env.FOXIT_CLIENT_SECRET || "";
+const FOXIT_PDF_CLIENT_ID = process.env.FOXIT_PDF_CLIENT_ID || "";
+const FOXIT_PDF_CLIENT_SECRET = process.env.FOXIT_PDF_CLIENT_SECRET || "";
 const FOXIT_BASE_URL = "https://developer-api.foxit.com";
 
 /**
@@ -86,15 +88,15 @@ async function foxitGeneratePdf(incident: any): Promise<ArrayBuffer> {
     throw new Error("Foxit returned no PDF data");
   }
 
-  // Step 2: Process with Foxit PDF Services API (add metadata/compress)
+  // Step 2: Process with Foxit PDF Services API (add watermark)
   const processRes = await fetch(
     `${FOXIT_BASE_URL}/pdf-services/api/AddWatermark`,
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        client_id: FOXIT_CLIENT_ID,
-        client_secret: FOXIT_CLIENT_SECRET,
+        client_id: FOXIT_PDF_CLIENT_ID || FOXIT_CLIENT_ID,
+        client_secret: FOXIT_PDF_CLIENT_SECRET || FOXIT_CLIENT_SECRET,
       },
       body: JSON.stringify({
         base64FileString: pdfBase64,
