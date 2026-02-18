@@ -317,7 +317,7 @@ export default function DashboardPage() {
                       </p>
                     </div>
                   </div>
-                  <Link href="/dashboard/incidents">
+                  <Link href="/incidents">
                     <Button
                       variant="outline"
                       className="border-orange-300 dark:border-orange-800"
