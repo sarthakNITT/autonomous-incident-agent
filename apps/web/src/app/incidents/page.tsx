@@ -43,6 +43,7 @@ interface Incident {
   validation_status?: boolean;
   repo_name?: string;
   file_path?: string;
+  repo_url?: string;
   autopsy?: AutopsyResult;
 }
 
@@ -277,11 +278,25 @@ function IncidentCard({ incident }: { incident: Incident }) {
             <span className="text-muted-foreground block mb-1">
               Repository:
             </span>
-            <div className="font-medium flex items-center gap-2">
-              {incident.repo_name ? (
+            <div className="font-medium flex items-center gap-2 min-w-0">
+              {incident.repo_url ? (
+                <a
+                  href={incident.repo_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-blue-500 hover:underline truncate"
+                >
+                  <Github className="h-4 w-4 shrink-0" />
+                  <span className="truncate">
+                    {incident.repo_url
+                      .replace(/^https?:\/\/(www\.)?github\.com\//, "")
+                      .replace(/\.git$/, "")}
+                  </span>
+                </a>
+              ) : incident.repo_name ? (
                 <>
-                  <Github className="h-4 w-4" />
-                  {incident.repo_name}
+                  <Github className="h-4 w-4 shrink-0" />
+                  <span className="truncate">{incident.repo_name}</span>
                 </>
               ) : (
                 <span className="text-muted-foreground">Not specified</span>

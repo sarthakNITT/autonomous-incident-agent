@@ -20,6 +20,7 @@ export class IncidentModel {
         repoName: req.repo_name,
         filePath: req.file_path,
         snapshotId: req.snapshot_id,
+        repoUrl: req.repo_url,
       },
     });
 
@@ -45,6 +46,7 @@ export class IncidentModel {
     if (req.snapshot_id) updateData.snapshotId = req.snapshot_id;
     if (req.file_path) updateData.filePath = req.file_path;
     if (req.repo_name) updateData.repoName = req.repo_name;
+    if (req.repo_url) updateData.repoUrl = req.repo_url;
 
     const incident = await prisma.incident.update({
       where: { id },
@@ -87,6 +89,7 @@ export class IncidentModel {
       validation_status: incident.validationStatus,
       repo_name: incident.repoName,
       file_path: incident.filePath,
+      repo_url: incident.repoUrl,
     };
   }
 }

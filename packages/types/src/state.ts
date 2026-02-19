@@ -22,6 +22,7 @@ export interface Incident {
 
   repo_name?: string;
   file_path?: string;
+  repo_url?: string;
 }
 
 export interface CreateIncidentRequest {
@@ -31,6 +32,7 @@ export interface CreateIncidentRequest {
   repo_name?: string;
   file_path?: string;
   snapshot_id?: string;
+  repo_url?: string;
 }
 
 export interface UpdateIncidentRequest {
@@ -42,6 +44,7 @@ export interface UpdateIncidentRequest {
   file_path?: string;
   snapshot_id?: string;
   repo_name?: string;
+  repo_url?: string;
 }
 
 export interface Project {

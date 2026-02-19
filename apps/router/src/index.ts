@@ -161,6 +161,7 @@ const server = Bun.serve({
               title: `Incident in ${event.service_name}`,
               snapshot_id: snapshot_id,
               repo_name: projectConfig?.name || event.service_name,
+              repo_url: projectConfig?.repo_url || null,
             }),
           });
           console.log(`[Router] Incident persisted to state service`);
