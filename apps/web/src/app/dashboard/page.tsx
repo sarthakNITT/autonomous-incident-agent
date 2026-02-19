@@ -108,8 +108,7 @@ export default function DashboardPage() {
 
     setIsCreating(true);
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3003";
-      const response = await axios.post(`${apiUrl}/projects`, {
+      const response = await axios.post(`/api/projects`, {
         userId: user.id,
         name,
         repoUrl,

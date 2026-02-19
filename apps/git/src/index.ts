@@ -9,8 +9,12 @@ const config = loadConfig();
 const PORT = config.services.git.port;
 const WORK_DIR = join(process.cwd(), "git_workspace");
 
+const githubConfig = config.github;
+if (!githubConfig) {
+  throw new Error("GitHub config not found");
+}
 const storage = new R2Client(config.storage);
-const github = new GitHubClient(config.github);
+const github = new GitHubClient(githubConfig);
 const repoMgr = new RepoManager(WORK_DIR);
 
 const server = Bun.serve({
@@ -28,9 +32,9 @@ const server = Bun.serve({
         const branchName = `aia/incident-${body.incident_id}`;
         const repoName = `repo-${body.incident_id}`;
 
-        const githubUrl = `https://${config.github.token}@github.com/${config.github.owner}/${config.github.repo}.git`;
+        const githubUrl = `https://${githubConfig.token}@github.com/${githubConfig.owner}/${githubConfig.repo}.git`;
         console.log(
-          `[Git] Cloning from GitHub: https://***@github.com/${config.github.owner}/${config.github.repo}.git`,
+          `[Git] Cloning from GitHub: https://***@github.com/${githubConfig.owner}/${githubConfig.repo}.git`,
         );
         const repoPath = await repoMgr.clone(githubUrl, repoName);
         console.log(`[Git] Cloned into ${repoPath}`);
@@ -53,8 +57,8 @@ const server = Bun.serve({
         console.log(`[Git] Checking out branch: ${branchName}`);
         await repoMgr.configUser(
           repoPath,
-          config.github.username || "aia-bot",
-          config.github.email || "bot@aia.local",
+          githubConfig.username || "aia-bot",
+          githubConfig.email || "bot@aia.local",
         );
         await repoMgr.checkout(repoPath, branchName, true);
 
@@ -93,10 +97,10 @@ const server = Bun.serve({
           body.title,
           body.body,
           branchName,
-          config.github.base_branch,
+          githubConfig.base_branch,
         );
 
-        fetch(
+        void fetch(
           `${config.services.state.base_url}/incidents/${body.incident_id}/update`,
           {
             method: "POST",

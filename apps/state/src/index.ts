@@ -88,6 +88,10 @@ const server = Bun.serve({
       console.error("State Service Error", e);
       return new Response(JSON.stringify({ error: e.message }), {
         status: 500,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
       });
     }
 
@@ -97,7 +101,12 @@ const server = Bun.serve({
 
 function returnResponse(data: any) {
   return new Response(JSON.stringify(data), {
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    },
   });
 }
 
