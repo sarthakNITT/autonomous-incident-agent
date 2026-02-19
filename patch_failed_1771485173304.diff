@@ -1,0 +1,16 @@
+--- a/unknown
++++ b/unknown
+@@ -10,9 +10,11 @@
+ 
+ function errorHandler(err, req, res, next) {
+   console.error('Error caught:', err);
+-  res.status(500).send('error.handler');
++  try {
++    res.status(500).send('Internal Server Error');
++  } catch (handlerErr) {
++    console.error('Error in error handler:', handlerErr);
++    res.status(500).send('Internal Server Error');
++  }
+ }
+ 
+ module.exports = errorHandler;
