@@ -153,6 +153,66 @@ const server = Bun.serve({
       }
     }
 
+    if (req.method === "POST" && url.pathname === "/transcribe-audio") {
+      try {
+        if (!DEEPGRAM_API_KEY) {
+          return new Response(
+            JSON.stringify({ error: "DEEPGRAM_API_KEY not set" }),
+            { status: 500, headers: { "Content-Type": "application/json" } },
+          );
+        }
+
+        const formData = await req.formData();
+        const audioFile = formData.get("audio");
+
+        if (!audioFile || !(audioFile instanceof Blob)) {
+          return new Response(
+            JSON.stringify({
+              error: "Audio file required (multipart/form-data)",
+            }),
+            { status: 400, headers: { "Content-Type": "application/json" } },
+          );
+        }
+
+        const arrayBuffer = await audioFile.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        const deepgram = createClient(DEEPGRAM_API_KEY);
+        const { result, error } =
+          await deepgram.listen.prerecorded.transcribeFile(buffer, {
+            mimetype: audioFile.type || "audio/wav",
+            model: "nova-2",
+            smart_format: true,
+            language: "en",
+          });
+
+        if (error) throw error;
+
+        const transcript =
+          result?.results?.channels?.[0]?.alternatives?.[0]?.transcript || "";
+        const commandResult = await processVoiceCommand(transcript);
+
+        return new Response(
+          JSON.stringify({
+            transcript,
+            confidence:
+              result?.results?.channels?.[0]?.alternatives?.[0]?.confidence,
+            command_result: commandResult,
+          }),
+          { headers: { "Content-Type": "application/json" } },
+        );
+      } catch (error: any) {
+        console.error("[Voice Agent] File transcription error:", error);
+        return new Response(
+          JSON.stringify({
+            error: "Transcription failed",
+            details: error.message,
+          }),
+          { status: 500, headers: { "Content-Type": "application/json" } },
+        );
+      }
+    }
+
     if (req.method === "POST" && url.pathname === "/command") {
       try {
         const { command } = await req.json();

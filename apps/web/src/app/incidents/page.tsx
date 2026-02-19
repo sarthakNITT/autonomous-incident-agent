@@ -261,6 +261,7 @@ function IncidentCard({ incident }: { incident: Incident }) {
   const [copied, setCopied] = useState(false);
   const [kiloLoading, setKiloLoading] = useState(false);
   const [clineLoading, setClineLoading] = useState(false);
+  const [miroLoading, setMiroLoading] = useState(false);
   const [pipeline, setPipeline] = useState<any>(null);
 
   const copyPrompt = () => {
@@ -323,7 +324,6 @@ function IncidentCard({ incident }: { incident: Incident }) {
       });
       const data = await res.json();
       if (data.success) {
-        // Open modal immediately with initial state
         setPipeline({
           pipeline_id: data.pipeline_id,
           status: "running",
@@ -336,7 +336,6 @@ function IncidentCard({ incident }: { incident: Incident }) {
             { name: "update_incident_status", status: "pending" },
           ],
         });
-        // Poll for live step updates
         const poll = setInterval(async () => {
           try {
             const statusRes = await fetch(
@@ -361,6 +360,42 @@ function IncidentCard({ incident }: { incident: Incident }) {
       toast.error("Failed to start Cline pipeline");
     } finally {
       setClineLoading(false);
+    }
+  };
+
+  const exportToMiro = async () => {
+    setMiroLoading(true);
+    try {
+      console.log("Exporting to Miro...");
+      const res = await fetch("/api/miro/create-board", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          incident_id: incident.id,
+          title: incident.title,
+          description: `Status: ${incident.status}`,
+          root_cause: incident.autopsy?.root_cause_text,
+          fix_steps: incident.autopsy?.manual_steps,
+        }),
+      });
+      const data = await res.json();
+      console.log("Miro Response:", data);
+
+      if (data.success && data.board_url) {
+        toast.success("Incident exported to Miro!", {
+          action: {
+            label: "Open Board",
+            onClick: () => window.open(data.board_url, "_blank"),
+          },
+        });
+      } else {
+        toast.error(`Export failed: ${data.error || "Unknown error"}`);
+      }
+    } catch (e: any) {
+      console.error("Miro Export Error:", e);
+      toast.error(`Connection failed: ${e.message}`);
+    } finally {
+      setMiroLoading(false);
     }
   };
 
@@ -576,6 +611,15 @@ function IncidentCard({ incident }: { incident: Incident }) {
             >
               <Terminal className="h-4 w-4 mr-2" />
               {clineLoading ? "Starting..." : "Cline Pipeline"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={exportToMiro}
+              disabled={miroLoading}
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              {miroLoading ? "Exporting..." : "Visualize in Miro"}
             </Button>
             {incident.pr_url && (
               <Button variant="outline" size="sm" asChild>

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { VoiceControl } from "@/components/voice-control";
 
 export function Navbar() {
   return (
@@ -46,12 +47,6 @@ export function Navbar() {
                   Timeline
                 </Link>
                 <Link
-                  href="/analytics"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Analytics
-                </Link>
-                <Link
                   href="/chat"
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
@@ -74,6 +69,7 @@ export function Navbar() {
               </Button>
             </SignedOut>
             <SignedIn>
+              <VoiceControl />
               <UserButton afterSignOutUrl="/" />
             </SignedIn>
           </div>
@@ -114,12 +110,6 @@ export function Navbar() {
                     className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                   >
                     Timeline
-                  </Link>
-                  <Link
-                    href="/analytics"
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    Analytics
                   </Link>
                   <Link
                     href="/chat"
