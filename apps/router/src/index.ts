@@ -157,15 +157,10 @@ const server = Bun.serve({
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               id: event.id,
-              service_name: event.service_name,
-              severity: event.severity,
               status: "detected",
               title: `Incident in ${event.service_name}`,
-              error_message: event.error_details?.message || "Unknown error",
               snapshot_id: snapshot_id,
               repo_name: projectConfig?.name || event.service_name,
-              file_path: "analyzing...",
-              created_at: new Date().toISOString(),
             }),
           });
           console.log(`[Router] Incident persisted to state service`);

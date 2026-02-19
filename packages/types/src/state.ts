@@ -28,6 +28,9 @@ export interface CreateIncidentRequest {
   id?: string;
   title: string;
   status?: IncidentStatus;
+  repo_name?: string;
+  file_path?: string;
+  snapshot_id?: string;
 }
 
 export interface UpdateIncidentRequest {
@@ -38,6 +41,7 @@ export interface UpdateIncidentRequest {
   validation_status?: boolean;
   file_path?: string;
   snapshot_id?: string;
+  repo_name?: string;
 }
 
 export interface Project {
