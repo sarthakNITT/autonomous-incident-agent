@@ -1,0 +1,15 @@
+--- a/unknown
++++ b/unknown
+@@ -10,9 +10,11 @@
+ 
+ async function errorHandler(err, req, res, next) {
+   console.error(err);
+-  res.status(500).send('error.handler');
++  if (res.headersSent) {
++    return next(err);
++  }
++  res.status(500).send('Internal Server Error');
+ }
+ 
+-// Possibly recursive or missing next call causing error.handler to fail
++// Ensure error handler does not throw and properly ends response
