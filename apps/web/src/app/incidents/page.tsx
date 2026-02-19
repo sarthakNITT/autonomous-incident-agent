@@ -24,6 +24,8 @@ import {
   Github,
   Zap,
   Terminal,
+  X,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/nextjs";
@@ -155,10 +157,111 @@ export default function IncidentsPage() {
   );
 }
 
+function PipelineModal({
+  pipeline,
+  onClose,
+}: {
+  pipeline: any;
+  onClose: () => void;
+}) {
+  const stepIcon = (status: string) => {
+    if (status === "success")
+      return <CheckCircle className="h-4 w-4 text-green-500" />;
+    if (status === "failed") return <X className="h-4 w-4 text-red-500" />;
+    if (status === "running")
+      return <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />;
+    if (status === "skipped")
+      return <Clock className="h-4 w-4 text-yellow-500" />;
+    return <Clock className="h-4 w-4 text-muted-foreground" />;
+  };
+
+  const stepLabel: Record<string, string> = {
+    fetch_incident_context: "Fetch incident context",
+    cline_analyze_root_cause: "Cline: Analyze root cause",
+    cline_generate_fix: "Cline: Generate fix",
+    validate_fix: "Validate fix",
+    update_incident_status: "Update incident status",
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="bg-background border rounded-xl shadow-2xl w-full max-w-lg mx-4 p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Terminal className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-semibold">Cline Pipeline</h2>
+            {pipeline.status === "running" && (
+              <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+            )}
+            {pipeline.status === "completed" && (
+              <CheckCircle className="h-4 w-4 text-green-500" />
+            )}
+            {pipeline.status === "failed" && (
+              <X className="h-4 w-4 text-red-500" />
+            )}
+          </div>
+          <button
+            onClick={onClose}
+            className="text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <p className="text-xs text-muted-foreground font-mono truncate">
+          ID: {pipeline.pipeline_id}
+        </p>
+
+        <div className="space-y-2">
+          {pipeline.steps?.map((step: any, i: number) => (
+            <div
+              key={i}
+              className="flex items-start gap-3 p-3 rounded-lg bg-muted/40 border"
+            >
+              <div className="mt-0.5 shrink-0">{stepIcon(step.status)}</div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium">
+                  {stepLabel[step.name] || step.name}
+                </p>
+                {step.output && (
+                  <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                    {step.output}
+                  </p>
+                )}
+                {step.duration_ms && (
+                  <p className="text-xs text-muted-foreground">
+                    {step.duration_ms}ms
+                  </p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {pipeline.cline_command && (
+          <div className="rounded-lg bg-muted p-3 border">
+            <p className="text-xs text-muted-foreground mb-1">Cline command:</p>
+            <p className="text-xs font-mono break-all line-clamp-3">
+              {pipeline.cline_command}
+            </p>
+          </div>
+        )}
+
+        {pipeline.status !== "running" && (
+          <Button className="w-full" onClick={onClose}>
+            Close
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function IncidentCard({ incident }: { incident: Incident }) {
   const [copied, setCopied] = useState(false);
   const [kiloLoading, setKiloLoading] = useState(false);
   const [clineLoading, setClineLoading] = useState(false);
+  const [pipeline, setPipeline] = useState<any>(null);
 
   const copyPrompt = () => {
     if (incident.autopsy?.fix_prompt) {
@@ -187,9 +290,14 @@ function IncidentCard({ incident }: { incident: Incident }) {
         }),
       });
       const data = await res.json();
-      if (data.vscode_deep_link) {
-        window.open(data.vscode_deep_link, "_blank");
-        toast.success("Opening in Kilo (VS Code)...");
+      if (data.kilo_prompt) {
+        await navigator.clipboard.writeText(data.kilo_prompt);
+        toast.success("Fix prompt copied! Paste it in Kilo (Cmd+V) →", {
+          duration: 6000,
+        });
+        setTimeout(() => {
+          window.open("vscode://kilo-technologies.kilo-code", "_blank");
+        }, 800);
       }
     } catch {
       toast.error("Failed to open in Kilo");
@@ -215,7 +323,39 @@ function IncidentCard({ incident }: { incident: Incident }) {
       });
       const data = await res.json();
       if (data.success) {
-        toast.success(`Cline pipeline started! ID: ${data.pipeline_id}`);
+        // Open modal immediately with initial state
+        setPipeline({
+          pipeline_id: data.pipeline_id,
+          status: "running",
+          cline_command: data.cline_command,
+          steps: [
+            { name: "fetch_incident_context", status: "pending" },
+            { name: "cline_analyze_root_cause", status: "pending" },
+            { name: "cline_generate_fix", status: "pending" },
+            { name: "validate_fix", status: "pending" },
+            { name: "update_incident_status", status: "pending" },
+          ],
+        });
+        // Poll for live step updates
+        const poll = setInterval(async () => {
+          try {
+            const statusRes = await fetch(
+              `/api/cline/pipeline?pipeline_id=${data.pipeline_id}`,
+            );
+            const statusData = await statusRes.json();
+            setPipeline(statusData);
+            if (
+              statusData.status === "completed" ||
+              statusData.status === "failed"
+            ) {
+              clearInterval(poll);
+            }
+          } catch {
+            clearInterval(poll);
+          }
+        }, 800);
+      } else {
+        toast.error(data.error || "Cline pipeline failed to start");
       }
     } catch {
       toast.error("Failed to start Cline pipeline");
@@ -252,182 +392,182 @@ function IncidentCard({ incident }: { incident: Incident }) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <CardTitle className="text-lg">{incident.title}</CardTitle>
-              {getStatusBadge(incident.status)}
-            </div>
-            <CardDescription className="font-mono text-xs">
-              ID: {incident.id}
-            </CardDescription>
-          </div>
-          <div className="text-right text-sm text-muted-foreground">
-            <div>{new Date(incident.created_at).toLocaleDateString()}</div>
-            <div className="text-xs">
-              {new Date(incident.created_at).toLocaleTimeString()}
-            </div>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-4 text-sm bg-muted/50 p-4 rounded-lg">
-          <div>
-            <span className="text-muted-foreground block mb-1">
-              Repository:
-            </span>
-            <div className="font-medium flex items-center gap-2 min-w-0">
-              {incident.repo_url ? (
-                <a
-                  href={incident.repo_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-blue-500 hover:underline truncate"
-                >
-                  <Github className="h-4 w-4 shrink-0" />
-                  <span className="truncate">
-                    {incident.repo_url
-                      .replace(/^https?:\/\/(www\.)?github\.com\//, "")
-                      .replace(/\.git$/, "")}
-                  </span>
-                </a>
-              ) : incident.repo_name ? (
-                <>
-                  <Github className="h-4 w-4 shrink-0" />
-                  <span className="truncate">{incident.repo_name}</span>
-                </>
-              ) : (
-                <span className="text-muted-foreground">Not specified</span>
-              )}
-            </div>
-          </div>
-          <div>
-            <span className="text-muted-foreground block mb-1">File:</span>
-            <div className="font-medium font-mono text-xs truncate">
-              {incident.file_path || incident.autopsy?.file_path || (
-                <span className="text-muted-foreground">Analyzing...</span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {incident.autopsy && (
-          <>
-            <div className="rounded-lg bg-muted p-4 space-y-2">
-              <div className="flex items-center justify-between">
-                <h4 className="font-medium text-sm">Root Cause Analysis</h4>
-                <Badge variant="outline">
-                  {(incident.autopsy.confidence * 100).toFixed(0)}% confidence
-                </Badge>
+    <>
+      <Card>
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-2">
+                <CardTitle className="text-lg">{incident.title}</CardTitle>
+                {getStatusBadge(incident.status)}
               </div>
-              <p className="text-sm text-foreground leading-relaxed">
-                {incident.autopsy.root_cause_text}
-              </p>
-              <div className="text-xs text-muted-foreground mt-2">
-                📍 Location: {incident.autopsy.file_path}:
-                {incident.autopsy.line_range}
+              <CardDescription className="font-mono text-xs">
+                ID: {incident.id}
+              </CardDescription>
+            </div>
+            <div className="text-right text-sm text-muted-foreground">
+              <div>{new Date(incident.created_at).toLocaleDateString()}</div>
+              <div className="text-xs">
+                {new Date(incident.created_at).toLocaleTimeString()}
               </div>
             </div>
-
-            {incident.autopsy.fix_prompt && (
-              <div className="rounded-lg bg-muted p-4 border border-border">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-medium text-sm">
-                    🤖 AI Fix Prompt (Paste into Agent)
-                  </h4>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={copyPrompt}
-                    className="h-8"
-                  >
-                    {copied ? (
-                      <Check className="h-4 w-4" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )}
-                    <span className="ml-2">Copy</span>
-                  </Button>
-                </div>
-                <pre className="text-xs bg-background p-3 rounded overflow-x-auto whitespace-pre-wrap border border-border">
-                  {incident.autopsy.fix_prompt}
-                </pre>
-              </div>
-            )}
-
-            {incident.autopsy.manual_steps &&
-              incident.autopsy.manual_steps.length > 0 && (
-                <div className="rounded-lg bg-muted p-4 border border-border">
-                  <h4 className="font-medium text-sm mb-3 flex items-center gap-2">
-                    🔧 Manual Fix Steps
-                  </h4>
-                  <ul className="list-decimal list-inside space-y-2 text-sm text-foreground">
-                    {incident.autopsy.manual_steps.map((step, idx) => (
-                      <li key={idx} className="leading-relaxed">
-                        {step}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-            {(incident.patch_diff || incident.autopsy.suggested_patch) && (
-              <details className="group">
-                <summary className="cursor-pointer font-medium text-sm flex items-center gap-2 hover:text-primary p-3 bg-muted/50 rounded-lg">
-                  <FileText className="h-4 w-4" />
-                  View Suggested Patch
-                </summary>
-                <pre className="mt-2 text-xs bg-muted p-4 rounded overflow-x-auto border">
-                  {incident.patch_diff ||
-                    incident.autopsy.suggested_patch?.patch_diff}
-                </pre>
-              </details>
-            )}
-          </>
-        )}
-
-        {!incident.autopsy && (
-          <div className="rounded-lg bg-muted p-4 border border-border">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Clock className="h-4 w-4" />
-              <span className="text-sm font-medium">
-                Analysis in progress...
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4 text-sm bg-muted/50 p-4 rounded-lg">
+            <div>
+              <span className="text-muted-foreground block mb-1">
+                Repository:
               </span>
+              <div className="font-medium flex items-center gap-2 min-w-0">
+                {incident.repo_url ? (
+                  <a
+                    href={incident.repo_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-blue-500 hover:underline truncate"
+                  >
+                    <Github className="h-4 w-4 shrink-0" />
+                    <span className="truncate">
+                      {incident.repo_url
+                        .replace(/^https?:\/\/(www\.)?github\.com\//, "")
+                        .replace(/\.git$/, "")}
+                    </span>
+                  </a>
+                ) : incident.repo_name ? (
+                  <>
+                    <Github className="h-4 w-4 shrink-0" />
+                    <span className="truncate">{incident.repo_name}</span>
+                  </>
+                ) : (
+                  <span className="text-muted-foreground">Not specified</span>
+                )}
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Root cause analysis and fix suggestions will appear here once
-              complete.
-            </p>
+            <div>
+              <span className="text-muted-foreground block mb-1">File:</span>
+              <div className="font-medium font-mono text-xs truncate">
+                {incident.file_path || incident.autopsy?.file_path || (
+                  <span className="text-muted-foreground">Analyzing...</span>
+                )}
+              </div>
+            </div>
           </div>
-        )}
 
-        <div className="flex gap-2 pt-2 border-t flex-wrap">
-          <Button variant="outline" size="sm" asChild>
-            <a href={`/api/export/${incident.id}`} target="_blank">
-              <Download className="h-4 w-4 mr-2" />
-              Download PDF
-            </a>
-          </Button>
-          <Button variant="outline" size="sm" asChild>
-            <a href={`/api/foxit/report/${incident.id}`} target="_blank">
-              <FileText className="h-4 w-4 mr-2" />
-              Foxit Report
-            </a>
-          </Button>
           {incident.autopsy && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={openInKilo}
-              disabled={kiloLoading}
-            >
-              <Zap className="h-4 w-4 mr-2" />
-              {kiloLoading ? "Opening..." : "Fix with Kilo"}
-            </Button>
+            <>
+              <div className="rounded-lg bg-muted p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-medium text-sm">Root Cause Analysis</h4>
+                  <Badge variant="outline">
+                    {(incident.autopsy.confidence * 100).toFixed(0)}% confidence
+                  </Badge>
+                </div>
+                <p className="text-sm text-foreground leading-relaxed">
+                  {incident.autopsy.root_cause_text}
+                </p>
+                <div className="text-xs text-muted-foreground mt-2">
+                  📍 Location: {incident.autopsy.file_path}:
+                  {incident.autopsy.line_range}
+                </div>
+              </div>
+
+              {incident.autopsy.fix_prompt && (
+                <div className="rounded-lg bg-muted p-4 border border-border">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium text-sm">
+                      🤖 AI Fix Prompt (Paste into Agent)
+                    </h4>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={copyPrompt}
+                      className="h-8"
+                    >
+                      {copied ? (
+                        <Check className="h-4 w-4" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
+                      <span className="ml-2">Copy</span>
+                    </Button>
+                  </div>
+                  <pre className="text-xs bg-background p-3 rounded overflow-x-auto whitespace-pre-wrap border border-border">
+                    {incident.autopsy.fix_prompt}
+                  </pre>
+                </div>
+              )}
+
+              {incident.autopsy.manual_steps &&
+                incident.autopsy.manual_steps.length > 0 && (
+                  <div className="rounded-lg bg-muted p-4 border border-border">
+                    <h4 className="font-medium text-sm mb-3 flex items-center gap-2">
+                      🔧 Manual Fix Steps
+                    </h4>
+                    <ul className="list-decimal list-inside space-y-2 text-sm text-foreground">
+                      {incident.autopsy.manual_steps.map((step, idx) => (
+                        <li key={idx} className="leading-relaxed">
+                          {step}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+              {(incident.patch_diff || incident.autopsy.suggested_patch) && (
+                <details className="group">
+                  <summary className="cursor-pointer font-medium text-sm flex items-center gap-2 hover:text-primary p-3 bg-muted/50 rounded-lg">
+                    <FileText className="h-4 w-4" />
+                    View Suggested Patch
+                  </summary>
+                  <pre className="mt-2 text-xs bg-muted p-4 rounded overflow-x-auto border">
+                    {incident.patch_diff ||
+                      incident.autopsy.suggested_patch?.patch_diff}
+                  </pre>
+                </details>
+              )}
+            </>
           )}
-          {incident.autopsy && (
+
+          {!incident.autopsy && (
+            <div className="rounded-lg bg-muted p-4 border border-border">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Clock className="h-4 w-4" />
+                <span className="text-sm font-medium">
+                  Analysis in progress...
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Root cause analysis and fix suggestions will appear here once
+                complete.
+              </p>
+            </div>
+          )}
+
+          <div className="flex gap-2 pt-2 border-t flex-wrap">
+            <Button variant="outline" size="sm" asChild>
+              <a href={`/api/export/${incident.id}`} target="_blank">
+                <Download className="h-4 w-4 mr-2" />
+                Download PDF
+              </a>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+              <a href={`/api/foxit/report/${incident.id}`} target="_blank">
+                <FileText className="h-4 w-4 mr-2" />
+                Foxit Report
+              </a>
+            </Button>
+            {incident.autopsy && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={openInKilo}
+                disabled={kiloLoading}
+              >
+                <Zap className="h-4 w-4 mr-2" />
+                {kiloLoading ? "Opening..." : "Fix with Kilo"}
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -437,21 +577,25 @@ function IncidentCard({ incident }: { incident: Incident }) {
               <Terminal className="h-4 w-4 mr-2" />
               {clineLoading ? "Starting..." : "Cline Pipeline"}
             </Button>
-          )}
-          {incident.pr_url && (
-            <Button variant="outline" size="sm" asChild>
-              <a
-                href={incident.pr_url}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Github className="h-4 w-4 mr-2" />
-                View PR
-              </a>
-            </Button>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+            {incident.pr_url && (
+              <Button variant="outline" size="sm" asChild>
+                <a
+                  href={incident.pr_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Github className="h-4 w-4 mr-2" />
+                  View PR
+                </a>
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {pipeline && (
+        <PipelineModal pipeline={pipeline} onClose={() => setPipeline(null)} />
+      )}
+    </>
   );
 }
