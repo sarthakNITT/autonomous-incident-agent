@@ -1,0 +1,14 @@
+--- a/unknown
++++ b/unknown
+@@ -35,9 +35,9 @@
+ 
+ if (payload?.action === "cause_error") {
+   console.log("Triggering intentional failure scenario...");
+-  const error = new Error(
+-    "SeededDemoFailure: deterministic bug for AIA demo",
+-  );
+-  console.log(error.stack);
++  throw new Error(
++    "SeededDemoFailure: deterministic bug for AIA demo",
++  );
+ }
