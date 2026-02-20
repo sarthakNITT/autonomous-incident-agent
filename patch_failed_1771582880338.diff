@@ -1,0 +1,21 @@
+--- a/unknown
++++ b/unknown
+@@ -10,9 +10,9 @@
+ 
+ function errorHandler(err, req, res, next) {
+   console.error('Error caught:', err);
+-  res.status(500).send('error.handler');
++  res.status(500).send('Internal Server Error');
+ }
+ 
+-// Possibly missing try-catch or error handling inside errorHandler
++// Added try-catch to prevent errorHandler from throwing
++function errorHandler(err, req, res, next) {
++  try {
++    console.error('Error caught:', err);
++    res.status(500).send('Internal Server Error');
++  } catch (handlerError) {
++    console.error('Error in errorHandler:', handlerError);
++    res.status(500).send('Critical Server Error');
++  }
+ }
