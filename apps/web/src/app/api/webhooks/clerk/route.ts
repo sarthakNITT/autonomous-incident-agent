@@ -60,7 +60,7 @@ export async function POST(req: Request) {
         },
       });
 
-      console.log(`✅ User created in database: ${id}`);
+      console.log(`User created in database: ${id}`);
     } catch (error) {
       console.error("Error creating user:", error);
       return new Response("Error creating user", { status: 500 });
@@ -81,7 +81,7 @@ export async function POST(req: Request) {
         },
       });
 
-      console.log(`✅ User updated in database: ${id}`);
+      console.log(`User updated in database: ${id}`);
     } catch (error) {
       console.error("Error updating user:", error);
       try {
@@ -95,7 +95,7 @@ export async function POST(req: Request) {
             lastSignInAt: new Date(),
           },
         });
-        console.log(`✅ User created in database (from update): ${id}`);
+        console.log(`User created in database (from update): ${id}`);
       } catch (createError) {
         console.error("Error creating user from update:", createError);
         return new Response("Error syncing user", { status: 500 });
@@ -111,7 +111,7 @@ export async function POST(req: Request) {
         where: { id: id as string },
       });
 
-      console.log(`✅ User deleted from database: ${id}`);
+      console.log(`User deleted from database: ${id}`);
     } catch (error) {
       console.error("Error deleting user:", error);
       return new Response("Error deleting user", { status: 500 });
@@ -129,7 +129,7 @@ export async function POST(req: Request) {
         },
       });
 
-      console.log(`✅ User sign-in tracked: ${user_id}`);
+      console.log(`User sign-in tracked: ${user_id}`);
     } catch (error) {
       console.error("Error tracking sign-in:", error);
     }

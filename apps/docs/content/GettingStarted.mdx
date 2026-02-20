@@ -1,76 +1,61 @@
 # Getting Started
 
-The Autonomous Incident Agent (AIA) is an intelligent system that automatically detects application failures via OpenTelemetry, analyzes them using AI, and creates GitHub Pull Requests with fix suggestions and manual remediation steps.
+The **Autonomous Incident Agent (AIA)** is an intelligent system that monitors your deployments via webhooks, detects failures in real-time, analyzes them with AI, and gives you a full toolkit to resolve incidents — from auto-PR creation to one-click VS Code fixes.
 
-## One-Line Start
+## How It Works (60-second overview)
 
-If you have already configured your environment, you can start the full AIA stack with a single command:
+```
+Your app fails on Vercel/GitHub Pages
+        ↓
+AIA receives the webhook instantly
+        ↓
+AI (Autopsy Service) analyzes root cause
+        ↓
+Dashboard shows: root cause, fix prompt, manual steps
+        ↓
+You choose: Auto PR · Fix with Kilo · Cline Pipeline · Miro Board
+```
 
-<Tabs defaultValue="bun">
-  <TabsList>
-    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
-      <TabsTrigger value="bun">bun</TabsTrigger>
-    </div>
-    <TabsCopyButton />
-  </TabsList>
-  <TabsContent value="bun">
-    ```bash
-    bun run dev
-    ```
-  </TabsContent>
-</Tabs>
+## Quick Start (As a Service User)
 
-This will launch all services, including the Agent, Router, Autopsy, State, Git, Dashboard, and sample application.
+If you just want to monitor your Vercel or GitHub Pages deployments:
 
-## Core Concepts
+<Steps>
+  <Step>
+    ### Sign Up
 
-Understanding AIA requires identifying its main stages of operation.
+    Visit the AIA dashboard and create an account (powered by Clerk).
+  </Step>
 
-### 1. Detection (Agent + Router)
+  <Step>
+    ### Create a Project
 
-The lifecycle begins when your application emits error traces via OpenTelemetry to the **Agent** service (port 4318). The **Router** service processes these traces, applies deduplication (based on trace ID), and identifies distinct incidents.
+    Click **New Project** and fill in:
 
-### 2. Analysis (Autopsy)
+    | Field | Description |
+    | :--- | :--- |
+    | **Project Name** | A friendly name for your app |
+    | **Repository URL** | `https://github.com/org/repo` |
+    | **GitHub Token** | Personal Access Token (for auto-PR) |
+    | **Base Branch** | Usually `main` or `master` |
+    | **Resolution Mode** | **Auto PR** (create PRs) or **Manual Fix** (show steps) |
 
-Once an incident is detected, the **Autopsy** service uses AI (You.com API) to:
-- Analyze the stack trace and error context
-- Identify the root cause
-- Generate a code patch (git diff format)
-- Create detailed fix instructions
-- Provide manual remediation steps
+    AIA auto-detects your available branches from GitHub.
+  </Step>
 
-### 3. Storage & State (State Service)
+  <Step>
+    ### Add the Webhook
 
-The **State** service (PostgreSQL/Neon) stores:
-- Incident metadata
-- Autopsy results
-- PR creation status
-- Historical incident data
+    Copy the webhook URL from your project card and paste it into:
 
-### 4. Git Integration (Git Service)
+    - **Vercel**: Settings → Git → Deploy Hooks
+    - **GitHub Pages**: Settings → Webhooks → Add webhook
 
-The **Git** service:
-1. Clones your GitHub repository
-2. Creates a new branch (`aia/incident-{id}`)
-3. Attempts to apply the AI-generated patch
-4. Commits changes (or saves failed patch as `patch_failed_*.diff`)
-5. Pushes to GitHub
-6. Creates a Pull Request with:
-   - AI-generated fix prompt
-   - Manual step-by-step instructions
-   - Patch file (if application failed)
-   - Full error context
+    That's it — AIA is now monitoring your deployments.
+  </Step>
+</Steps>
 
-### 5. Dashboard
-
-The **Dashboard** (port 3000) provides:
-- Real-time incident monitoring
-- Autopsy results viewer
-- AI fix prompt (copy-to-clipboard)
-- Manual remediation steps
-- Link to GitHub PR
-
-## Quick Setup
+## Quick Start (Local Development)
 
 <Steps>
   <Step>
@@ -85,7 +70,7 @@ The **Dashboard** (port 3000) provides:
       </TabsList>
       <TabsContent value="bun">
         ```bash
-        git clone https://github.com/your-org/autonomous-incident-agent
+        git clone https://github.com/sarthakNITT/autonomous-incident-agent
         cd autonomous-incident-agent
         bun install
         ```
@@ -96,30 +81,70 @@ The **Dashboard** (port 3000) provides:
   <Step>
     ### Configure Environment
 
-    Create a `.env` file in the project root:
+    Copy the example and fill in your credentials:
 
     ```bash
-    YOU_API_KEY=ydc_your_key_here
-    GITHUB_TOKEN=ghp_your_token_here
+    cp .env.local.example .env.local
+    ```
+
+    Required variables:
+
+    ```bash
+    # Database (Neon, Supabase, or local Postgres)
     DATABASE_URL=postgresql://user:pass@host/db
+
+    # Authentication
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+    CLERK_SECRET_KEY=sk_test_...
+
+    # AI
+    YOU_API_KEY=ydc_your_key_here
+
+    # Storage
+    R2_ACCOUNT_ID=your_account_id
+    R2_ACCESS_KEY_ID=your_key
+    R2_SECRET_ACCESS_KEY=your_secret
+    R2_BUCKET_NAME=autonomous-incidents
+    ```
+
+    Optional integrations:
+
+    ```bash
+    # Foxit PDF reports
+    FOXIT_CLIENT_ID=your_client_id
+    FOXIT_CLIENT_SECRET=your_client_secret
+
+    # Deepgram voice control
+    DEEPGRAM_API_KEY=your_key
+
+    # Miro boards
+    MIRO_ACCESS_TOKEN=your_token
     ```
   </Step>
 
   <Step>
-    ### Configure GitHub Integration
+    ### Setup Database
 
-    Create `aia.config.local.yaml` (gitignored):
-
-    ```yaml
-    github:
-      owner: "your-github-username"
-      repo: "your-repo-name"
-      base_branch: "main"
-    ```
+    <Tabs defaultValue="bun">
+      <TabsList>
+        <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+          <TabsTrigger value="bun">bun</TabsTrigger>
+        </div>
+        <TabsCopyButton />
+      </TabsList>
+      <TabsContent value="bun">
+        ```bash
+        cd apps/state
+        bunx prisma migrate dev
+        bunx prisma generate
+        cd ../..
+        ```
+      </TabsContent>
+    </Tabs>
   </Step>
 
   <Step>
-    ### Start Services
+    ### Start All Services
 
     <Tabs defaultValue="bun">
       <TabsList>
@@ -136,37 +161,57 @@ The **Dashboard** (port 3000) provides:
     </Tabs>
 
     This starts all services:
-    - Agent (OTEL receiver): `http://localhost:4318`
-    - Dashboard: `http://localhost:3000`
-    - Router: `http://localhost:3001`
-    - Autopsy: `http://localhost:3002`
-    - State: `http://localhost:3003`
-    - Git: `http://localhost:3004`
-    - Web: `http://localhost:3006`
-    - Docs: `http://localhost:3007`
-    - Sample App: `http://localhost:3008`
+
+    | Service | Port | Description |
+    | :--- | :--- | :--- |
+    | **Web** | 3006 | Main Next.js dashboard |
+    | **State** | 3003 | Database & project management |
+    | **Autopsy** | 3002 | AI root cause analysis |
+    | **Router** | 3001 | Incident routing & orchestration |
+    | **Agent** | 4318 | OpenTelemetry receiver |
+    | **Docs** | 3007 | This documentation site |
   </Step>
 </Steps>
 
-## Test the System
+## Core Concepts
 
-Trigger a test incident using the sample app:
+### Projects
 
-```bash
-curl -X POST http://localhost:3008/trigger \
-  -H "Content-Type: application/json" \
-  -d '{"action":"cause_error"}'
-```
+A **Project** links your GitHub repository to AIA. Each project has:
+- Its own GitHub token (per-project credential isolation)
+- A base branch for auto-PRs
+- A resolution mode (Auto PR or Manual Fix)
+- A unique webhook URL
 
-Then:
-1. Check the dashboard at `http://localhost:3000`
-2. View the autopsy results
-3. Check your GitHub repository for a new PR
+### Incidents
+
+An **Incident** is created whenever a deployment fails. It tracks:
+- The error details
+- AI-generated root cause analysis
+- Fix suggestions (prompt, patch diff, manual steps)
+- Current lifecycle status
+
+### Resolution Modes
+
+| Mode | What happens |
+| :--- | :--- |
+| **Auto PR** | AIA creates a GitHub PR with the AI-generated fix |
+| **Manual Fix** | Dashboard shows root cause, AI prompt, and manual steps |
+
+### Integrations
+
+AIA has first-class integrations with:
+
+- 🦊 **Foxit** — Professional PDF incident reports
+- ⚡ **Kilo AI** — One-click VS Code fix workflow
+- 🖥 **Cline** — Automated multi-step fix pipeline
+- 📋 **Miro** — Visual incident boards for team collaboration
+- 🎤 **Deepgram** — Voice commands for hands-free control
+- 💬 **You.com** — AI chat assistant for incident queries
 
 ## Next Steps
 
-- [Installation Guide](/docs/install) - Detailed setup instructions
-- [Architecture](/docs/architecture) - System architecture overview
-- [Configuration Reference](/docs/reference/config) - All configuration options
-- [OpenTelemetry Integration](/docs/opentelemetry) - Instrument your app
-
+- [Webhook Setup](/docs/webhooks) — Configure Vercel or GitHub Pages monitoring
+- [Architecture](/docs/architecture) — System architecture overview
+- [Configuration Reference](/docs/reference/config) — All configuration options
+- [Integrations](/docs/integrations/foxit) — Foxit, Kilo, Cline, Miro, and more

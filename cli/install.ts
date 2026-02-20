@@ -76,7 +76,7 @@ database:
   const targetPath = join(process.cwd(), "aia.config.yaml");
   await Bun.write(targetPath, configContent);
 
-  console.log(`\n✅ Configuration written to ${targetPath}`);
+  console.log(`\nConfiguration written to ${targetPath}`);
   console.log("\nNext Steps:");
   console.log(
     "1. Run 'bun run apps/docs/src/server.ts' to view documentation.",

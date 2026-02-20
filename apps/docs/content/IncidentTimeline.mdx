@@ -1,0 +1,107 @@
+# Incident Timeline
+
+The **Incident Timeline** page (`/timeline`) provides a real-time, visual view of every incident's lifecycle — showing exactly which stage each incident is in and auto-refreshing every 10 seconds.
+
+## Overview
+
+The timeline answers the question: *"Where exactly is this incident in the resolution process?"*
+
+Each incident has a **5-stage progress bar** that tracks its journey from detection to resolution, making it easy to see at a glance what's happening across all your deployments.
+
+## Lifecycle Stages
+
+| Stage | Icon | Description |
+| :--- | :--- | :--- |
+| **Detected** | 🔍 | Webhook received, incident record created |
+| **Analyzing** | 🔎 | Autopsy AI is analyzing the root cause |
+| **Patching** | 📄 | Fix is being generated or applied |
+| **Validating** | ⚡ | Fix is being validated |
+| **Resolved** | Incident successfully resolved |
+
+> Failed incidents show a separate error state instead of the progress bar.
+
+## Accessing the Timeline
+
+Click **Timeline** in the navigation, or go directly to `/timeline`. Sign-in is required.
+
+## Features
+
+### Real-Time Auto-Refresh
+
+The timeline polls `/api/incidents` every **10 seconds** automatically. A **Live** indicator (pulsing bell) confirms the feed is active.
+
+### Status Filters
+
+Filter incidents by lifecycle stage using the pill buttons:
+
+```
+[All (12)] [Detected] [Analyzing] [Patching] [Resolved] [Failed]
+```
+
+### Active Stage Indicator
+
+The current stage is **highlighted and enlarged** with a ring animation. A small **"← Now"** label marks the exact current position.
+
+### Elapsed Time
+
+Each incident card shows how long it has been active (in minutes):
+
+```
+⏱ 14 min
+```
+
+### Repository Badge
+
+If an incident has a linked repository, it's shown as a badge:
+
+```
+📦 user/my-repo
+```
+
+### PR Link
+
+If a PR was automatically created, a **"View PR"** link appears that opens the GitHub Pull Request:
+
+```
+🔀 View PR
+```
+
+## Progress Bar Visualization
+
+```
+○ ──────── ● ──────── ○ ─────── ○ ────── ○
+Detected   Analyzing  Patching  Validating  Resolved
+           ← Now
+```
+
+The progress line fills proportionally based on the current stage index. Completed steps use the primary foreground color; pending steps are muted.
+
+## API
+
+The timeline reads from:
+
+```
+GET /api/incidents
+```
+
+This returns all incidents for the authenticated user, including status, timestamps, repo info, and PR links.
+
+## Use Cases
+
+### During Active Incidents
+
+Keep the Timeline open on a secondary monitor during a live incident. Auto-refresh means you'll see status changes within 10 seconds — no manual refreshing needed.
+
+### Team Status Updates
+
+Share a screenshot of the timeline during standup or incident reviews to show the current state of all active incidents.
+
+### Historical Review
+
+Switch the filter to **"Resolved"** to review recently resolved incidents and their elapsed times.
+
+## Next Steps
+
+- [AI Chat](/docs/features/chat) — Ask the AI assistant about incident details
+- [Incidents Page](/docs/incidents) — Detailed incident cards with fix tools
+- [Webhook Setup](/docs/webhooks) — Configure monitoring for your deployments

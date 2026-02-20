@@ -1,217 +1,160 @@
 # Architecture Overview
 
-AIA is a microservices-based system that automatically detects, analyzes, and creates fixes for production incidents.
+AIA is a microservices-based system built around a **webhook-first** incident detection model. When a deployment fails on Vercel or GitHub Pages, a webhook fires instantly — no polling required.
 
-## Quick Overview
+## System Diagram
 
 ```
-Your App → Agent → Router → Autopsy → State → Git → GitHub PR
-            ↓         ↓         ↓         ↓      ↓
-         OTEL    Enrich     AI      Database  Patch
+┌────────────────────────────────────────────────────────────┐
+│          VERCEL / GITHUB PAGES DEPLOYMENT                  │
+│                  (User's Application)                      │
+└─────────────────────┬──────────────────────────────────────┘
+                      │  Deployment fails → webhook fires
+                      ▼
+┌────────────────────────────────────────────────────────────┐
+│          NEXT.JS WEB APP  (apps/web — Port 3006)           │
+│   Webhook handlers: /api/webhooks/vercel                   │
+│                     /api/webhooks/github                   │
+│                                                            │
+│   Dashboard pages: /incidents  /timeline  /chat            │
+│   API routes:      /api/incidents  /api/projects           │
+│   Integrations:    /api/foxit  /api/kilo  /api/cline       │
+│                    /api/miro   /api/voice  /api/chat        │
+│   Export:          /api/export (PDF)                       │
+└──────────────┬─────────────────────────────────────────────┘
+               │  Creates incident + triggers analysis
+               ▼
+┌────────────────────────────────────────────────────────────┐
+│          STATE SERVICE  (apps/state — Port 3003)           │
+│  • PostgreSQL via Prisma ORM                               │
+│  • Stores incidents, autopsy results, projects             │
+│  • REST API for all CRUD operations                        │
+└──────────────┬─────────────────────────────────────────────┘
+               │
+               ▼
+┌────────────────────────────────────────────────────────────┐
+│          AUTOPSY SERVICE  (apps/autopsy — Port 3002)       │
+│  • AI analysis using You.com API                           │
+│  • Generates: root cause, patch, fix prompt, manual steps  │
+│  • Stores results back to State service                     │
+└───────┬──────────────────────────────────────┬─────────────┘
+        │                                      │
+        ▼                                      ▼
+┌──────────────┐                    ┌──────────────────────┐
+│  AUTO PR     │                    │   MANUAL FIX MODE    │
+│  • New branch │                   │   • Root cause card  │
+│  • Git patch  │                   │   • AI fix prompt    │
+│  • GitHub PR  │                   │   • Manual steps     │
+└──────────────┘                    └──────────────────────┘
+                                             │
+           ┌─────────────────────────────────┼────────────────────┐
+           │                                 │                    │
+           ▼                                 ▼                    ▼
+  ⚡ Fix with Kilo              🖥 Cline Pipeline         🦊 Foxit PDF
+  (VS Code + Kilo AI)          (Auto fix agent)          (PDF Report)
+                                                                  │
+                                                         📋 Miro Board
 ```
 
 ## Core Services
 
-### 1. Agent (Port 4318)
-**Purpose:** OpenTelemetry receiver and error detection
+### Web App (Port 3006)
 
-- Receives traces and logs from your application
-- Runs error detectors (HTTP 5xx, exceptions, latency, crashes)
-- Deduplicates incidents by trace ID
-- Forwards detected incidents to Router
+The **Next.js 14** app handles all user-facing functionality:
 
-### 2. Router (Port 3001)
-**Purpose:** Incident orchestration and enrichment
+- **Webhook receivers** — `POST /api/webhooks/vercel` and `POST /api/webhooks/github`
+- **Dashboard pages** — Project management, incident cards, timeline, chat
+- **Integration APIs** — Foxit report, Kilo prompt, Cline pipeline, Miro board, voice commands
+- **Authentication** — Clerk session management via middleware
 
-- Enriches incidents with code snapshots
-- Extracts file paths from stack traces
-- Reads relevant source code
-- Coordinates workflow between services
+### State Service (Port 3003)
 
-### 3. Autopsy (Port 3002)
-**Purpose:** AI-powered analysis
+**Purpose:** Single source of truth for all persistent data.
 
-- Calls You.com API for analysis
-- Generates root cause explanations
-- Creates code patches (git diff)
-- Produces AI fix prompts
-- Provides manual remediation steps
+- PostgreSQL database via Prisma ORM
+- Stores: projects, incidents, autopsy results
+- REST API consumed by Web App and Autopsy service
 
-### 4. State (Port 3003)
-**Purpose:** Data persistence
+Key tables:
+| Table | Description |
+| :--- | :--- |
+| `Project` | GitHub repos linked by users |
+| `Incident` | Detected deployment failures |
+| `AutopsyResult` | AI analysis output |
 
-- PostgreSQL database interface
-- Stores incidents and autopsy results
-- Provides query API for Dashboard
-- Manages data retention
+### Autopsy Service (Port 3002)
 
-### 5. Git (Port 3004)
-**Purpose:** GitHub integration
+**Purpose:** AI-powered root cause analysis.
 
-- Clones repositories
-- Applies patches
-- Creates branches
-- Pushes changes
-- Creates Pull Requests
+- Called after each incident is created
+- Queries You.com AI with the error context
+- Returns: root cause text, patch diff, fix prompt, manual steps, confidence score
+- Results persisted to State service
 
-### 6. Dashboard (Port 3000)
-**Purpose:** Web UI
+### Router Service (Port 3001)
 
-- Displays incidents
-- Shows autopsy results
-- Provides AI fix prompt copy button
-- Links to GitHub PRs
-- Generates PDF reports
+**Purpose:** Incident enrichment and orchestration.
 
-## Supporting Services
+- Enriches incidents with code context from GitHub
+- Coordinates the Autopsy trigger workflow
+- Applies deduplication logic
 
-### 7. Web (Port 3006)
-Marketing and landing page
+### Agent Service (Port 4318)
 
-### 8. Docs (Port 3007)
-This documentation site
+**Purpose:** OpenTelemetry receiver (optional path).
 
-### 9. Sample App (Port 3008)
-Demo application for testing
+- Accepts OTEL traces from instrumented applications
+- Alternative to webhook-based detection (for server-side errors)
+- Forwards detected errors to the routing pipeline
 
-## Why Microservices?
+## Communication Model
 
-### Independent Scaling
-- **Agent**: High throughput (many traces)
-- **Autopsy**: CPU-bound (AI analysis)
-- **Git**: I/O-bound (GitHub operations)
+All services communicate via **HTTP REST** over internal URLs:
 
-Each can scale independently based on load.
-
-### Fault Isolation
-- If Autopsy fails, incidents still get stored
-- If Git fails, analysis still completes
-- Services can restart without affecting others
-
-### Technology Flexibility
-- Each service can use different tech stack
-- Easy to swap implementations
-- Can optimize per-service
-
-### Development Velocity
-- Teams can work on different services
-- Deploy services independently
-- Test in isolation
-
-## Data Flow
-
-1. **Error Occurs** → Your app encounters an error
-2. **Trace Sent** → OTEL SDK sends trace to Agent
-3. **Detection** → Agent detects error pattern
-4. **Enrichment** → Router adds code context
-5. **Storage** → State saves incident
-6. **Analysis** → Autopsy generates fix
-7. **Storage** → State saves autopsy result
-8. **Git Ops** → Git creates PR
-9. **Display** → Dashboard shows results
-
-**Total Time:** ~8-22 seconds from error to PR
-
-## Communication
-
-Services communicate via HTTP REST APIs:
-
-```typescript
-// Router → State
-POST http://localhost:3003/incidents
-{
-  "id": "inc_abc123",
-  "error_type": "exception",
-  "error_message": "...",
-  ...
-}
-
-// Router → Autopsy
-POST http://localhost:3002/analyze
-{
-  "incident_id": "inc_abc123",
-  "file_context": [...]
-}
-
-// Autopsy → State
-POST http://localhost:3003/autopsy
-{
-  "incident_id": "inc_abc123",
-  "root_cause": "...",
-  "patch_diff": "...",
-  ...
-}
-
-// Router → Git
-POST http://localhost:3004/create-pr
-{
-  "incident_id": "inc_abc123"
-}
+```
+Web App → State    : http://localhost:3003
+Web App → Autopsy  : http://localhost:3002
+Web App → Router   : http://localhost:3001
+Autopsy → State    : http://localhost:3003
 ```
 
-## Storage
+In production these are environment variables (`STATE_SERVICE_URL`, `AUTOPSY_SERVICE_URL`, etc.) pointing to deployed service URLs.
 
-### PostgreSQL (Primary)
-- Incidents table
-- Autopsy results table
-- Indexed for fast queries
+## Detection Paths
 
-### Cloudflare R2 (Optional)
-- Autopsy result backups
-- Patch file storage
-- Long-term archival
+AIA supports two parallel incident detection paths:
 
-### Local Filesystem
-- Git workspace
-- Service logs
-- Temporary files
+| Path | Trigger | Use Case |
+| :--- | :--- | :--- |
+| **Webhook** | Vercel/GitHub sends HTTP event | Deployment failures (CI/CD) |
+| **OpenTelemetry** | App emits OTEL traces | Runtime errors in running apps |
 
-## Deployment Options
+Both paths create the same `Incident` record and flow through Autopsy.
 
-### Development
-```bash
-bun run dev  # All services on localhost
-```
+## Data Storage
 
-### Production - Monolith
-```bash
-# All services on one server
-pm2 start ecosystem.config.js
-```
+| Store | Technology | Purpose |
+| :--- | :--- | :--- |
+| **Primary DB** | PostgreSQL (Neon) | Incidents, projects, autopsy results |
+| **Object Storage** | Cloudflare R2 / S3 | Incident snapshots, patch files |
 
-### Production - Distributed
-```bash
-# Each service on separate container/VM
-docker-compose up -d
-```
+## Deployment Architecture
 
-### Production - Serverless
-```bash
-# Deploy to Vercel, Railway, Fly.io
-# Each service as separate deployment
-```
+In production, AIA uses a **hybrid free-tier** deployment:
 
-## Performance Characteristics
-
-| Service | Latency | Throughput | Resource |
-| :--- | :--- | :--- | :--- |
-| Agent | 5-10ms | High | CPU (detection) |
-| Router | 50-100ms | Medium | I/O (file reads) |
-| Autopsy | 2-5s | Low | Network (AI API) |
-| State | 10-20ms | High | I/O (database) |
-| Git | 5-15s | Low | Network (GitHub) |
-| Dashboard | 50-100ms | Medium | I/O (database) |
-
-## Monitoring
-
-Each service exposes:
-- `/health` - Health check endpoint
-- Logs to console and file
-- Metrics (requests, latency, errors)
+| Component | Platform | Notes |
+| :--- | :--- | :--- |
+| Web App | Vercel | Serverless Next.js |
+| State Service | Render | Free-tier container |
+| Autopsy Service | Render | Free-tier container |
+| Router Service | Render | Free-tier container |
+| Database | Neon | Serverless Postgres |
+| Storage | Cloudflare R2 | S3-compatible |
+| Auth | Clerk | Managed auth |
 
 ## Next Steps
 
-- [Architecture](/docs/architecture) - Detailed service descriptions
-- [Data Flow](/docs/architecture/data-flow) - Step-by-step data movement
-- [Running Agent](/docs/running-agent) - Deployment guide
-- [Configuration](/docs/reference/config) - Service configuration
+- [Data Flow](/docs/architecture/data-flow) — Step-by-step data movement
+- [AI Engine](/docs/architecture/ai-engine) — How Autopsy analysis works
+- [Webhook Setup](/docs/webhooks) — Configure deployment monitoring
+- [Configuration Reference](/docs/reference/config) — All config options

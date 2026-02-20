@@ -1,0 +1,146 @@
+# Cline Pipeline
+
+AIA integrates with **Cline** (VS Code AI coding agent) to run a fully automated multi-step pipeline that analyzes an incident's root cause and applies a fix — all triggered from the dashboard.
+
+## Overview
+
+The **"Cline Pipeline"** button on each incident card launches a background pipeline that:
+
+1. Fetches incident context from the State service
+2. Instructs Cline to analyze the root cause
+3. Has Cline generate and apply a code fix
+4. Validates the applied fix
+5. Updates the incident status in the dashboard
+
+You can watch the pipeline run in real-time via a modal that shows each step's status.
+
+## Pipeline Steps
+
+| Step | Label | Description |
+| :--- | :--- | :--- |
+| `fetch_incident_context` | Fetch incident context | Loads incident data from State service |
+| `cline_analyze_root_cause` | Cline: Analyze root cause | AI analysis of the error |
+| `cline_generate_fix` | Cline: Generate fix | Code fix generation and application |
+| `validate_fix` | Validate fix | Verifies the fix was applied correctly |
+| `update_incident_status` | Update incident status | Marks the incident as resolved or failed |
+
+## API Endpoints
+
+### Start Pipeline
+
+```
+POST /api/cline/pipeline
+```
+
+**Request body:**
+```json
+{
+  "incident_id": "abc123",
+  "root_cause": "The user object is null when accessed at line 42",
+  "patch_diff": "--- a/src/...\n+++ b/src/...",
+  "file_path": "src/api/users.ts"
+}
+```
+
+**Success response:**
+```json
+{
+  "success": true,
+  "pipeline_id": "pipeline_abc123_1708000000",
+  "cline_command": "cline --fix 'Fix TypeError at src/api/users.ts:42 ...'"
+}
+```
+
+### Poll Pipeline Status
+
+```
+GET /api/cline/pipeline?pipeline_id=<id>
+```
+
+**Response:**
+```json
+{
+  "pipeline_id": "pipeline_abc123_1708000000",
+  "status": "running",
+  "steps": [
+    { "name": "fetch_incident_context", "status": "success", "duration_ms": 45 },
+    { "name": "cline_analyze_root_cause", "status": "running" },
+    { "name": "cline_generate_fix", "status": "pending" },
+    { "name": "validate_fix", "status": "pending" },
+    { "name": "update_incident_status", "status": "pending" }
+  ],
+  "cline_command": "..."
+}
+```
+
+## Real-Time Pipeline Modal
+
+When the pipeline starts, a modal opens over the dashboard showing live step progress:
+
+```
+┌─────────────────────────────────────────┐
+│  🖥 Cline Pipeline           🔄 Running  │
+│                                          │
+│  ID: pipeline_abc123_1708000000          │
+│                                          │
+│   Fetch incident context  (45ms)      │
+│   Cline: Analyze root cause           │
+│   Cline: Generate fix                 │
+│   Validate fix                        │
+│   Update incident status              │
+│                                          │
+│  Cline command:                          │
+│  cline --fix 'Fix TypeError...'          │
+└─────────────────────────────────────────┘
+```
+
+Step icons:
+- `success` — Completed
+- `failed` — Failed
+- `running` — In progress (animated spinner)
+- `pending` — Waiting
+
+The modal **auto-updates every 800ms** and closes automatically when you click **Close** after completion.
+
+## Setup
+
+### Prerequisites
+
+The Cline VS Code extension must be installed, and the backend Cline service must be available (handled by the AIA monorepo).
+
+No additional environment variables are required for local development — the pipeline runs through the web API.
+
+## Usage
+
+<Steps>
+  <Step>
+    ### Find an Incident with Autopsy Data
+
+    Navigate to the **Incidents** page. Look for incidents that have root cause analysis visible.
+  </Step>
+
+  <Step>
+    ### Click "Cline Pipeline"
+
+    The button shows **"Starting..."** briefly, then the pipeline modal opens.
+  </Step>
+
+  <Step>
+    ### Watch the Pipeline
+
+    Each step updates in real time. The pipeline typically completes in 30–120 seconds.
+  </Step>
+
+  <Step>
+    ### Review the Result
+
+    - If **completed**: The incident status is updated to `resolved`
+    - If **failed**: An error message appears in the last step's output
+  </Step>
+</Steps>
+
+## Next Steps
+
+- [Kilo Integration](/docs/integrations/kilo) — Simpler one-click VS Code prompt
+- [AI Chat](/docs/features/chat) — Ask the assistant about any incident
+- [Incident Timeline](/docs/features/timeline) — Live visual status tracker

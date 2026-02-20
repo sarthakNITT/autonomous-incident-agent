@@ -25,7 +25,7 @@ export async function ensureUserInDatabase() {
         },
       });
 
-      console.log(`✅ User created in database: ${user.id}`);
+      console.log(`User created in database: ${user.id}`);
     } else {
       user = await prisma.user.update({
         where: { id: clerkUser.id },

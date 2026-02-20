@@ -93,7 +93,7 @@ Your application encounters an error:
 // Example: Null pointer error
 function getUser(id: string) {
   const user = db.query("SELECT * FROM users WHERE id = ?", [id]);
-  return { name: user.name }; // ❌ user might be null
+  return { name: user.name }; // user might be null
 }
 ```
 

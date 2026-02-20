@@ -425,9 +425,9 @@ for service in "${services[@]}"; do
   port="${service##*:}"
   
   if curl -s "http://localhost:$port/health" > /dev/null; then
-    echo "✅ $name (port $port) - healthy"
+    echo "$name (port $port) - healthy"
   else
-    echo "❌ $name (port $port) - unhealthy"
+    echo "$name (port $port) - unhealthy"
   fi
 done
 ```

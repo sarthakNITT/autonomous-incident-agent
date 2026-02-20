@@ -20,7 +20,7 @@ WARNINGS=0
 # Check if .env.production exists
 echo "1. Checking environment configuration..."
 if [ ! -f .env.production ]; then
-    echo -e "${RED}❌ .env.production not found${NC}"
+    echo -e "${RED}.env.production not found${NC}"
     ERRORS=$((ERRORS + 1))
 else
     echo -e "${GREEN}✓${NC} .env.production exists"
@@ -36,7 +36,7 @@ fi
 echo ""
 echo "2. Checking Docker..."
 if ! command -v docker &> /dev/null; then
-    echo -e "${RED}❌ Docker not found${NC}"
+    echo -e "${RED}Docker not found${NC}"
     ERRORS=$((ERRORS + 1))
 else
     echo -e "${GREEN}✓${NC} Docker installed"
@@ -44,7 +44,7 @@ else
 fi
 
 if ! command -v docker-compose &> /dev/null; then
-    echo -e "${RED}❌ Docker Compose not found${NC}"
+    echo -e "${RED}Docker Compose not found${NC}"
     ERRORS=$((ERRORS + 1))
 else
     echo -e "${GREEN}✓${NC} Docker Compose installed"
@@ -55,7 +55,7 @@ fi
 echo ""
 echo "3. Checking Bun runtime..."
 if ! command -v bun &> /dev/null; then
-    echo -e "${RED}❌ Bun not found${NC}"
+    echo -e "${RED}Bun not found${NC}"
     ERRORS=$((ERRORS + 1))
 else
     echo -e "${GREEN}✓${NC} Bun installed"
@@ -79,7 +79,7 @@ echo "5. Testing build..."
 if bun run build > /dev/null 2>&1; then
     echo -e "${GREEN}✓${NC} Build successful"
 else
-    echo -e "${RED}❌ Build failed${NC}"
+    echo -e "${RED}Build failed${NC}"
     ERRORS=$((ERRORS + 1))
 fi
 
@@ -98,7 +98,7 @@ for dockerfile in "${DOCKERFILES[@]}"; do
     if [ -f "$dockerfile" ]; then
         echo -e "${GREEN}✓${NC} $dockerfile exists"
     else
-        echo -e "${RED}❌ $dockerfile not found${NC}"
+        echo -e "${RED}$dockerfile not found${NC}"
         ERRORS=$((ERRORS + 1))
     fi
 done
@@ -113,11 +113,11 @@ if [ -f docker-compose.prod.yml ]; then
     if docker-compose -f docker-compose.prod.yml config > /dev/null 2>&1; then
         echo -e "${GREEN}✓${NC} docker-compose.prod.yml is valid"
     else
-        echo -e "${RED}❌ docker-compose.prod.yml has syntax errors${NC}"
+        echo -e "${RED}docker-compose.prod.yml has syntax errors${NC}"
         ERRORS=$((ERRORS + 1))
     fi
 else
-    echo -e "${RED}❌ docker-compose.prod.yml not found${NC}"
+    echo -e "${RED}docker-compose.prod.yml not found${NC}"
     ERRORS=$((ERRORS + 1))
 fi
 
@@ -139,13 +139,13 @@ echo "9. Security checks..."
 if grep -q ".env.production" .gitignore; then
     echo -e "${GREEN}✓${NC} .env.production is in .gitignore"
 else
-    echo -e "${RED}❌ .env.production should be in .gitignore${NC}"
+    echo -e "${RED}.env.production should be in .gitignore${NC}"
     ERRORS=$((ERRORS + 1))
 fi
 
 # Check for hardcoded secrets
 if grep -r "sk_live_" apps/ --include="*.ts" --include="*.js" > /dev/null 2>&1; then
-    echo -e "${RED}❌ Found hardcoded secrets in code${NC}"
+    echo -e "${RED}Found hardcoded secrets in code${NC}"
     ERRORS=$((ERRORS + 1))
 else
     echo -e "${GREEN}✓${NC} No hardcoded secrets found"
@@ -158,7 +158,7 @@ echo "📊 Validation Summary"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 if [ $ERRORS -eq 0 ] && [ $WARNINGS -eq 0 ]; then
-    echo -e "${GREEN}✅ All checks passed! Ready for production deployment.${NC}"
+    echo -e "${GREEN}All checks passed! Ready for production deployment.${NC}"
     echo ""
     echo "Run: ./scripts/deploy-production.sh"
     exit 0
@@ -167,7 +167,7 @@ elif [ $ERRORS -eq 0 ]; then
     echo "You can proceed with deployment, but review the warnings above."
     exit 0
 else
-    echo -e "${RED}❌ $ERRORS error(s) found${NC}"
+    echo -e "${RED}$ERRORS error(s) found${NC}"
     if [ $WARNINGS -gt 0 ]; then
         echo -e "${YELLOW}⚠️  $WARNINGS warning(s) found${NC}"
     fi

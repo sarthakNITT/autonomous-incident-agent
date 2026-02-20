@@ -8,38 +8,38 @@ AIA (Autonomous Incident Agent) takes security seriously. This document outlines
 
 | Version | Supported |
 | ------- | --------- |
-| 1.0.x   | ✅ Yes    |
-| < 1.0   | ❌ No     |
+| 1.0.x   | Yes       |
+| < 1.0   | No        |
 
 ## Security Features
 
 ### Authentication & Authorization
 
-- ✅ **Clerk Authentication** - Industry-standard OAuth2/OIDC
-- ✅ **Session Management** - Secure, httpOnly cookies
-- ✅ **Multi-tenancy** - User isolation at database level
-- ✅ **API Key Encryption** - Project credentials encrypted at rest
+- **Clerk Authentication** - Industry-standard OAuth2/OIDC
+- **Session Management** - Secure, httpOnly cookies
+- **Multi-tenancy** - User isolation at database level
+- **API Key Encryption** - Project credentials encrypted at rest
 
 ### Data Protection
 
-- ✅ **Encryption at Rest** - Database credentials encrypted
-- ✅ **Encryption in Transit** - HTTPS/TLS required in production
-- ✅ **Credential Isolation** - Per-project API keys stored securely
-- ✅ **No Credential Logging** - Sensitive data excluded from logs
+- **Encryption at Rest** - Database credentials encrypted
+- **Encryption in Transit** - HTTPS/TLS required in production
+- **Credential Isolation** - Per-project API keys stored securely
+- **No Credential Logging** - Sensitive data excluded from logs
 
 ### Infrastructure Security
 
-- ✅ **Docker Isolation** - Containerized services with network isolation
-- ✅ **Health Checks** - Automated service monitoring
-- ✅ **Restart Policies** - Automatic recovery from failures
-- ✅ **Resource Limits** - Prevent resource exhaustion attacks
+- **Docker Isolation** - Containerized services with network isolation
+- **Health Checks** - Automated service monitoring
+- **Restart Policies** - Automatic recovery from failures
+- **Resource Limits** - Prevent resource exhaustion attacks
 
 ### API Security
 
-- ✅ **CORS Configuration** - Strict origin policies
-- ✅ **Input Validation** - All inputs sanitized
-- ✅ **Rate Limiting** - Protection against abuse (recommended)
-- ✅ **Error Handling** - No sensitive data in error messages
+- **CORS Configuration** - Strict origin policies
+- **Input Validation** - All inputs sanitized
+- **Rate Limiting** - Protection against abuse (recommended)
+- **Error Handling** - No sensitive data in error messages
 
 ## Security Checklist for Production
 

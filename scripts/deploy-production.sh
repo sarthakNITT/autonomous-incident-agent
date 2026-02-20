@@ -16,7 +16,7 @@ NC='\033[0m' # No Color
 
 # Check if .env.production exists
 if [ ! -f .env.production ]; then
-    echo -e "${RED}❌ Error: .env.production not found${NC}"
+    echo -e "${RED}Error: .env.production not found${NC}"
     echo "Please copy .env.production.template to .env.production and fill in your values:"
     echo "  cp .env.production.template .env.production"
     echo "  nano .env.production"
@@ -43,7 +43,7 @@ echo ""
 echo "🔍 Checking required environment variables..."
 for var in "${required_vars[@]}"; do
     if [ -z "${!var}" ]; then
-        echo -e "${RED}❌ Error: $var is not set${NC}"
+        echo -e "${RED}Error: $var is not set${NC}"
         exit 1
     fi
     echo -e "${GREEN}✓${NC} $var is set"
@@ -54,7 +54,7 @@ echo "🏗️  Building application..."
 bun run build
 
 if [ $? -ne 0 ]; then
-    echo -e "${RED}❌ Build failed${NC}"
+    echo -e "${RED}Build failed${NC}"
     exit 1
 fi
 
@@ -67,7 +67,7 @@ npx prisma generate
 npx prisma migrate deploy
 
 if [ $? -ne 0 ]; then
-    echo -e "${RED}❌ Database migration failed${NC}"
+    echo -e "${RED}Database migration failed${NC}"
     exit 1
 fi
 
@@ -80,7 +80,7 @@ docker-compose -f docker-compose.prod.yml down
 docker-compose -f docker-compose.prod.yml up -d --build
 
 if [ $? -ne 0 ]; then
-    echo -e "${RED}❌ Docker deployment failed${NC}"
+    echo -e "${RED}Docker deployment failed${NC}"
     exit 1
 fi
 
@@ -107,7 +107,7 @@ check_health() {
         attempt=$((attempt + 1))
     done
 
-    echo -e "${RED}❌ $service failed to start${NC}"
+    echo -e "${RED}$service failed to start${NC}"
     return 1
 }
 
@@ -121,7 +121,7 @@ check_health "Agent Service" "http://localhost:4318/health"
 check_health "Web Dashboard" "http://localhost:3006/"
 
 echo ""
-echo -e "${GREEN}✅ Deployment completed successfully!${NC}"
+echo -e "${GREEN}Deployment completed successfully!${NC}"
 echo ""
 echo "📊 Service URLs:"
 echo "  - Dashboard: http://localhost:3006"

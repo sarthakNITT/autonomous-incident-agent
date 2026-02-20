@@ -81,12 +81,12 @@ All Shadcn variables map to these 3 colors.
 
 ## Features
 
-- ✅ Animated landing page with Framer Motion
-- ✅ Clerk authentication (sign-in, sign-up, protected routes)
-- ✅ Responsive navbar with mobile menu
-- ✅ Dark/light mode support
-- ✅ Zero commented code
-- ✅ Shadcn UI components only
+- Animated landing page with Framer Motion
+- Clerk authentication (sign-in, sign-up, protected routes)
+- Responsive navbar with mobile menu
+- Dark/light mode support
+- Zero commented code
+- Shadcn UI components only
 
 ## Routes
 

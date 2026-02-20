@@ -1,0 +1,108 @@
+# Miro Integration
+
+AIA integrates with **Miro** to export incident details as a visual board — perfect for team post-mortems, war rooms, and collaborative troubleshooting sessions.
+
+## Overview
+
+The **"Visualize in Miro"** button on each incident card sends incident data to `/api/miro/create-board`, which creates a new Miro board pre-populated with:
+
+- Incident title and status
+- Root cause description
+- Step-by-step fix instructions
+
+After creation, a toast notification appears with an **"Open Board"** link to view the Miro board directly.
+
+## How It Works
+
+### API Endpoint
+
+```
+POST /api/miro/create-board
+```
+
+**Request body:**
+```json
+{
+  "incident_id": "abc123",
+  "title": "API 500 Error - /users endpoint",
+  "description": "Status: analyzing",
+  "root_cause": "Null pointer exception when user record is missing",
+  "fix_steps": [
+    "Open src/api/users.ts",
+    "Add null check after database query",
+    "Test with invalid user ID"
+  ]
+}
+```
+
+**Success response:**
+```json
+{
+  "success": true,
+  "board_url": "https://miro.com/app/board/uXjVN...",
+  "board_id": "uXjVN..."
+}
+```
+
+### Miro Board Structure
+
+The created board includes sticky notes and frames organized to represent the incident visually — making it easy to share with your team during an incident review.
+
+## Setup
+
+### Environment Variables
+
+<Tabs defaultValue="env">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="env">.env.local</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="env">
+    ```bash
+    MIRO_ACCESS_TOKEN=your_miro_access_token
+    ```
+  </TabsContent>
+</Tabs>
+
+### Getting a Miro Access Token
+
+1. Go to [miro.com/app/settings/user-profile/apps](https://miro.com/app/settings/user-profile/apps)
+2. Click **Create new app**
+3. Enable the **boards:write** scope
+4. Generate an access token
+5. Copy the token to your `.env.local`
+
+## Dashboard UI
+
+The Miro button appears on every incident card alongside other action buttons:
+
+```
+[Download PDF] [Foxit Report] [Fix with Kilo ⚡] [Cline Pipeline] [Visualize in Miro]
+```
+
+While the board is being created, the button shows **"Exporting..."**. Once complete:
+
+- **Success**: Toast with "Incident exported to Miro!" and an **Open Board** action
+- **Error**: Toast with the specific error message
+
+## Use Cases
+
+### Post-Mortem Reviews
+
+Export incidents after resolution to document the timeline, root cause, and steps taken — all in a shareable, visual format.
+
+### Live War Room
+
+During an active incident, export to Miro and invite your team to collaborate on analysis and response in real time.
+
+### Incident Reporting
+
+Use Miro boards as visual supplements to PDF reports (generated via Foxit) for stakeholder presentations.
+
+## Next Steps
+
+- [Foxit Reports](/docs/integrations/foxit) — Generate professional PDF reports of incidents
+- [Kilo Integration](/docs/integrations/kilo) — Fix incidents directly in VS Code
+- [Voice Control](/docs/features/voice) — Control AIA hands-free with Deepgram

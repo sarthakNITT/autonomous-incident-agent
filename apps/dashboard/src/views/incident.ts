@@ -1,14 +1,14 @@
 import type { AutopsyResult } from "@repo/types";
 
 export function renderIncidentView(
-    autopsy: AutopsyResult,
-    prDescription: string,
-    preLogs: string,
-    postLogs: string
+  autopsy: AutopsyResult,
+  prDescription: string,
+  preLogs: string,
+  postLogs: string,
 ): string {
-    const timestamp = new Date().toISOString();
+  const timestamp = new Date().toISOString();
 
-    return `
+  return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -64,7 +64,7 @@ export function renderIncidentView(
                 <div class="meta">Patch & PR Generated</div>
             </div>
             <div class="timeline-item">
-                <div>✅ <strong>Verification</strong></div>
+                <div> <strong>Verification</strong></div>
                 <div class="meta">Reproduction Harness</div>
             </div>
         </div>

@@ -1,0 +1,116 @@
+# AI Chat Assistant
+
+AIA includes a built-in **AI Chat Assistant** powered by **You.com** that you can use to ask questions about incidents, get fix suggestions, and learn best practices — all without leaving the dashboard.
+
+## Overview
+
+The AI Chat page (`/chat`) provides a conversational interface where you can:
+
+- Ask about your active incidents
+- Request help with specific error types
+- Get best practices for deployment reliability
+- Learn how to reduce incident resolution time
+
+## Accessing the Chat
+
+Navigate to the **Chat** section from the top navigation bar. The chat requires you to be signed in.
+
+## Interface
+
+The chat UI provides:
+
+- **Message history** — Scrollable conversation view with timestamps
+- **Role indicators** — Bot icon for AI, person icon for user
+- **Suggested questions** — Pre-built prompts shown on first load
+- **Rich input** — Press Enter (without Shift) or click Send
+
+### Suggested Questions (shown on first load)
+
+- "What are my most critical incidents?"
+- "How do I fix a null pointer exception?"
+- "What causes deployment failures?"
+- "Show me best practices for error handling"
+- "How can I reduce incident resolution time?"
+
+## API Endpoint
+
+```
+POST /api/chat
+```
+
+**Request body:**
+```json
+{
+  "message": "What causes deployment failures?"
+}
+```
+
+**Response:**
+```json
+{
+  "response": "Deployment failures are typically caused by..."
+}
+```
+
+The API proxies your message to the **You.com AI** and returns the response. You.com's models have strong general coding and DevOps knowledge, making them particularly useful for incident analysis.
+
+## Setup
+
+### Environment Variables
+
+<Tabs defaultValue="env">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="env">.env.local</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="env">
+    ```bash
+    YOU_API_KEY=ydc_your_key_here
+    ```
+  </TabsContent>
+</Tabs>
+
+### Getting a You.com API Key
+
+1. Go to [you.com](https://you.com) and sign in
+2. Visit the **API** section in your account settings
+3. Generate a new API key (starts with `ydc_`)
+4. Add it to your environment variables
+
+> **Note:** The same `YOU_API_KEY` is used by both the AI Chat feature and the Autopsy analysis service.
+
+## Behavior Details
+
+### Auto-scroll
+
+The chat window automatically scrolls to the latest message as new responses arrive.
+
+### Loading State
+
+While the AI is generating a response, a spinning loader appears in the chat window indicating **"Thinking..."**.
+
+### Error Handling
+
+If the AI response fails, an error toast is shown and a fallback message appears in the chat: *"Sorry, I encountered an error. Please try again."*
+
+## Use Cases
+
+### Incident Triage
+
+Ask the AI to help you prioritize: *"Which incidents should I investigate first?"*
+
+### Fix Guidance
+
+Paste an error message and ask: *"What are the common causes of this error and how do I fix it?"*
+
+### Learning
+
+Get explanations for complex concepts: *"What is the difference between a deployment failure and a runtime error?"*
+
+## Next Steps
+
+- [Voice Control](/docs/features/voice) — Control AIA with spoken commands
+- [Incident Timeline](/docs/features/timeline) — Visual progress tracker for all incidents
+- [AI Engine](/docs/architecture/ai-engine) — How the Autopsy AI analysis works

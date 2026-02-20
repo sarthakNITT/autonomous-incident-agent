@@ -1,0 +1,134 @@
+# Kilo AI Integration
+
+AIA integrates with **Kilo Code** (VS Code extension) to let you open an incident fix prompt directly inside your editor with one click — no copy-paste required.
+
+## Overview
+
+The **"Fix with Kilo"** button on each incident card:
+
+1. Sends the incident context to `/api/kilo/prompt`
+2. Receives a fully-formatted AI fix prompt
+3. Copies it to your clipboard automatically
+4. Opens VS Code with the Kilo extension (`vscode://kilo-technologies.kilo-code`)
+
+You can then paste (`Cmd+V` / `Ctrl+V`) the prompt into Kilo and let it autonomously fix the error.
+
+## How It Works
+
+### API Endpoint
+
+```
+POST /api/kilo/prompt
+```
+
+**Request body:**
+```json
+{
+  "incident_id": "abc123",
+  "title": "TypeError: Cannot read properties of undefined",
+  "root_cause": "The user object is null when accessed",
+  "stack_trace": "...",
+  "patch_diff": "--- a/src/...",
+  "manual_steps": ["Step 1: Open file...", "Step 2: Add null check..."]
+}
+```
+
+**Response:**
+```json
+{
+  "kilo_prompt": "Fix the following incident in your codebase:\n\nTitle: ...\nRoot Cause: ...\nManual Steps:\n1. ...\n\nPlease analyze the root cause and apply a fix.",
+  "incident_id": "abc123"
+}
+```
+
+### Prompt Structure
+
+The generated Kilo prompt includes:
+
+- **Incident title** and ID
+- **Root cause analysis** from the AI autopsy
+- **Manual fix steps** (numbered list)
+- **Patch diff** (if available) for reference
+- **Fix instruction** directing Kilo to apply the change
+
+## Setup
+
+### Prerequisites
+
+Install the **Kilo Code** VS Code extension:
+
+1. Open VS Code
+2. Go to Extensions (`Cmd+Shift+X`)
+3. Search for **Kilo Code**
+4. Install it
+
+No additional environment variables are needed — the integration works out of the box.
+
+### Usage
+
+<Steps>
+  <Step>
+    ### Trigger an Incident
+
+    Let AIA detect a deployment failure via webhook, or manually trigger one from the sample app.
+  </Step>
+
+  <Step>
+    ### Open the Incident Card
+
+    Navigate to the **Incidents** page and find an incident with an autopsy result (showing root cause analysis).
+  </Step>
+
+  <Step>
+    ### Click "Fix with Kilo"
+
+    The button will:
+    - Show "Opening..." while the prompt is being generated
+    - Copy the prompt to your clipboard
+    - Display a toast: *"Fix prompt copied! Paste it in Kilo (Cmd+V) →"*
+    - Open VS Code with the Kilo extension after 800ms
+  </Step>
+
+  <Step>
+    ### Paste in Kilo
+
+    In VS Code, switch to the Kilo panel and paste (`Cmd+V`). Kilo will read the prompt and autonomously apply the fix.
+  </Step>
+</Steps>
+
+## Prompt Engineering
+
+The Kilo prompt format is designed to give the AI agent maximum context:
+
+```
+Fix the following incident in your codebase:
+
+Title: <incident title>
+Root Cause: <AI-analyzed root cause>
+
+Manual Fix Steps:
+1. <step 1>
+2. <step 2>
+...
+
+Suggested Patch Diff:
+--- a/src/...
++++ b/src/...
+@@ ...
+
+Please analyze the root cause above and apply the appropriate fix.
+```
+
+## Dashboard UI
+
+The button is conditionally shown — it only appears when the incident has completed **autopsy analysis** (i.e., root cause and fix steps are available).
+
+```
+[Download PDF] [Foxit Report] [Fix with Kilo ⚡] [Cline Pipeline] [Visualize in Miro]
+```
+
+## Next Steps
+
+- [Cline Pipeline](/docs/integrations/cline) — Full automated fix pipeline with Cline
+- [Foxit Reports](/docs/integrations/foxit) — Generate professional PDF reports
+- [AI Chat](/docs/features/chat) — Ask the AI assistant about your incidents

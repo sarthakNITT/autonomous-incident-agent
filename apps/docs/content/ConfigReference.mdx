@@ -78,13 +78,13 @@ R2_ACCOUNT_ID=your_account_id
 
 | Field | Type | Required | Description |
 | :--- | :--- | :--- | :--- |
-| `project_name` | `string` | ✅ | Project identifier |
-| `cluster_env` | `string` | ✅ | Environment (dev/prod) |
-| `services` | `object` | ✅ | Service ports and URLs |
-| `github` | `object` | ✅ | GitHub integration |
-| `ai` | `object` | ✅ | AI provider config |
-| `paths` | `object` | ❌ | File paths |
-| `storage` | `object` | ❌ | R2 storage (optional) |
+| `project_name` | `string` | Project identifier |
+| `cluster_env` | `string` | Environment (dev/prod) |
+| `services` | `object` | Service ports and URLs |
+| `github` | `object` | GitHub integration |
+| `ai` | `object` | AI provider config |
+| `paths` | `object` | File paths |
+| `storage` | `object` | R2 storage (optional) |
 
 ### Services
 
@@ -160,13 +160,13 @@ Each service has:
 
 | Field | Type | Required | Description |
 | :--- | :--- | :--- | :--- |
-| `provider` | `string` | ✅ | Always "github" |
-| `token` | `string` | ✅ | GitHub PAT (from .env) |
-| `owner` | `string` | ✅ | GitHub username/org |
-| `repo` | `string` | ✅ | Repository name |
-| `base_branch` | `string` | ✅ | Default branch (main/master) |
-| `username` | `string` | ❌ | Git commit author name |
-| `email` | `string` | ❌ | Git commit author email |
+| `provider` | `string` | Always "github" |
+| `token` | `string` | GitHub PAT (from .env) |
+| `owner` | `string` | GitHub username/org |
+| `repo` | `string` | Repository name |
+| `base_branch` | `string` | Default branch (main/master) |
+| `username` | `string` | Git commit author name |
+| `email` | `string` | Git commit author email |
 
 ### AI Configuration
 
@@ -189,9 +189,9 @@ Each service has:
 
 | Field | Type | Required | Description |
 | :--- | :--- | :--- | :--- |
-| `provider` | `string` | ✅ | AI provider (you.com) |
-| `model` | `string` | ✅ | Model name |
-| `api_url` | `string` | ✅ | API endpoint |
+| `provider` | `string` | AI provider (you.com) |
+| `model` | `string` | Model name |
+| `api_url` | `string` | API endpoint |
 
 **Models:**
 - `express`: Fast, good quality

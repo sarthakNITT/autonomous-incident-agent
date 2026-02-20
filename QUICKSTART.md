@@ -42,11 +42,11 @@ CLERK_SECRET_KEY=sk_live_...
 
 This script will:
 
-1. ✅ Check environment variables
-2. ✅ Run database migrations
-3. ✅ Build Docker images
-4. ✅ Start all services
-5. ✅ Verify health checks
+1. Check environment variables
+2. Run database migrations
+3. Build Docker images
+4. Start all services
+5. Verify health checks
 
 ## Step 3: Verify Deployment
 

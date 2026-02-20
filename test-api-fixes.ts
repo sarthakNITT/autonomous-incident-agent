@@ -28,8 +28,8 @@ async function testEndpoint(
       status: response.status,
       success,
       message: success
-        ? `✅ Success`
-        : `❌ Expected ${expectedStatus}, got ${response.status}`,
+        ? ` Success`
+        : ` Expected ${expectedStatus}, got ${response.status}`,
       data,
     };
   } catch (error: any) {
@@ -37,7 +37,7 @@ async function testEndpoint(
       endpoint: url,
       status: 0,
       success: false,
-      message: `❌ Error: ${error.message}`,
+      message: `Error: ${error.message}`,
     };
   }
 }

@@ -8,151 +8,169 @@ const config = loadConfig();
 
 const DEMO_OUT = config.paths.reports;
 
-async function runCommand(command: string, args: string[], cwd: string = "."): Promise<void> {
-    console.log(`> ${command} ${args.join(" ")}`);
-    const proc = spawn(command, args, { cwd, stdio: "inherit" });
-    await new Promise<void>((resolve, reject) => {
-        proc.on("close", (code) => {
-            if (code === 0) resolve();
-            else reject(new Error(`Command failed with code ${code}`));
-        });
+async function runCommand(
+  command: string,
+  args: string[],
+  cwd: string = ".",
+): Promise<void> {
+  console.log(`> ${command} ${args.join(" ")}`);
+  const proc = spawn(command, args, { cwd, stdio: "inherit" });
+  await new Promise<void>((resolve, reject) => {
+    proc.on("close", (code) => {
+      if (code === 0) resolve();
+      else reject(new Error(`Command failed with code ${code}`));
     });
+  });
 }
 
-async function runCommandWithOutput(command: string, args: string[], cwd: string = "."): Promise<string> {
-    return new Promise((resolve, reject) => {
-        const proc = spawn(command, args, { cwd, stdio: ["ignore", "pipe", "pipe"] });
-        let stdout = "";
-        proc.stdout.on("data", (d) => stdout += d.toString());
-        proc.on("close", (code) => {
-            if (code === 0) resolve(stdout.trim());
-            else reject(new Error(`Command failed with code ${code}`));
-        });
+async function runCommandWithOutput(
+  command: string,
+  args: string[],
+  cwd: string = ".",
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const proc = spawn(command, args, {
+      cwd,
+      stdio: ["ignore", "pipe", "pipe"],
     });
+    let stdout = "";
+    proc.stdout.on("data", (d) => (stdout += d.toString()));
+    proc.on("close", (code) => {
+      if (code === 0) resolve(stdout.trim());
+      else reject(new Error(`Command failed with code ${code}`));
+    });
+  });
 }
 
 async function main() {
-    console.log(`=== Starting ${config.project_name} Demo ===`);
+  console.log(`=== Starting ${config.project_name} Demo ===`);
 
-    const args = process.argv.slice(2);
-    let scenarioId = "1";
-    if (args.length >= 2 && args[0] === "--scenario") {
-        scenarioId = args[1];
-    }
+  const args = process.argv.slice(2);
+  let scenarioId = "1";
+  if (args.length >= 2 && args[0] === "--scenario") {
+    scenarioId = args[1];
+  }
 
-    const startTime = Date.now();
+  const startTime = Date.now();
 
-    console.log("\n[1/10] Resetting Environment...");
-    await runCommand("docker-compose", ["down"]);
-    if (fs.existsSync(DEMO_OUT)) fs.rmSync(DEMO_OUT, { recursive: true });
-    fs.mkdirSync(DEMO_OUT, { recursive: true });
+  console.log("\n[1/10] Resetting Environment...");
+  await runCommand("docker-compose", ["down"]);
+  if (fs.existsSync(DEMO_OUT)) fs.rmSync(DEMO_OUT, { recursive: true });
+  fs.mkdirSync(DEMO_OUT, { recursive: true });
 
-    const dirsToClean = [
-        config.paths.events,
-        config.paths.storage,
-        config.paths.autopsy_output,
-        config.paths.patches,
-        config.paths.pr_description,
-        join(config.paths.repo_root, "app/test/generated"),
-        config.paths.repro_logs,
-        config.paths.reports
-    ];
+  const dirsToClean = [
+    config.paths.events,
+    config.paths.storage,
+    config.paths.autopsy_output,
+    config.paths.patches,
+    config.paths.pr_description,
+    join(config.paths.repo_root, "app/test/generated"),
+    config.paths.repro_logs,
+    config.paths.reports,
+  ];
 
-    for (const d of dirsToClean) {
-        if (fs.existsSync(d)) fs.rmSync(d, { recursive: true });
-        fs.mkdirSync(d, { recursive: true });
-    }
+  for (const d of dirsToClean) {
+    if (fs.existsSync(d)) fs.rmSync(d, { recursive: true });
+    fs.mkdirSync(d, { recursive: true });
+  }
 
-    console.log("\n[2/10] Starting Docker Stack...");
-    await runCommand("docker-compose", ["up", "-d", "--build"]);
-    console.log("Waiting for services to be ready (10s)...");
-    await Bun.sleep(10000);
+  console.log("\n[2/10] Starting Docker Stack...");
+  await runCommand("docker-compose", ["up", "-d", "--build"]);
+  console.log("Waiting for services to be ready (10s)...");
+  await Bun.sleep(10000);
 
-    console.log(`\n[3/10] Triggering Bug...`);
-    const scenarioPath = `test/bug-scenarios/scenario-${scenarioId}.json`;
-    if (!fs.existsSync(scenarioPath)) {
-        throw new Error(`Scenario file not found: ${scenarioPath}`);
-    }
-    const scenarioPayload = await Bun.file(scenarioPath).json();
+  console.log(`\n[3/10] Triggering Bug...`);
+  const scenarioPath = `test/bug-scenarios/scenario-${scenarioId}.json`;
+  if (!fs.existsSync(scenarioPath)) {
+    throw new Error(`Scenario file not found: ${scenarioPath}`);
+  }
+  const scenarioPayload = await Bun.file(scenarioPath).json();
 
-    try {
-        await fetch(`${config.services.sample_app.base_url}/trigger`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(scenarioPayload)
-        });
-    } catch (e) {
-        console.log("Trigger request sent.");
-    }
-
-    console.log("\n[4/10] Waiting for Agent to Detect Incident...");
-    let incidentFile = "";
-    const eventsDir = config.paths.events;
-
-    for (let i = 0; i < 20; i++) {
-        await Bun.sleep(1000);
-        if (fs.existsSync(eventsDir)) {
-            const files = fs.readdirSync(eventsDir);
-            if (files.length > 0) {
-                incidentFile = join(eventsDir, files[0]);
-                console.log(`Incident detected: ${incidentFile}`);
-                break;
-            }
-        }
-    }
-    if (!incidentFile) throw new Error("Timeout waiting for incident event");
-
-    console.log("\n[5/10] Ingesting Incident to Router...");
-    const incidentData = await Bun.file(incidentFile).json();
-    const ingestRes = await fetch(`${config.services.router.base_url}/ingest`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(incidentData)
+  try {
+    await fetch(`${config.services.sample_app.base_url}/trigger`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(scenarioPayload),
     });
-    if (!ingestRes.ok) throw new Error("Ingest failed");
-    const ingestJson = await ingestRes.json() as any;
-    const snapshotId = ingestJson.snapshot_id;
-    console.log(`Snapshot Created: ${snapshotId}`);
+  } catch (e) {
+    console.log("Trigger request sent.");
+  }
 
+  console.log("\n[4/10] Waiting for Agent to Detect Incident...");
+  let incidentFile = "";
+  const eventsDir = config.paths.events;
+
+  for (let i = 0; i < 20; i++) {
     await Bun.sleep(1000);
-
-    console.log("\n[6/10] Analyzing Root Cause via Autopsy...");
-    const analyzeRes = await fetch(`${config.services.autopsy.base_url}/analyze`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ snapshot_id: snapshotId, repo_path: "/repo" })
-    });
-    if (!analyzeRes.ok) throw new Error("Analysis failed");
-    console.log("Analysis Complete.");
-
-    console.log("\n[7/10] Generating PR Artifacts...");
-    console.log("PR Artifacts generated by Autopsy (uploaded to R2).");
-
-    console.log("\n[8/10] Verifying Fix with Repro Harness...");
-    console.log("Skipping local repro run in Demo until repro harness is R2-enabled (next task).");
-
-    console.log("\n[9/10] Exporting Dashboard PDF...");
-    console.log("Skipping PDF export (needs R2 refactor).");
-
-    console.log("\n[10/10] Collecting Demo Artifacts...");
-    console.log("Artifacts are stored in R2 Bucket: " + config.storage.bucket);
-
-    try {
-        const storage = new R2Client(config.storage);
-        const keys = await storage.listKeys(`incidents/${incidentData.id}/`);
-        console.log("Keys in R2:", keys);
-    } catch (e) {
-        console.warn("Could not list R2 keys (likely missing credentials). Use Dashboard to view.");
+    if (fs.existsSync(eventsDir)) {
+      const files = fs.readdirSync(eventsDir);
+      if (files.length > 0) {
+        incidentFile = join(eventsDir, files[0]);
+        console.log(`Incident detected: ${incidentFile}`);
+        break;
+      }
     }
+  }
+  if (!incidentFile) throw new Error("Timeout waiting for incident event");
 
-    console.log("\nCleaning up...");
-    await runCommand("docker-compose", ["down"]);
+  console.log("\n[5/10] Ingesting Incident to Router...");
+  const incidentData = await Bun.file(incidentFile).json();
+  const ingestRes = await fetch(`${config.services.router.base_url}/ingest`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(incidentData),
+  });
+  if (!ingestRes.ok) throw new Error("Ingest failed");
+  const ingestJson = (await ingestRes.json()) as any;
+  const snapshotId = ingestJson.snapshot_id;
+  console.log(`Snapshot Created: ${snapshotId}`);
 
-    const duration = (Date.now() - startTime) / 1000;
-    console.log(`\n=== Demo Pipeline Complete in ${duration.toFixed(1)}s ===`);
+  await Bun.sleep(1000);
+
+  console.log("\n[6/10] Analyzing Root Cause via Autopsy...");
+  const analyzeRes = await fetch(
+    `${config.services.autopsy.base_url}/analyze`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ snapshot_id: snapshotId, repo_path: "/repo" }),
+    },
+  );
+  if (!analyzeRes.ok) throw new Error("Analysis failed");
+  console.log("Analysis Complete.");
+
+  console.log("\n[7/10] Generating PR Artifacts...");
+  console.log("PR Artifacts generated by Autopsy (uploaded to R2).");
+
+  console.log("\n[8/10] Verifying Fix with Repro Harness...");
+  console.log(
+    "Skipping local repro run in Demo until repro harness is R2-enabled (next task).",
+  );
+
+  console.log("\n[9/10] Exporting Dashboard PDF...");
+  console.log("Skipping PDF export (needs R2 refactor).");
+
+  console.log("\n[10/10] Collecting Demo Artifacts...");
+  console.log("Artifacts are stored in R2 Bucket: " + config.storage.bucket);
+
+  try {
+    const storage = new R2Client(config.storage);
+    const keys = await storage.listKeys(`incidents/${incidentData.id}/`);
+    console.log("Keys in R2:", keys);
+  } catch (e) {
+    console.warn(
+      "Could not list R2 keys (likely missing credentials). Use Dashboard to view.",
+    );
+  }
+
+  console.log("\nCleaning up...");
+  await runCommand("docker-compose", ["down"]);
+
+  const duration = (Date.now() - startTime) / 1000;
+  console.log(`\n=== Demo Pipeline Complete in ${duration.toFixed(1)}s ===`);
 }
 
-main().catch(err => {
-    console.error("\n❌ Demo Failed:", err);
-    process.exit(1);
+main().catch((err) => {
+  console.error("\nDemo Failed:", err);
+  process.exit(1);
 });

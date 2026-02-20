@@ -237,5 +237,5 @@ console.log(
   `[Miro Integration] Board: https://miro.com/app/board/${MIRO_DEFAULT_BOARD_ID}/`,
 );
 console.log(
-  `[Miro Integration] Token: ${MIRO_ACCESS_TOKEN ? "✅ Set" : "❌ Missing"}`,
+  `[Miro Integration] Token: ${MIRO_ACCESS_TOKEN ? "Set" : "Missing"}`,
 );

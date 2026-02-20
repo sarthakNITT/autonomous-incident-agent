@@ -88,11 +88,11 @@ js-yaml aia.config.yaml
 
 **Example fix:**
 ```yaml
-# ❌ Wrong
+# Wrong
 github:
 owner: my-org  # Missing indentation
 
-# ✅ Correct
+# Correct
 github:
   owner: "my-org"
 ```
@@ -553,9 +553,9 @@ cat > check-health.sh << 'EOF'
 #!/bin/bash
 for port in 4318 3000 3001 3002 3003 3004; do
   if curl -s http://localhost:$port/health > /dev/null; then
-    echo "✅ Port $port - healthy"
+    echo "Port $port - healthy"
   else
-    echo "❌ Port $port - unhealthy"
+    echo "Port $port - unhealthy"
   fi
 done
 EOF

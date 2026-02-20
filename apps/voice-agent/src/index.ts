@@ -244,5 +244,5 @@ const server = Bun.serve({
 
 console.log(`[Voice Agent] Service running on http://localhost:${PORT}`);
 console.log(
-  `[Voice Agent] Deepgram API Key: ${DEEPGRAM_API_KEY ? "✅ Set" : "❌ Missing"}`,
+  `[Voice Agent] Deepgram API Key: ${DEEPGRAM_API_KEY ? "Set" : "Missing"}`,
 );

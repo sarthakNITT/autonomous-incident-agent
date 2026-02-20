@@ -1,0 +1,139 @@
+# Foxit PDF Reports
+
+AIA integrates with **Foxit Document Generation API** to produce professional-grade incident PDF reports with a single click — directly from the incident card in the dashboard.
+
+## Overview
+
+Each incident has a **"Foxit Report"** button that calls `/api/foxit/report/:id`. This endpoint:
+
+1. Fetches incident data from the State service
+2. Builds a valid DOCX file entirely in-memory (no temp files, no disk I/O)
+3. Sends the DOCX to the Foxit Document Generation API
+4. Receives a PDF back and streams it to the browser for download
+
+## How It Works
+
+### 1. DOCX Generation
+
+AIA programmatically constructs a minimal DOCX (ZIP-based OOXML) containing:
+
+```
+[Content_Types].xml   — MIME type declarations
+_rels/.rels           — Root relationships
+word/document.xml     — The actual incident report content
+word/_rels/document.xml.rels
+```
+
+**Fields included in the report:**
+
+| Field | Source |
+| :--- | :--- |
+| Incident ID | `incident.id` |
+| Title | `incident.title` |
+| Status | `incident.status` |
+| Date | `incident.created_at` |
+| Root Cause | `autopsy.root_cause_text` |
+| Fix Steps | `autopsy.manual_steps` (joined with `;`) |
+| Confidence | `autopsy.confidence` (as %) |
+
+### 2. Foxit API Call
+
+The DOCX is Base64-encoded and sent to:
+
+```
+POST https://na1.fusion.foxit.com/document-generation/api/GenerateDocumentBase64
+```
+
+**Request headers:**
+```
+client_id: <FOXIT_CLIENT_ID>
+client_secret: <FOXIT_CLIENT_SECRET>
+Content-Type: application/json
+```
+
+**Request body:**
+```json
+{
+  "base64FileString": "<base64-encoded DOCX>",
+  "outputFormat": "pdf"
+}
+```
+
+### 3. PDF Download
+
+The PDF is streamed directly to the browser:
+
+```
+Content-Type: application/pdf
+Content-Disposition: attachment; filename="incident-<id>-report.pdf"
+X-Generated-By: Foxit Document Generation API
+```
+
+## Setup
+
+### Environment Variables
+
+<Tabs defaultValue="env">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="env">.env.local</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="env">
+    ```bash
+    FOXIT_CLIENT_ID=your_foxit_client_id
+    FOXIT_CLIENT_SECRET=your_foxit_client_secret
+    ```
+  </TabsContent>
+</Tabs>
+
+### Getting Foxit Credentials
+
+1. Go to [developer-api.foxit.com](https://developer-api.foxit.com/)
+2. Create a free developer account
+3. Create a new application
+4. Copy the **Client ID** and **Client Secret**
+
+> **Note:** If `FOXIT_CLIENT_ID` or `FOXIT_CLIENT_SECRET` are missing, the endpoint returns `503` with a setup guide.
+
+## API Endpoint
+
+```
+GET /api/foxit/report/:id
+```
+
+**Path Parameters:**
+
+| Parameter | Description |
+| :--- | :--- |
+| `id` | The incident ID |
+
+**Success Response:** A PDF file download
+
+**Error Responses:**
+
+| Status | Reason |
+| :--- | :--- |
+| `503` | Foxit credentials not configured |
+| `500` | PDF generation failed |
+
+## Triggering from the Dashboard
+
+On any incident card in the Incidents page, click:
+
+> **📄 Foxit Report**
+
+The browser will automatically download `incident-<id>-report.pdf`.
+
+## Implementation Details
+
+The DOCX is constructed entirely without external dependencies — using a pure JavaScript ZIP encoder and CRC32 implementation built into the route handler. This means no `adm-zip`, `jszip`, or `docxtemplater` packages are required.
+
+XML-special characters in incident data are automatically escaped to prevent malformed output.
+
+## Next Steps
+
+- [Incidents](/docs/incidents) — Managing incidents from the dashboard
+- [Kilo Integration](/docs/integrations/kilo) — AI-powered fix workflow with VS Code
+- [Miro Integration](/docs/integrations/miro) — Visualize incidents as Miro boards

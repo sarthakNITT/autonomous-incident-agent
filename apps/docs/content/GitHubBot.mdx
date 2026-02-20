@@ -1,6 +1,17 @@
 # GitHub Integration
 
-AIA automatically creates Pull Requests on GitHub with AI-generated fixes and detailed remediation instructions.
+AIA integrates with GitHub at the **per-project level** — each project you create in the dashboard has its own GitHub Personal Access Token and repository settings. This means you can monitor multiple repos with different tokens without any cross-contamination.
+
+## Resolution Modes
+
+When you create a project, you choose how AIA handles the fix:
+
+| Mode | What happens |
+| :--- | :--- |
+| **Auto PR** | AIA clones the repo, applies the AI patch, and opens a GitHub Pull Request automatically |
+| **Manual Fix** | AIA shows the root cause, AI fix prompt, and manual steps in the dashboard — no PR created |
+
+You can update the resolution mode at any time from the project settings in the dashboard.
 
 ## How It Works
 
@@ -19,7 +30,7 @@ When an incident is detected and analyzed:
 
 ## Setup
 
-### Step 1: Create GitHub Personal Access Token
+### Create a GitHub Personal Access Token
 
 1. Go to [GitHub Settings → Tokens](https://github.com/settings/tokens)
 2. Click **"Generate new token (classic)"**
@@ -28,51 +39,19 @@ When an incident is detected and analyzed:
 5. Click **"Generate token"**
 6. **Copy the token** (starts with `ghp_`)
 
-### Step 2: Configure Environment
+### Add Token to Your AIA Project
 
-Add to `.env`:
+When creating a project in the AIA dashboard:
 
-<Tabs defaultValue="bash">
-  <TabsList>
-    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
-      <TabsTrigger value="bash">bash</TabsTrigger>
-    </div>
-    <TabsCopyButton />
-  </TabsList>
-  <TabsContent value="bash">
-    ```bash
-    GITHUB_TOKEN=ghp_your_actual_token_here
-    ```
-  </TabsContent>
-</Tabs>
+1. Enter your **GitHub Repository URL** (e.g., `https://github.com/org/my-app`)
+2. Paste your **GitHub Token** into the token field
+3. Select your **Base Branch** (AIA fetches available branches automatically)
+4. Choose **Resolution Mode**: Auto PR or Manual Fix
 
-### Step 3: Configure Repository
+The token is stored encrypted and associated only with that project — it is never shared with other projects.
 
-Create `aia.config.local.yaml`:
+> **For contributors (self-hosting):** Add the token to `.env.local` as `GITHUB_TOKEN` for the development fallback, or use the per-project system via the dashboard UI.
 
-<Tabs defaultValue="yaml">
-  <TabsList>
-    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
-      <TabsTrigger value="yaml">yaml</TabsTrigger>
-    </div>
-    <TabsCopyButton />
-  </TabsList>
-  <TabsContent value="yaml">
-    ```yaml
-    github:
-      provider: "github"
-      token: "PLACEHOLDER"  # Read from .env
-      owner: "your-github-username"
-      repo: "your-repo-name"
-      base_branch: "main"
-    ```
-  </TabsContent>
-</Tabs>
-
-**Example:**
-- Repo: `https://github.com/johndoe/my-app`
-- Set `owner: "johndoe"`
-- Set `repo: "my-app"`
 
 ## Pull Request Structure
 
@@ -141,9 +120,9 @@ The GitHub token needs:
 
 | Permission | Required | Reason |
 | :--- | :--- | :--- |
-| **repo** | ✅ Yes | Clone, push, create PRs |
-| **Contents** | ✅ (included in repo) | Read/write code |
-| **Pull Requests** | ✅ (included in repo) | Create and manage PRs |
+| **repo** | Yes | Clone, push, create PRs |
+| **Contents** | (included in repo) | Read/write code |
+| **Pull Requests** | (included in repo) | Create and manage PRs |
 
 **Note:** Classic tokens with `repo` scope include all necessary permissions.
 

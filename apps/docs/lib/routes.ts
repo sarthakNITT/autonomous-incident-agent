@@ -1,25 +1,36 @@
 export const docsRoutes = [
   { title: "Getting Started", href: "/getting-started" },
+  { title: "Installation", href: "/install" },
+  { title: "Running Agent", href: "/running-agent" },
+
+  // Architecture
   { title: "Architecture Overview", href: "/architecture/overview" },
+  { title: "Architecture", href: "/architecture" },
   { title: "Data Flow", href: "/architecture/data-flow" },
   { title: "AI Engine", href: "/architecture/ai-engine" },
-  { title: "R2 Lifecycle", href: "/architecture/r2-lifecycle" },
-  { title: "Git Integration", href: "/architecture/git-integration" },
-  { title: "Repro Pipeline", href: "/architecture/repro-pipeline" },
-  { title: "Config Reference", href: "/reference/config" },
-  { title: "Event Schema", href: "/reference/events" },
-  { title: "R2 Layout", href: "/reference/r2-layout" },
   { title: "State Schema", href: "/reference/state" },
-  { title: "CLI Reference", href: "/reference/cli" },
+  { title: "Config Reference", href: "/reference/config" },
+
+  // Monitoring
+  { title: "Webhook Monitoring", href: "/webhooks" },
+  { title: "Incident Timeline", href: "/features/timeline" },
+  { title: "OpenTelemetry", href: "/opentelemetry" },
+
+  // Dashboard Features
+  { title: "AI Chat Assistant", href: "/features/chat" },
+  { title: "Voice Control", href: "/features/voice" },
+
+  // Integrations
+  { title: "Foxit PDF Reports", href: "/integrations/foxit" },
+  { title: "Kilo AI Integration", href: "/integrations/kilo" },
+  { title: "Cline Pipeline", href: "/integrations/cline" },
+  { title: "Miro Integration", href: "/integrations/miro" },
+  { title: "GitHub Bot", href: "/github-bot" },
+
+  // Tutorials
   { title: "Node.js Tutorial", href: "/tutorials/node" },
   { title: "Next.js Tutorial", href: "/tutorials/next" },
-  { title: "Vercel Tutorial", href: "/tutorials/vercel" },
-  { title: "Netlify Tutorial", href: "/tutorials/netlify" },
-  { title: "Debugging Guide", href: "/tutorials/debug" },
-  { title: "Installation", href: "/install" },
-  { title: "OpenTelemetry", href: "/opentelemetry" },
-  { title: "R2 Setup", href: "/r2-setup" },
-  { title: "GitHub Bot", href: "/github-bot" },
-  { title: "Running Agent", href: "/running-agent" },
+
+  // Operations
   { title: "Troubleshooting", href: "/troubleshooting" },
 ];

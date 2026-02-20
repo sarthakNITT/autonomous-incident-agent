@@ -1,0 +1,161 @@
+# Voice Control
+
+AIA includes a **voice command interface** powered by **Deepgram** speech-to-text. Hold the microphone button in the navbar to issue spoken commands — no typing required.
+
+## Overview
+
+The voice control button (🎤) in the top navigation bar lets you:
+
+- Navigate to incidents
+- Filter for critical incidents
+- Jump to the latest incident
+- Get a quick **status summary** of total/resolved/open incidents
+
+All voice processing is done server-side via Deepgram's Nova-2 ASR model.
+
+## Supported Commands
+
+| Voice Command | Action |
+| :--- | :--- |
+| "Show incidents" / "List incidents" | Navigate to `/incidents` |
+| "Show critical incidents" | Navigate to `/incidents?filter=critical` |
+| "Show latest incident" | Jump to the most recent incident |
+| "Status summary" / "How many incidents" | Display a summary toast notification |
+
+**Example status summary response:**
+```
+📊 Status: 12 Total, 9 Resolved, 3 Open
+```
+
+## How It Works
+
+<Steps>
+  <Step>
+    ### Hold the Mic Button
+
+    Press and hold the microphone button (🎤) in the navbar. The button turns red and pulses while recording. A toast shows **"Listening..."**.
+  </Step>
+
+  <Step>
+    ### Speak Your Command
+
+    Say one of the supported commands. Release the button when done.
+  </Step>
+
+  <Step>
+    ### Audio Processing
+
+    The audio is sent to `/api/voice/command` as a `multipart/form-data` POST request. The server:
+    - Sends the audio to **Deepgram Nova-2** for transcription
+    - Parses the transcript to identify the command intent
+    - Returns the action and any relevant data
+
+    A loading toast shows **"Processing audio..."** during transcription.
+  </Step>
+
+  <Step>
+    ### Action Executed
+
+    The transcript is shown briefly ("Heard: 'show incidents'"), then the action is taken automatically.
+  </Step>
+</Steps>
+
+## API Endpoint
+
+```
+POST /api/voice/command
+Content-Type: multipart/form-data
+```
+
+**Form data:**
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `audio` | `Blob` | Audio recording (WAV format) |
+
+**Success response:**
+```json
+{
+  "transcript": "show critical incidents",
+  "command_result": {
+    "action": "critical_incidents"
+  }
+}
+```
+
+**Status summary response:**
+```json
+{
+  "transcript": "status summary",
+  "command_result": {
+    "action": "status_summary",
+    "total": 12,
+    "resolved": 9,
+    "open": 3
+  }
+}
+```
+
+**Latest incident response:**
+```json
+{
+  "transcript": "show latest incident",
+  "command_result": {
+    "action": "latest_incident",
+    "incident": { "id": "abc123" }
+  }
+}
+```
+
+## Setup
+
+### Environment Variables
+
+<Tabs defaultValue="env">
+  <TabsList>
+    <div className="flex items-center rounded-[4px] bg-[#18181b] p-0.5 border border-zinc-800/50">
+      <TabsTrigger value="env">.env.local</TabsTrigger>
+    </div>
+    <TabsCopyButton />
+  </TabsList>
+  <TabsContent value="env">
+    ```bash
+    DEEPGRAM_API_KEY=your_deepgram_api_key
+    ```
+  </TabsContent>
+</Tabs>
+
+### Getting a Deepgram API Key
+
+1. Sign up at [deepgram.com](https://deepgram.com/)
+2. Go to **API Keys** in your dashboard
+3. Create a new key with **Usage** permissions
+4. Copy the key to your `.env.local`
+
+> **Free tier:** Deepgram offers $200 in free credits — sufficient for extensive development and testing.
+
+### Browser Permissions
+
+The browser will prompt for **microphone access** the first time you use the voice button. You must allow this for voice commands to work.
+
+## UI Behavior
+
+| State | Button Appearance |
+| :--- | :--- |
+| Idle | Outlined mic icon (◎🎤) |
+| Recording | Red background, pulsing animation |
+| Processing | Spinning loader (🔄) |
+
+The button uses `onMouseDown` / `onMouseUp` (and `onTouchStart` / `onTouchEnd` for mobile) to start/stop recording, making it feel like a push-to-talk walkie-talkie.
+
+## Limitations
+
+- Commands must match recognized patterns; freeform speech returns a generic message
+- Recording is limited to the duration you hold the button
+- Requires HTTPS in production (browser mic API requirement)
+
+## Next Steps
+
+- [AI Chat](/docs/features/chat) — Text-based AI assistant for incident queries
+- [Incident Timeline](/docs/features/timeline) — Real-time incident progress tracking
+- [Miro Integration](/docs/integrations/miro) — Visualize incidents as collaborative boards

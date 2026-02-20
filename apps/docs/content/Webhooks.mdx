@@ -1,0 +1,189 @@
+# Webhook Monitoring
+
+AIA monitors your deployments via **webhooks** from Vercel and GitHub Pages. When a deployment fails, the webhook fires and AIA immediately begins incident detection and analysis.
+
+## Overview
+
+Instead of polling your CI/CD system, AIA uses push-based webhooks — your platform notifies AIA the moment a failure occurs. This gives you **near-instant** incident detection with zero delay.
+
+```
+Deployment fails
+     ↓
+Vercel / GitHub Pages sends webhook
+     ↓
+AIA receives event at /api/webhooks/vercel or /api/webhooks/github
+     ↓
+Incident created in database
+     ↓
+Autopsy AI analyzes root cause
+     ↓
+Fix displayed in dashboard + optional auto-PR
+```
+
+## Supported Platforms
+
+| Platform | Webhook Endpoint | Events Monitored |
+| :--- | :--- | :--- |
+| **Vercel** | `/api/webhooks/vercel` | Deployment failed |
+| **GitHub Pages** | `/api/webhooks/github` | Workflow run failed |
+
+## Setting Up Vercel Webhooks
+
+<Steps>
+  <Step>
+    ### Create a Project in AIA
+
+    Go to your **Dashboard** and create a new project:
+    - **Project Name**: Your app name
+    - **Repository URL**: `https://github.com/org/repo`
+    - **GitHub Token**: Personal Access Token (for private repos and auto-PR)
+    - **Base Branch**: Usually `main` or `master`
+    - **Resolution Mode**: Auto PR or Manual Fix
+
+    After creation, copy the **Webhook URL** shown in the project card.
+  </Step>
+
+  <Step>
+    ### Add Webhook to Vercel
+
+    1. Go to your Vercel project → **Settings** → **Git**
+    2. Scroll to **Deploy Hooks**
+    3. Paste the AIA webhook URL
+    4. Click **Save**
+
+    Alternatively, use the Vercel API:
+
+    ```bash
+    curl -X POST "https://api.vercel.com/v1/integrations/webhooks" \
+      -H "Authorization: Bearer $VERCEL_TOKEN" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "AIA Incident Monitor",
+        "url": "https://your-aia-instance.vercel.app/api/webhooks/vercel",
+        "events": ["deployment-error"]
+      }'
+    ```
+  </Step>
+
+  <Step>
+    ### Verify the Webhook
+
+    Trigger a test deployment. If it succeeds, no incident is created. To test failure detection:
+
+    - Introduce a known build error
+    - Push to your main branch
+    - Watch the AIA dashboard for a new incident
+  </Step>
+</Steps>
+
+## Setting Up GitHub Pages Webhooks
+
+<Steps>
+  <Step>
+    ### Configure Repository Webhook
+
+    1. Go to your GitHub repository → **Settings** → **Webhooks**
+    2. Click **Add webhook**
+    3. Set **Payload URL**: `https://your-aia-instance.vercel.app/api/webhooks/github`
+    4. Set **Content type**: `application/json`
+    5. Select **"Let me select individual events"**
+    6. Check **"Workflow runs"**
+    7. Click **Add webhook**
+  </Step>
+
+  <Step>
+    ### Test the Setup
+
+    Push a commit that fails a GitHub Actions workflow. Within seconds, AIA should create an incident and display it in the dashboard.
+  </Step>
+</Steps>
+
+## Resolution Modes
+
+Each project can be configured with one of two resolution modes:
+
+### Auto PR Mode
+
+AIA automatically:
+1. Creates a new branch: `aia/incident-{id}`
+2. Applies the AI-generated patch (if valid)
+3. Opens a Pull Request with the fix, root cause, and manual steps
+
+### Manual Fix Mode
+
+AIA shows in the dashboard:
+- Root cause analysis
+- AI fix prompt (copy to clipboard)
+- Step-by-step manual instructions
+- Suggested patch diff (expandable)
+
+You choose the mode when creating a project, and can update it later from the Dashboard settings.
+
+## Project Credentials
+
+AIA uses a **per-project credential model** — each project has its own GitHub token stored securely. This means:
+
+- A token breach on one project does not affect others
+- You can use different permission levels per project
+- Private and public repos can coexist
+
+## Webhook Payload Examples
+
+### Vercel Failure Payload
+
+```json
+{
+  "type": "deployment.error",
+  "payload": {
+    "deploymentId": "dpl_abc123",
+    "name": "my-app",
+    "url": "https://my-app.vercel.app",
+    "meta": {
+      "githubCommitSha": "abc123",
+      "githubRepoOwner": "my-org",
+      "githubRepo": "my-repo"
+    },
+    "error": {
+      "message": "Build failed",
+      "code": "BUILD_FAILED"
+    }
+  }
+}
+```
+
+### GitHub Actions Failure Payload
+
+```json
+{
+  "action": "completed",
+  "workflow_run": {
+    "id": 12345,
+    "name": "CI",
+    "conclusion": "failure",
+    "repository": {
+      "full_name": "my-org/my-repo",
+      "html_url": "https://github.com/my-org/my-repo"
+    }
+  }
+}
+```
+
+## Health Check
+
+Verify your webhook endpoint is reachable:
+
+```bash
+curl https://your-aia-instance.vercel.app/api/health-check
+```
+
+Expected response:
+```json
+{ "status": "ok" }
+```
+
+## Next Steps
+
+- [Dashboard Projects](/docs/getting-started) — Creating and managing projects
+- [Resolution Modes](/docs/github-bot) — Auto PR vs Manual Fix
+- [Incident Timeline](/docs/features/timeline) — Track incident progress in real-time
+- [AI Engine](/docs/architecture/ai-engine) — How root cause analysis works

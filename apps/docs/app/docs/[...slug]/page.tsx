@@ -14,20 +14,43 @@ export default async function Page(props: {
   const contentDir = path.join(process.cwd(), "content");
 
   const routeMap: Record<string, string> = {
+    // Getting Started
     "getting-started": "GettingStarted.mdx",
+    install: "Install.mdx",
+    "running-agent": "RunningAgent.mdx",
+
+    // Architecture
     architecture: "Architecture.mdx",
     "architecture/overview": "ArchitectureOverview.mdx",
     "architecture/data-flow": "DataFlow.mdx",
     "architecture/ai-engine": "AIEngine.mdx",
-    "tutorials/node": "TutorialNode.mdx",
-    "tutorials/next": "TutorialNext.mdx",
-    install: "Install.mdx",
-    opentelemetry: "OpenTelemetry.mdx",
-    "github-bot": "GitHubBot.mdx",
-    "running-agent": "RunningAgent.mdx",
-    troubleshooting: "Troubleshooting.mdx",
+
+    // References
     "reference/config": "ConfigReference.mdx",
     "reference/state": "StateSchema.mdx",
+
+    // Monitoring
+    webhooks: "Webhooks.mdx",
+    "features/timeline": "IncidentTimeline.mdx",
+    opentelemetry: "OpenTelemetry.mdx",
+
+    // Dashboard Features
+    "features/chat": "AIChat.mdx",
+    "features/voice": "VoiceControl.mdx",
+
+    // Integrations
+    "integrations/foxit": "FoxitReports.mdx",
+    "integrations/kilo": "KiloIntegration.mdx",
+    "integrations/cline": "ClinePipeline.mdx",
+    "integrations/miro": "MiroIntegration.mdx",
+    "github-bot": "GitHubBot.mdx",
+
+    // Tutorials
+    "tutorials/node": "TutorialNode.mdx",
+    "tutorials/next": "TutorialNext.mdx",
+
+    // Operations
+    troubleshooting: "Troubleshooting.mdx",
   };
 
   const filename = routeMap[slug];
@@ -61,6 +84,26 @@ export default async function Page(props: {
 export function generateStaticParams() {
   return [
     { slug: ["getting-started"] },
+    { slug: ["install"] },
+    { slug: ["running-agent"] },
+    { slug: ["architecture"] },
     { slug: ["architecture", "overview"] },
+    { slug: ["architecture", "data-flow"] },
+    { slug: ["architecture", "ai-engine"] },
+    { slug: ["reference", "config"] },
+    { slug: ["reference", "state"] },
+    { slug: ["webhooks"] },
+    { slug: ["features", "timeline"] },
+    { slug: ["features", "chat"] },
+    { slug: ["features", "voice"] },
+    { slug: ["opentelemetry"] },
+    { slug: ["integrations", "foxit"] },
+    { slug: ["integrations", "kilo"] },
+    { slug: ["integrations", "cline"] },
+    { slug: ["integrations", "miro"] },
+    { slug: ["github-bot"] },
+    { slug: ["tutorials", "node"] },
+    { slug: ["tutorials", "next"] },
+    { slug: ["troubleshooting"] },
   ];
 }
