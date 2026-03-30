@@ -1,0 +1,14 @@
+--- a/unknown
++++ b/unknown
+@@ -1,7 +1,9 @@
+-Trace Issue in Span error.handler: HTTP 500 Error: error.handler
++// Assuming the error handler is throwing or mishandling errors, fix by adding proper try-catch
++function errorHandler(err, req, res, next) {
++  try {
++    // existing error handling logic here
++    res.status(500).send({ error: err.message || 'Internal Server Error' });
++  } catch (handlerError) {
++    // fallback to avoid recursive error
++    res.status(500).send({ error: 'Unexpected error in error handler' });
++  }
+ }
